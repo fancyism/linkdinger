@@ -11,6 +11,7 @@ interface PostCardProps {
   coverImage?: string
   variant?: 'grid' | 'list'
   index?: number
+  imageAspect?: 'square' | 'portrait' | 'landscape' | 'wide'
 }
 
 export default function PostCard({
@@ -23,6 +24,7 @@ export default function PostCard({
   coverImage,
   variant = 'grid',
   index,
+  imageAspect,
 }: PostCardProps) {
 
   if (variant === 'list') {
@@ -52,10 +54,18 @@ export default function PostCard({
     )
   }
 
-  // Grid Variant (Minimalist Editorial Asymmetric)
-  const aspectClass = index !== undefined
-    ? (index % 3 === 0 ? 'aspect-square' : index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[5/4]')
-    : 'aspect-[4/3]'
+  // Grid Variant (Minimalist Editorial Asymmetric & Symmetric Mixed)
+  let aspectClass = 'aspect-[4/3]'
+  if (imageAspect === 'square') aspectClass = 'aspect-square'
+  else if (imageAspect === 'portrait') aspectClass = 'aspect-[4/5]'
+  else if (imageAspect === 'landscape') aspectClass = 'aspect-[5/4]'
+  else if (imageAspect === 'wide') aspectClass = 'aspect-[16/9]'
+  else {
+    // Fallback async organic pattern
+    aspectClass = index !== undefined
+      ? (index % 3 === 0 ? 'aspect-square' : index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[5/4]')
+      : 'aspect-[4/3]'
+  }
 
   // Format date from YYYY-MM-DD to MM.DD
   const [year, month, day] = date.split(',')[0].split('-')

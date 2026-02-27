@@ -13,6 +13,11 @@ export default function HomePage() {
   const gridPosts = remainingPosts.slice(0, 4)
   const listPosts = remainingPosts.slice(4)
 
+  const getAspectForHome = (index: number) => {
+    const pattern = ['portrait', 'square', 'wide', 'wide']
+    return pattern[index % pattern.length] as 'portrait' | 'square' | 'wide'
+  }
+
   return (
     <>
       {/* Hero: Featured Post */}
@@ -79,6 +84,7 @@ export default function HomePage() {
                   readTime={post.readTime}
                   coverImage={post.coverImage}
                   variant="grid"
+                  imageAspect={getAspectForHome(index)}
                 />
               ))}
             </div>

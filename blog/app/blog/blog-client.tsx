@@ -26,6 +26,19 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
         ? posts.filter(p => p.category === activeCategory)
         : posts
 
+    const getAspectForBlog = (index: number) => {
+        // Create an organic, highly asymmetric pattern with occasional symmetric breaks
+        const pattern = [
+            'portrait', 'square', 'landscape', // Asymmetric row
+            'landscape', 'portrait', 'square', // Asymmetric row reversed
+            'wide', 'wide', 'wide',            // Symmetric pause
+            'square', 'portrait', 'wide',      // Chaotic mixed row
+            'portrait', 'wide', 'square',      // Chaotic mixed row
+            'square', 'square', 'landscape'    // Asymmetric final
+        ]
+        return pattern[index % pattern.length] as 'portrait' | 'square' | 'wide' | 'landscape'
+    }
+
     return (
         <>
             {/* Category Filter */}
@@ -69,6 +82,7 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
                             tags={post.tags}
                             readTime={post.readTime}
                             coverImage={post.coverImage}
+                            imageAspect={getAspectForBlog(index)}
                         />
                     ))}
                 </div>
