@@ -51,6 +51,9 @@ def _make_config():
         config.formats = MOCK_CONFIG_DATA["watcher"]["formats"]
         config.output_format = MOCK_CONFIG_DATA["watcher"]["output_format"]
         config.quality = MOCK_CONFIG_DATA["watcher"]["quality"]
+        # New attributes from CMS integration
+        config.publish_folder = os.path.join(config.vault_path, "publish")
+        config.upload_log_path = os.path.join(config.assets_dir, ".upload_log.json")
         return config
 
 
@@ -144,7 +147,8 @@ class TestImageHandler:
         with patch.object(handler.processor, "convert_to_webp", return_value=("/tmp/out.webp", "abc.webp")), \
              patch.object(handler.uploader, "upload", return_value="https://r2/abc.webp"), \
              patch.object(handler.md_updater, "replace_image_link", return_value=True), \
-             patch("os.remove"):
+             patch("os.remove"), \
+             patch("obsidian_watcher._write_upload_log"):
             handler.process_image("/tmp/test-vault/photo.png")
 
         callback.assert_called_once()
@@ -158,7 +162,8 @@ class TestImageHandler:
         with patch.object(handler.processor, "convert_to_webp", return_value=("/tmp/out.webp", "abc.webp")), \
              patch.object(handler.uploader, "upload", return_value="https://r2/abc.webp"), \
              patch.object(handler.md_updater, "replace_image_link", return_value=True), \
-             patch("os.remove"):
+             patch("os.remove"), \
+             patch("obsidian_watcher._write_upload_log"):
             handler.process_image("/tmp/test-vault/photo.png")
 
         assert handler.processed_count == 1
@@ -176,12 +181,14 @@ class TestImageHandler:
 
 class TestCreateWatcher:
     def test_create_watcher_returns_observer(self, config):
-        """Should return (Observer, ImageHandler) tuple."""
+        """Should return (Observer, ImageHandler, MarkdownHandler|None) tuple."""
         from obsidian_watcher import create_watcher
         from watchdog.observers import Observer
 
         with patch.object(Observer, "schedule"):
-            observer, handler = create_watcher(config)
+            observer, handler, md_handler = create_watcher(config)
 
         assert observer is not None
         assert handler is not None
+        # No cms_callback passed, so md_handler should be None
+        assert md_handler is None

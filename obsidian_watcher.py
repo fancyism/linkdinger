@@ -2,6 +2,8 @@
 Obsidian Watcher: Monitors vault for new images, converts to WebP,
 uploads to R2, and updates markdown links.
 
+Also watches for markdown changes in publish folder for CMS sync.
+
 Part of the Linkdinger daemon.
 """
 
@@ -9,6 +11,7 @@ import os
 import re
 import time
 import uuid
+import json
 import logging
 from pathlib import Path
 from watchdog.observers import Observer
@@ -43,6 +46,17 @@ class Config:
         self.formats = cfg["watcher"]["formats"]
         self.output_format = cfg["watcher"]["output_format"]
         self.quality = cfg["watcher"]["quality"]
+
+        # Publish config (for CMS sync)
+        publish = cfg.get("publish", {})
+        self.publish_folder = os.path.join(
+            self.vault_path, publish.get("folder", "publish")
+        )
+
+        # Upload log path (for image link rewriting)
+        self.upload_log_path = os.path.join(
+            self.assets_dir, ".upload_log.json"
+        )
 
         self._validate()
 
@@ -136,6 +150,23 @@ class MarkdownUpdater:
         return False
 
 
+def _write_upload_log(log_path: str, original_name: str, r2_url: str):
+    """Append to upload manifest for CMS image link rewriting."""
+    log = {}
+    if os.path.exists(log_path):
+        try:
+            with open(log_path, "r", encoding="utf-8") as f:
+                log = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            log = {}
+
+    log[original_name] = r2_url
+
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        json.dump(log, f, indent=2)
+
+
 class ImageHandler(FileSystemEventHandler):
     def __init__(self, config: Config, on_processed=None):
         """
@@ -181,6 +212,9 @@ class ImageHandler(FileSystemEventHandler):
 
             self.md_updater.replace_image_link(original_name, url)
 
+            # Write upload log for CMS image link rewriting
+            _write_upload_log(self.config.upload_log_path, original_name, url)
+
             os.remove(filepath)
             os.remove(webp_path)
             logger.info(f"Deleted local files")
@@ -201,20 +235,95 @@ class ImageHandler(FileSystemEventHandler):
         return self._processed_count
 
 
-def create_watcher(config: Config, on_processed=None) -> tuple[Observer, ImageHandler]:
+class MarkdownHandler(FileSystemEventHandler):
+    """Watches markdown file changes for CMS content sync.
+
+    Triggers content_sync.notify() when .md files in the publish
+    folder are created, modified, or deleted.
+    """
+
+    def __init__(self, config: Config, on_change=None):
+        """
+        Args:
+            config: Linkdinger config
+            on_change: Callback(source_path, deleted=bool) for CMS sync
+        """
+        self.config = config
+        self._on_change = on_change
+        self._sync_count = 0
+
+    def _is_publish_md(self, filepath: str) -> bool:
+        """Check if file is a .md in the publish folder."""
+        if not filepath.endswith(".md"):
+            return False
+        return filepath.startswith(self.config.publish_folder)
+
+    def on_created(self, event):
+        if not event.is_directory and self._is_publish_md(event.src_path):
+            time.sleep(self.config.debounce_sec)
+            self._handle_change(event.src_path, deleted=False)
+
+    def on_modified(self, event):
+        if not event.is_directory and self._is_publish_md(event.src_path):
+            time.sleep(self.config.debounce_sec)
+            self._handle_change(event.src_path, deleted=False)
+
+    def on_deleted(self, event):
+        if not event.is_directory and self._is_publish_md(event.src_path):
+            self._handle_change(event.src_path, deleted=True)
+
+    def on_moved(self, event):
+        if not event.is_directory:
+            # Moved out of publish/ = delete
+            if self._is_publish_md(event.src_path):
+                self._handle_change(event.src_path, deleted=True)
+            # Moved into publish/ = create
+            if self._is_publish_md(event.dest_path):
+                time.sleep(self.config.debounce_sec)
+                self._handle_change(event.dest_path, deleted=False)
+
+    def _handle_change(self, filepath: str, deleted: bool):
+        action = "deleted" if deleted else "synced"
+        logger.info(f"CMS {action}: {os.path.basename(filepath)}")
+
+        if self._on_change:
+            self._on_change(filepath, deleted)
+
+        self._sync_count += 1
+
+    @property
+    def sync_count(self) -> int:
+        return self._sync_count
+
+
+def create_watcher(
+    config: Config,
+    on_processed=None,
+    cms_callback=None,
+) -> tuple[Observer, ImageHandler, MarkdownHandler | None]:
     """Create and return a watcher (not yet started).
-    
+
     Args:
         config: Linkdinger config
-        on_processed: Optional callback for git notification
-    
+        on_processed: Optional callback for git notification (images)
+        cms_callback: Optional callback(filepath, deleted) for CMS sync
+
     Returns:
-        (observer, handler) tuple — call observer.start() to begin.
+        (observer, image_handler, md_handler) tuple
     """
-    handler = ImageHandler(config, on_processed=on_processed)
     observer = Observer()
-    observer.schedule(handler, config.vault_path, recursive=True)
-    return observer, handler
+
+    # Image handler — watches entire vault
+    image_handler = ImageHandler(config, on_processed=on_processed)
+    observer.schedule(image_handler, config.vault_path, recursive=True)
+
+    # Markdown handler — watches publish folder for CMS
+    md_handler = None
+    if cms_callback and os.path.isdir(config.publish_folder):
+        md_handler = MarkdownHandler(config, on_change=cms_callback)
+        observer.schedule(md_handler, config.publish_folder, recursive=True)
+
+    return observer, image_handler, md_handler
 
 
 def main():
@@ -224,7 +333,7 @@ def main():
         print(f"❌ Configuration error: {e}")
         return
 
-    observer, handler = create_watcher(config)
+    observer, handler, _ = create_watcher(config)
     observer.start()
 
     print(f"👁️  Watching: {config.vault_path}")
@@ -241,3 +350,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -25,3 +25,6 @@ publish:
   method: "both"
   folder: "publish"
   flag: "publish"
+
+blog:
+  content_dir: "blog/content/posts"

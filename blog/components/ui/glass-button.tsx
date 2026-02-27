@@ -1,25 +1,28 @@
-import { ReactNode } from 'react'
-
 interface GlassButtonProps {
-  children: ReactNode
+  children: React.ReactNode
   className?: string
   onClick?: () => void
-  href?: string
+  disabled?: boolean
+  type?: 'button' | 'submit'
+  'aria-label'?: string
 }
 
-export default function GlassButton({ children, className = '', onClick, href }: GlassButtonProps) {
-  const baseClass = `glass-button px-4 py-2 font-medium cursor-pointer inline-block ${className}`
-
-  if (href) {
-    return (
-      <a href={href} className={baseClass}>
-        {children}
-      </a>
-    )
-  }
-
+export default function GlassButton({
+  children,
+  className = '',
+  onClick,
+  disabled = false,
+  type = 'button',
+  ...props
+}: GlassButtonProps) {
   return (
-    <button className={baseClass} onClick={onClick}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`glass-button ${className}`}
+      {...props}
+    >
       {children}
     </button>
   )

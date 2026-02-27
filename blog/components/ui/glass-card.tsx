@@ -1,17 +1,12 @@
-import { ReactNode } from 'react'
-
 interface GlassCardProps {
-  children: ReactNode
+  children: React.ReactNode
   className?: string
-  onClick?: () => void
+  hover?: boolean
 }
 
-export default function GlassCard({ children, className = '', onClick }: GlassCardProps) {
+export default function GlassCard({ children, className = '', hover = true }: GlassCardProps) {
   return (
-    <div 
-      className={`glass-card ${className}`}
-      onClick={onClick}
-    >
+    <div className={`glass-card ${hover ? '' : '!transform-none !shadow-none'} ${className}`}>
       {children}
     </div>
   )

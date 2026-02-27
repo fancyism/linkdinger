@@ -1,133 +1,89 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Twitter, Linkedin, Copy } from 'lucide-react'
-import { getPostBySlug, getAllPosts } from '@/lib/posts'
-import BrutalTag from '@/components/ui/brutal-tag'
+import { getPostBySlug, getPostSlugs, getRelatedPosts, extractHeadings } from '@/lib/posts'
+import PostDetail from './post-detail'
 
-interface Props {
-  params: { slug: string }
+export function generateStaticParams() {
+  return getPostSlugs().map(slug => ({
+    slug: slug.replace(/\.md$/, ''),
+  }))
 }
 
-export async function generateStaticParams() {
-  const posts = getAllPosts()
-  return posts.map((post) => ({ slug: post.slug }))
-}
-
-export async function generateMetadata({ params }: Props) {
+export function generateMetadata({ params }: { params: { slug: string } }) {
   const post = getPostBySlug(params.slug)
-  if (!post) return { title: 'Not Found' }
-  
+  if (!post) return { title: 'Post Not Found' }
+
   return {
-    title: `${post.title} | Linkdinger`,
+    title: post.title,
     description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: 'article',
+      images: post.coverImage ? [{ url: post.coverImage }] : [],
+    },
   }
 }
 
-export default function PostPage({ params }: Props) {
+export default function PostPage({ params }: { params: { slug: string } }) {
   const post = getPostBySlug(params.slug)
-  
-  if (!post) {
-    notFound()
-  }
+  if (!post) notFound()
 
-  const allPosts = getAllPosts()
-  const currentIndex = allPosts.findIndex(p => p.slug === post.slug)
-  const relatedPosts = allPosts
-    .filter(p => p.slug !== post.slug)
-    .slice(0, 3)
+  const related = getRelatedPosts(params.slug, 3)
+  const headings = extractHeadings(post.content)
+
+  // Convert markdown to HTML (simple approach)
+  let html = post.content
+    // Headers with IDs for TOC
+    .replace(/^### (.+)$/gm, (_, text) => {
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      return `<h3 id="${id}">${text}</h3>`
+    })
+    .replace(/^## (.+)$/gm, (_, text) => {
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      return `<h2 id="${id}">${text}</h2>`
+    })
+    // Bold, italic, code
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    // Images
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" />')
+    // Code blocks
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+    // Blockquotes
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    // Tables
+    .replace(/\|(.+)\|\n\|[-| ]+\|\n((?:\|.+\|\n?)*)/g, (_, header, rows) => {
+      const ths = header.split('|').filter(Boolean).map((h: string) => `<th>${h.trim()}</th>`).join('')
+      const trs = rows.trim().split('\n').map((row: string) => {
+        const tds = row.split('|').filter(Boolean).map((d: string) => `<td>${d.trim()}</td>`).join('')
+        return `<tr>${tds}</tr>`
+      }).join('')
+      return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`
+    })
+    // Horizontal rules
+    .replace(/^---$/gm, '<hr />')
+    // Lists
+    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Paragraphs (lines not already wrapped)
+    .split('\n\n')
+    .map(block => {
+      const trimmed = block.trim()
+      if (!trimmed) return ''
+      if (trimmed.startsWith('<')) return trimmed
+      return `<p>${trimmed.replace(/\n/g, '<br />')}</p>`
+    })
+    .join('\n')
 
   return (
-    <article className="py-12 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto">
-        <Link 
-          href="/blog" 
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-peach mb-8 transition-colors"
-        >
-          <ArrowLeft size={20} />
-          Back to Blog
-        </Link>
-
-        <header className="liquid-glass rounded-2xl p-8 mb-8">
-          <div className="flex flex-wrap gap-2 mb-4">
-            {post.tags?.map((tag) => (
-              <BrutalTag key={tag}>{tag}</BrutalTag>
-            ))}
-          </div>
-          
-          <h1 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-            {post.title}
-          </h1>
-          
-          <div className="flex items-center gap-4 text-gray-400">
-            <time>{post.date}</time>
-            <span>·</span>
-            <span>{post.readTime} read</span>
-          </div>
-        </header>
-
-        {post.coverImage && (
-          <div className="rounded-2xl overflow-hidden mb-8 border border-glass-border">
-            <img 
-              src={post.coverImage} 
-              alt={post.title}
-              className="w-full aspect-video object-cover"
-            />
-          </div>
-        )}
-
-        <div 
-          className="prose prose-invert max-w-none mb-12"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-
-        <div className="glass-card p-6 mb-12">
-          <h3 className="text-lg font-display font-bold mb-4">Share this post</h3>
-          <div className="flex gap-3">
-            <a 
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`https://example.com/blog/${post.slug}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-button p-3"
-            >
-              <Twitter size={20} />
-            </a>
-            <a 
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://example.com/blog/${post.slug}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-button p-3"
-            >
-              <Linkedin size={20} />
-            </a>
-            <button 
-              onClick={() => navigator.clipboard.writeText(`https://example.com/blog/${post.slug}`)}
-              className="glass-button p-3"
-            >
-              <Copy size={20} />
-            </button>
-          </div>
-        </div>
-
-        {relatedPosts.length > 0 && (
-          <div>
-            <h3 className="text-xl font-display font-bold mb-6">Related Posts</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {relatedPosts.map((p) => (
-                <Link 
-                  key={p.slug} 
-                  href={`/blog/${p.slug}`}
-                  className="glass-card p-4 hover:border-peach/30 transition-colors"
-                >
-                  <h4 className="font-medium mb-1 hover:text-peach transition-colors">
-                    {p.title}
-                  </h4>
-                  <p className="text-sm text-gray-500">{p.date}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </article>
+    <PostDetail
+      post={post}
+      html={html}
+      headings={headings}
+      related={related}
+    />
   )
 }

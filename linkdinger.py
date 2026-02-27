@@ -2,22 +2,26 @@
 """
 Linkdinger — Unified Daemon
 ============================
-Runs the Obsidian image watcher and auto-git sync in a single process.
+Runs the Obsidian image watcher, auto-git sync, and CMS content sync
+in a single process.
 
 Usage:
-    python linkdinger.py              # Run both watcher + auto-git
+    python linkdinger.py              # Run all (watcher + auto-git + CMS)
     python linkdinger.py --watch      # Watcher only
     python linkdinger.py --git        # Auto-git only
+    python linkdinger.py --cms        # CMS sync only (one-shot)
     python linkdinger.py --status     # Show current config status
 """
 
 import argparse
+import os
 import signal
 import sys
 import time
 import logging
 from obsidian_watcher import Config, create_watcher
 from auto_git import AutoGit
+from content_sync import SyncConfig, sync_all, notify as cms_notify
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,12 +34,12 @@ logger = logging.getLogger(__name__)
 BANNER = r"""
  ╔══════════════════════════════════════════╗
  ║     🔗  L I N K D I N G E R  🔗         ║
- ║     Obsidian → R2 → Git Pipeline        ║
+ ║     Obsidian → R2 → Git → Blog          ║
  ╚══════════════════════════════════════════╝
 """
 
 
-def print_status(config: Config, auto_git: AutoGit | None = None):
+def print_status(config: Config, auto_git: AutoGit | None = None, sync_config: SyncConfig | None = None):
     """Print current configuration status."""
     print(BANNER)
     print(f"  📂 Vault:        {config.vault_path}")
@@ -50,10 +54,34 @@ def print_status(config: Config, auto_git: AutoGit | None = None):
         if auto_git.enabled:
             print(f"  ⏳ Idle commit:   {auto_git.idle_minutes} min")
             print(f"  📝 Prefix:       {auto_git.commit_prefix}")
+
+    if sync_config:
+        print(f"  📝 CMS mode:     {sync_config.publish_method}")
+        print(f"  📁 Publish:      {sync_config.publish_path}")
+        print(f"  📄 Blog dir:     {sync_config.abs_content_dir}")
     print()
 
 
-def run_daemon(watch: bool = True, git: bool = True):
+def run_cms_only():
+    """Run CMS sync one-shot (no daemon)."""
+    try:
+        sync_config = SyncConfig()
+    except Exception as e:
+        print(f"❌ Config error: {e}")
+        sys.exit(1)
+
+    print(BANNER)
+    print(f"  📂 Vault:     {sync_config.vault_path}")
+    print(f"  📁 Publish:   {sync_config.publish_path}")
+    print(f"  📄 Blog dir:  {sync_config.abs_content_dir}")
+    print(f"  🔧 Method:    {sync_config.publish_method}")
+    print()
+
+    count = sync_all(sync_config)
+    sys.exit(0 if count >= 0 else 1)
+
+
+def run_daemon(watch: bool = True, git: bool = True, cms: bool = True):
     """Run the unified daemon."""
 
     # Load config
@@ -62,6 +90,15 @@ def run_daemon(watch: bool = True, git: bool = True):
     except ValueError as e:
         print(f"❌ Configuration error: {e}")
         sys.exit(1)
+
+    # Load CMS sync config
+    sync_config = None
+    if cms:
+        try:
+            sync_config = SyncConfig()
+        except Exception as e:
+            print(f"⚠️  CMS sync disabled: {e}")
+            sync_config = None
 
     # Setup auto-git
     auto_git = None
@@ -72,25 +109,47 @@ def run_daemon(watch: bool = True, git: bool = True):
             auto_git = None
 
     # Print banner
-    print_status(config, auto_git)
+    print_status(config, auto_git, sync_config)
 
     services = []
+
+    # CMS callback: sync file + trigger git
+    def cms_callback(filepath: str, deleted: bool):
+        if sync_config:
+            cms_notify(filepath, sync_config, deleted=deleted)
+            # Also trigger git sync after content change
+            if auto_git:
+                auto_git.notify()
 
     # Setup watcher
     observer = None
     handler = None
+    md_handler = None
     if watch:
         git_callback = auto_git.notify if auto_git else None
-        observer, handler = create_watcher(config, on_processed=git_callback)
+        cms_cb = cms_callback if sync_config else None
+        observer, handler, md_handler = create_watcher(
+            config, on_processed=git_callback, cms_callback=cms_cb
+        )
         observer.start()
         services.append("👁️  Watcher")
         print(f"  👁️  Watcher:      RUNNING → {config.vault_path}")
+
+        if md_handler:
+            services.append("📝 CMS")
+            print(f"  📝 CMS:          RUNNING → {config.publish_folder}")
 
     # Start auto-git
     if auto_git:
         auto_git.start()
         services.append("🔄 Auto-git")
         print(f"  🔄 Auto-git:     RUNNING → idle {auto_git.idle_minutes}m")
+
+    # Initial sync on startup
+    if sync_config:
+        print(f"\n  🔄 Running initial CMS sync...")
+        count = sync_all(sync_config)
+        print(f"  ✓  Initial sync: {count} file(s)")
 
     if not services:
         print("❌ No services enabled. Use --watch or --git.")
@@ -120,6 +179,8 @@ def run_daemon(watch: bool = True, git: bool = True):
         print()
         if handler:
             print(f"  📊 Images processed: {handler.processed_count}")
+        if md_handler:
+            print(f"  📊 Posts synced:      {md_handler.sync_count}")
         if auto_git:
             status = auto_git.status
             print(f"  📊 Git syncs:        {status['sync_count']}")
@@ -139,18 +200,20 @@ def run_daemon(watch: bool = True, git: bool = True):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Linkdinger — Obsidian → R2 → Git pipeline",
+        description="Linkdinger — Obsidian → R2 → Git → Blog pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python linkdinger.py              Run both watcher + auto-git
-  python linkdinger.py --watch      Watcher only (no auto-git)
-  python linkdinger.py --git        Auto-git only (no watcher)
+  python linkdinger.py              Run all (watcher + auto-git + CMS)
+  python linkdinger.py --watch      Watcher only (no auto-git, no CMS)
+  python linkdinger.py --git        Auto-git only (no watcher, no CMS)
+  python linkdinger.py --cms        CMS sync only (one-shot, no daemon)
   python linkdinger.py --status     Show config and exit
         """
     )
     parser.add_argument("--watch", action="store_true", help="Run watcher only")
     parser.add_argument("--git", action="store_true", help="Run auto-git only")
+    parser.add_argument("--cms", action="store_true", help="Run CMS sync (one-shot)")
     parser.add_argument("--status", action="store_true", help="Show config status and exit")
     args = parser.parse_args()
 
@@ -158,16 +221,21 @@ Examples:
         try:
             config = Config()
             auto_git = AutoGit()
-            print_status(config, auto_git)
+            sync_config = SyncConfig()
+            print_status(config, auto_git, sync_config)
         except Exception as e:
             print(f"❌ Error: {e}")
         return
 
-    # If neither flag is set, run both
+    if args.cms:
+        run_cms_only()
+        return
+
+    # If neither flag is set, run all
     if not args.watch and not args.git:
-        run_daemon(watch=True, git=True)
+        run_daemon(watch=True, git=True, cms=True)
     else:
-        run_daemon(watch=args.watch, git=args.git)
+        run_daemon(watch=args.watch, git=args.git, cms=False)
 
 
 if __name__ == "__main__":

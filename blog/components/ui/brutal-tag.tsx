@@ -1,22 +1,12 @@
-import { ReactNode } from 'react'
-import Link from 'next/link'
-
 interface BrutalTagProps {
-  children: ReactNode
-  href?: string
+  children: React.ReactNode
   className?: string
 }
 
-export default function BrutalTag({ children, href, className = '' }: BrutalTagProps) {
-  const baseClass = `brutal-tag text-xs inline-block ${className}`
-
-  if (href) {
-    return (
-      <Link href={href} className={baseClass}>
-        {children}
-      </Link>
-    )
-  }
-
-  return <span className={baseClass}>{children}</span>
+export default function BrutalTag({ children, className = '' }: BrutalTagProps) {
+  return (
+    <span className={`brutal-tag ${className}`}>
+      {children}
+    </span>
+  )
 }

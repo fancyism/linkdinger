@@ -7,3 +7,6 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+blog/node_modules/
+blog/.next/
+blog/out/
