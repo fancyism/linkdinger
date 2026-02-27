@@ -31,7 +31,7 @@ export default function Hero({
             {/* Left Content Area (Typography Focus) */}
             <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative z-10 w-full md:w-3/5">
               <div className="max-w-xl">
-                <h1 className="text-5xl sm:text-6xl lg:text-[5rem] font-display font-black text-white leading-[1.05] tracking-tighter mb-6 group-hover:text-peach transition-colors drop-shadow-md">
+                <h1 className="text-5xl sm:text-6xl lg:text-[5rem] font-display font-black text-gray-900 dark:text-white leading-[1.05] tracking-tighter mb-6 group-hover:text-peach dark:group-hover:text-peach transition-colors drop-shadow-sm dark:drop-shadow-md">
                   {title}
                 </h1>
 
@@ -45,11 +45,11 @@ export default function Hero({
               </div>
 
               <div className="flex items-end justify-between mt-12 sm:mt-24">
-                <span className="text-4xl sm:text-5xl font-display font-extrabold text-white tracking-tighter">
+                <span className="text-4xl sm:text-5xl font-display font-extrabold text-gray-900 dark:text-white tracking-tighter">
                   {dateStr}
                 </span>
 
-                <p className="text-gray-300 text-sm xl:text-base max-w-[250px] text-right hidden sm:block border-r-2 border-peach pr-4">
+                <p className="text-gray-600 dark:text-gray-300 text-sm xl:text-base max-w-[250px] text-right hidden sm:block border-r-2 border-peach pr-4">
                   {excerpt}
                 </p>
               </div>
@@ -66,7 +66,7 @@ export default function Hero({
 
               {/* Vertical Artistic Text overlay */}
               <div className="hidden lg:flex absolute right-4 top-0 bottom-0 items-center pointer-events-none">
-                <span className="text-white/80 font-display font-black tracking-[0.3em] uppercase text-sm rotate-90 origin-right translate-x-1/2 whitespace-nowrap drop-shadow-lg mix-blend-overlay">
+                <span className="text-black/30 dark:text-white/80 font-display font-black tracking-[0.3em] uppercase text-sm rotate-90 origin-right translate-x-1/2 whitespace-nowrap drop-shadow-sm dark:drop-shadow-lg mix-blend-overlay">
                   VIBE CODING
                 </span>
               </div>
