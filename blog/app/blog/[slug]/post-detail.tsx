@@ -34,7 +34,7 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                             Back to Index
                         </Link>
 
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-black text-white mb-8 leading-[1.05] tracking-tighter drop-shadow-sm">
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-black text-stroke-hero mb-8 leading-[1.05] tracking-tighter drop-shadow-sm">
                             {post.title}
                         </h1>
 

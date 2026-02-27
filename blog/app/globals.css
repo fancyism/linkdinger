@@ -45,6 +45,35 @@ body {
   color: #111111;
 }
 
+/* ── Text Stroke Hero ── */
+.text-stroke-hero {
+  color: transparent;
+  -webkit-text-stroke: 1px #FFFFFF;
+  transition: color 0.3s ease;
+}
+
+.light .text-stroke-hero {
+  -webkit-text-stroke: 1px #111111;
+}
+
+@media (min-width: 640px) {
+  .text-stroke-hero {
+    -webkit-text-stroke: 2px #FFFFFF;
+  }
+
+  .light .text-stroke-hero {
+    -webkit-text-stroke: 2px #111111;
+  }
+}
+
+.text-stroke-hero::selection {
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.light .text-stroke-hero::selection {
+  -webkit-text-fill-color: #111111;
+}
+
 /* ──────────────────────────────────────────── */
 /* ── GLASS COMPONENT SYSTEM ──                */
 /* ──────────────────────────────────────────── */
