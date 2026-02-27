@@ -46,12 +46,11 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
                 <div className="flex items-center gap-3 overflow-x-auto pb-2 mb-8">
                     <a
                         href="/blog"
-                        className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap ${!activeCategory
-                            ? 'bg-peach text-black'
-                            : 'glass-card !rounded-lg text-gray-400 hover:text-white'
-                            }`}
+                        className={!activeCategory ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
                     >
-                        All ({posts.length})
+                        <BrutalTag className={!activeCategory ? "bg-peach text-black border-peach" : ""}>
+                            All ({posts.length})
+                        </BrutalTag>
                     </a>
                     {categories.map((cat) => {
                         const count = posts.filter(p => p.category === cat).length
