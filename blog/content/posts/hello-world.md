@@ -1,6 +1,7 @@
 ---
 title: "Building a Smart Blog with Dark Glassmorphism"
 date: "2026-02-27"
+category: "Tech"
 excerpt: "How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns."
 tags: 
   - VIBE CODING

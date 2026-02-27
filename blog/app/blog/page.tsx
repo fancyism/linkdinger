@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getAllPosts, getAllTags } from '@/lib/posts'
+import { getAllPosts, getAllCategories } from '@/lib/posts'
 import BlogClient from './blog-client'
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function BlogPage() {
   const posts = getAllPosts()
-  const tags = getAllTags()
+  const categories = getAllCategories()
 
   return (
     <section className="py-12 px-4 sm:px-6">
@@ -22,7 +22,7 @@ export default function BlogPage() {
         </div>
 
         <Suspense fallback={<div className="skeleton h-64 w-full" />}>
-          <BlogClient posts={posts} tags={tags} />
+          <BlogClient posts={posts} categories={categories} />
         </Suspense>
       </div>
     </section>

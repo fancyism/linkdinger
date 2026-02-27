@@ -1,4 +1,4 @@
-import { getAllPosts, getFeaturedPost, getAllTags } from '@/lib/posts'
+import { getAllPosts, getFeaturedPost, getAllCategories } from '@/lib/posts'
 import Hero from '@/components/hero'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
@@ -8,10 +8,10 @@ import Link from 'next/link'
 export default function HomePage() {
   const posts = getAllPosts()
   const featured = getFeaturedPost()
-  const tags = getAllTags()
-  const recentPosts = featured
-    ? posts.filter(p => p.slug !== featured.slug).slice(0, 6)
-    : posts.slice(0, 6)
+  const categories = getAllCategories()
+  const remainingPosts = featured ? posts.filter(p => p.slug !== featured.slug) : posts
+  const gridPosts = remainingPosts.slice(0, 4)
+  const listPosts = remainingPosts.slice(4)
 
   return (
     <>
@@ -44,17 +44,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Tag Cloud */}
-      {tags.length > 0 && (
+      {/* Category Cloud */}
+      {categories.length > 0 && (
         <section className="pt-10 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
               <span className="text-sm text-gray-500 whitespace-nowrap font-medium">
-                Topics:
+                Categories:
               </span>
-              {tags.map((tag) => (
-                <Link key={tag} href={`/blog?tag=${tag}`}>
-                  <BrutalTag>{tag}</BrutalTag>
+              {categories.slice(0, 6).map((cat) => (
+                <Link key={cat} href={`/blog?category=${cat}`}>
+                  <BrutalTag>{cat}</BrutalTag>
                 </Link>
               ))}
             </div>
@@ -62,21 +62,12 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Recent Posts Grid */}
-      {recentPosts.length > 0 && (
+      {/* 2-Column Grid Posts */}
+      {gridPosts.length > 0 && (
         <section className="py-12 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-display font-bold">Latest Posts</h2>
-              <Link
-                href="/blog"
-                className="text-sm text-peach hover:text-peach-light transition-colors font-medium"
-              >
-                View all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentPosts.map((post) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
+              {gridPosts.map((post) => (
                 <PostCard
                   key={post.slug}
                   slug={post.slug}
@@ -86,8 +77,40 @@ export default function HomePage() {
                   tags={post.tags}
                   readTime={post.readTime}
                   coverImage={post.coverImage}
+                  variant="grid"
                 />
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 1-Column List Posts */}
+      {listPosts.length > 0 && (
+        <section className="py-12 px-4 sm:px-6 border-t border-white/5">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col">
+              {listPosts.map((post) => (
+                <PostCard
+                  key={post.slug}
+                  slug={post.slug}
+                  title={post.title}
+                  date={post.date}
+                  excerpt={post.excerpt}
+                  tags={post.tags}
+                  readTime={post.readTime}
+                  coverImage={post.coverImage}
+                  variant="list"
+                />
+              ))}
+            </div>
+            <div className="mt-12 text-center">
+              <Link
+                href="/blog"
+                className="brutal-btn"
+              >
+                View all stories
+              </Link>
             </div>
           </div>
         </section>

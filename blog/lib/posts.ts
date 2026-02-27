@@ -10,6 +10,7 @@ export interface Post {
   date: string
   excerpt: string
   content: string
+  category?: string
   tags?: string[]
   readTime?: string
   coverImage?: string
@@ -53,6 +54,7 @@ export function getPostBySlug(slug: string): Post | null {
     date: data.date || '',
     excerpt: data.excerpt || content.slice(0, 150) + '...',
     content,
+    category: data.category || 'General',
     tags: data.tags || [],
     readTime: calculateReadTime(content),
     coverImage: data.coverImage,
@@ -97,6 +99,15 @@ export function getAllTags(): string[] {
   const tagSet = new Set<string>()
   posts.forEach(p => p.tags?.forEach(t => tagSet.add(t)))
   return Array.from(tagSet).sort()
+}
+
+export function getAllCategories(): string[] {
+  const posts = getAllPosts()
+  const categorySet = new Set<string>()
+  posts.forEach(p => {
+    if (p.category) categorySet.add(p.category)
+  })
+  return Array.from(categorySet).sort()
 }
 
 export function getPostsByTag(tag: string): Post[] {
