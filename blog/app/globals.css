@@ -14,7 +14,8 @@ html {
   margin: 0;
 }
 
-html, body {
+html,
+body {
   max-width: 100vw;
   overflow-x: hidden;
 }
@@ -57,6 +58,7 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
+
   .light .glass {
     background: rgba(0, 0, 0, 0.02);
     border-color: rgba(0, 0, 0, 0.06);
@@ -74,6 +76,7 @@ body {
       0 20px 40px rgba(0, 0, 0, 0.3);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
+
   .glass-card:hover {
     border-color: rgba(255, 107, 53, 0.3);
     box-shadow:
@@ -82,6 +85,7 @@ body {
       0 0 30px rgba(255, 107, 53, 0.08);
     transform: translateY(-2px);
   }
+
   .light .glass-card {
     background: rgba(255, 255, 255, 0.7);
     border-color: rgba(0, 0, 0, 0.06);
@@ -89,6 +93,7 @@ body {
       inset 0 1px 0 rgba(255, 255, 255, 0.8),
       0 10px 30px rgba(0, 0, 0, 0.06);
   }
+
   .light .glass-card:hover {
     border-color: rgba(255, 107, 53, 0.4);
     box-shadow:
@@ -110,28 +115,34 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
   }
+
   .glass-button:hover {
     background: rgba(255, 107, 53, 0.2);
     box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
     transform: translateY(-1px);
   }
+
   .glass-button:active {
     transform: scale(0.98);
   }
+
   .glass-button:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.4);
   }
+
   .glass-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
   }
+
   .light .glass-button {
     background: rgba(255, 107, 53, 0.08);
     border-color: rgba(255, 107, 53, 0.25);
   }
+
   .light .glass-button:hover {
     background: rgba(255, 107, 53, 0.15);
   }
@@ -149,33 +160,38 @@ body {
     width: 100%;
     transition: all 0.2s ease;
   }
+
   .glass-input::placeholder {
     color: rgba(255, 255, 255, 0.4);
   }
+
   .glass-input:focus {
     outline: none;
     border-color: rgba(255, 107, 53, 0.5);
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
   }
+
   .light .glass-input {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.1);
     color: #111111;
   }
+
   .light .glass-input::placeholder {
     color: rgba(0, 0, 0, 0.4);
   }
+
   .light .glass-input:focus {
     border-color: rgba(255, 107, 53, 0.5);
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
   }
 
-  /* ── Brutal Tag (Theme-invariant) ── */
+  /* ── Brutal Tag (High-Contrast Neubrutalism) ── */
   .brutal-tag {
     background: #FF6B35;
     color: #000;
-    border: 2px solid #000;
-    box-shadow: 2px 2px 0 #000;
+    border: 2px solid #FFF;
+    box-shadow: 2px 2px 0 #FFF;
     border-radius: 8px;
     padding: 4px 12px;
     font-weight: 600;
@@ -183,18 +199,67 @@ body {
     transition: all 0.1s ease;
     display: inline-block;
   }
+
   .brutal-tag:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0 #000;
+    box-shadow: 4px 4px 0 #FFF;
+  }
+
+  /* Light Theme Brutal Tags */
+  .light .brutal-tag {
+    border-color: #000;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .light .brutal-tag:hover {
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  /* ── Brutal Button (High-Contrast Neubrutalism) ── */
+  .brutal-btn {
+    background: #FF6B35;
+    color: #000;
+    border: 2px solid #FFF;
+    box-shadow: 4px 4px 0 #FFF;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.1s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #FFF;
+  }
+
+  .brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 #FFF;
+  }
+
+  .light .brutal-btn {
+    border-color: #000;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .light .brutal-btn:hover {
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .light .brutal-btn:active {
+    box-shadow: 0 0 0 #000;
   }
 
   /* ── Liquid Glass (Premium) ── */
   .liquid-glass {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 255, 255, 0.05)
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.05));
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255, 255, 255, 0.18);
@@ -202,12 +267,11 @@ body {
       inset 0 1px 1px rgba(255, 255, 255, 0.1),
       0 8px 32px rgba(0, 0, 0, 0.2);
   }
+
   .light .liquid-glass {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0.5)
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.5));
     border-color: rgba(0, 0, 0, 0.08);
     box-shadow:
       inset 0 1px 1px rgba(255, 255, 255, 0.9),
@@ -224,19 +288,26 @@ body {
   color: #B0B0B0;
   line-height: 1.8;
 }
+
 .light .prose {
   color: #444444;
 }
 
-.prose h1, .prose h2, .prose h3, .prose h4 {
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
   color: #FFFFFF;
   font-family: var(--font-outfit), 'Outfit', sans-serif;
   font-weight: 700;
   margin-top: 2em;
   margin-bottom: 0.5em;
 }
-.light .prose h1, .light .prose h2,
-.light .prose h3, .light .prose h4 {
+
+.light .prose h1,
+.light .prose h2,
+.light .prose h3,
+.light .prose h4 {
   color: #111111;
 }
 
@@ -245,6 +316,7 @@ body {
   padding-bottom: 0.5em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 .light .prose h2 {
   border-bottom-color: rgba(0, 0, 0, 0.08);
 }
@@ -254,6 +326,7 @@ body {
   text-decoration: none;
   transition: color 0.2s;
 }
+
 .prose a:hover {
   color: #FF8C5A;
 }
@@ -265,6 +338,7 @@ body {
   border-radius: 4px;
   font-size: 0.9em;
 }
+
 .light .prose code {
   background: rgba(0, 0, 0, 0.05);
 }
@@ -277,10 +351,12 @@ body {
   overflow-x: auto;
   margin: 1.5em 0;
 }
+
 .light .prose pre {
   background: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.08);
 }
+
 .prose pre code {
   background: none;
   padding: 0;
@@ -291,6 +367,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin: 1.5em 0;
 }
+
 .light .prose img {
   border-color: rgba(0, 0, 0, 0.08);
 }
@@ -302,14 +379,17 @@ body {
   font-style: italic;
   margin: 1.5em 0;
 }
+
 .light .prose blockquote {
   color: #666666;
 }
 
-.prose ul, .prose ol {
+.prose ul,
+.prose ol {
   padding-left: 1.5em;
   margin: 1em 0;
 }
+
 .prose li {
   margin: 0.5em 0;
 }
@@ -319,6 +399,7 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin: 2em 0;
 }
+
 .light .prose hr {
   border-top-color: rgba(0, 0, 0, 0.08);
 }
@@ -341,22 +422,28 @@ body {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0D0D0D;
 }
+
 .light ::-webkit-scrollbar-track {
   background: #FAFAFA;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #2D2D2D;
   border-radius: 4px;
 }
+
 .light ::-webkit-scrollbar-thumb {
   background: #D0D0D0;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #3D3D3D;
 }
+
 .light ::-webkit-scrollbar-thumb:hover {
   background: #B0B0B0;
 }
@@ -374,26 +461,29 @@ body {
 
 /* ── Skeleton Loading ── */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
 }
+
 .light .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.04) 25%,
-    rgba(0, 0, 0, 0.08) 50%,
-    rgba(0, 0, 0, 0.04) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 0, 0, 0.04) 25%,
+      rgba(0, 0, 0, 0.08) 50%,
+      rgba(0, 0, 0, 0.04) 75%);
   background-size: 200% 100%;
 }
+
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }

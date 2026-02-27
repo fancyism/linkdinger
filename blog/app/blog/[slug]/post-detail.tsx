@@ -22,76 +22,58 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
             <ReadingProgress />
 
             {/* Hero */}
-            <section className="relative">
-                {post.coverImage ? (
-                    <div className="relative h-[40vh] sm:h-[50vh]">
-                        <img
-                            src={post.coverImage}
-                            alt={post.title}
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-black/50 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
-                            <div className="max-w-4xl mx-auto">
-                                <Link
-                                    href="/blog"
-                                    className="inline-flex items-center gap-1 text-sm text-gray-300 hover:text-peach transition-colors mb-4"
-                                >
-                                    <ArrowLeft size={16} />
-                                    Back to blog
-                                </Link>
-                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white mb-3">
-                                    {post.title}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
-                                    <time>{post.date}</time>
-                                    <span>·</span>
-                                    <span>{post.readTime} read</span>
-                                    {post.tags && post.tags.length > 0 && (
-                                        <>
-                                            <span>·</span>
-                                            <div className="flex gap-2">
-                                                {post.tags.map(tag => (
-                                                    <BrutalTag key={tag}>{tag}</BrutalTag>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
+            <section className="relative pt-12 lg:pt-24 pb-12 px-4 sm:px-6 mb-12 border-b border-white/10 dark:border-white/10">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 relative">
+                    {/* Artistic Title Area */}
+                    <div className="flex-1 md:w-2/3 pr-0 md:pr-12">
+                        <Link
+                            href="/blog"
+                            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-peach transition-colors mb-8 font-bold tracking-widest uppercase"
+                        >
+                            <ArrowLeft size={16} />
+                            Back to Index
+                        </Link>
+
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-black text-white mb-8 leading-[1.05] tracking-tighter drop-shadow-sm">
+                            {post.title}
+                        </h1>
+
+                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 font-medium font-display tracking-widest uppercase mb-8">
+                            <time className="text-peach">{post.date}</time>
+                            <span className="opacity-30">|</span>
+                            <span>{post.readTime} read</span>
+                            {post.tags && post.tags.length > 0 && (
+                                <>
+                                    <span className="opacity-30">|</span>
+                                    <div className="flex gap-2">
+                                        {post.tags.map(tag => (
+                                            <BrutalTag key={tag}>{tag}</BrutalTag>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right side Cover Image or artistic block */}
+                    {post.coverImage && (
+                        <div className="w-full md:w-1/3 relative flex justify-end">
+                            <div className="aspect-[3/4] w-full max-w-sm relative glass-card overflow-hidden rotate-2 hover:rotate-0 transition-transform duration-500">
+                                <img
+                                    src={post.coverImage}
+                                    alt={post.title}
+                                    className="w-full h-full object-cover filter contrast-125"
+                                />
+                                {/* Vertical text accent */}
+                                <div className="absolute right-2 top-0 bottom-0 flex items-center mix-blend-difference pointer-events-none">
+                                    <span className="transform rotate-90 text-white font-bold tracking-[0.4em] uppercase text-xs opacity-80 whitespace-nowrap">
+                                        {post.tags?.[0] || 'VIBE CODING'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className="pt-12 pb-8 px-4 sm:px-6">
-                        <div className="max-w-4xl mx-auto">
-                            <Link
-                                href="/blog"
-                                className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-peach transition-colors mb-4"
-                            >
-                                <ArrowLeft size={16} />
-                                Back to blog
-                            </Link>
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-4">
-                                {post.title}
-                            </h1>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
-                                <time>{post.date}</time>
-                                <span>·</span>
-                                <span>{post.readTime} read</span>
-                                {post.tags && post.tags.length > 0 && (
-                                    <>
-                                        <span>·</span>
-                                        <div className="flex gap-2">
-                                            {post.tags.map(tag => (
-                                                <BrutalTag key={tag}>{tag}</BrutalTag>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </section>
 
             {/* Content + TOC */}

@@ -9,7 +9,7 @@ export default function NewsletterForm() {
                 className="glass-input text-sm flex-1"
                 aria-label="Email for newsletter"
             />
-            <button type="submit" className="glass-button text-sm whitespace-nowrap">
+            <button type="submit" className="brutal-btn whitespace-nowrap">
                 Subscribe
             </button>
         </form>
