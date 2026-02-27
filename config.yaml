@@ -1,0 +1,27 @@
+vault:
+  path: "D:/Obsidian/Hack - 2nd.Brain"
+  assets_dir: "_assets"
+
+r2:
+  endpoint: "${R2_ENDPOINT}"
+  bucket: "${R2_BUCKET}"
+  public_url: "${R2_PUBLIC_URL}"
+
+watcher:
+  debounce_sec: 0.5
+  formats:
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+  output_format: "webp"
+  quality: 80
+
+git:
+  enabled: true
+  idle_minutes: 5
+  commit_prefix: "auto:"
+
+publish:
+  method: "both"
+  folder: "publish"
+  flag: "publish"
