@@ -57,10 +57,11 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
 
             {/* Posts Grid */}
             {filtered.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filtered.map((post) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
+                    {filtered.map((post, index) => (
                         <PostCard
                             key={post.slug}
+                            index={index}
                             slug={post.slug}
                             title={post.title}
                             date={post.date}

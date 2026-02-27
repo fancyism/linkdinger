@@ -10,6 +10,7 @@ interface PostCardProps {
   readTime?: string
   coverImage?: string
   variant?: 'grid' | 'list'
+  index?: number
 }
 
 export default function PostCard({
@@ -21,6 +22,7 @@ export default function PostCard({
   readTime = '5 min',
   coverImage,
   variant = 'grid',
+  index,
 }: PostCardProps) {
 
   if (variant === 'list') {
@@ -50,27 +52,35 @@ export default function PostCard({
     )
   }
 
-  // Grid Variant (Default)
+  // Grid Variant (Minimalist Editorial Asymmetric)
+  const aspectClass = index !== undefined
+    ? (index % 3 === 0 ? 'aspect-square' : index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[5/4]')
+    : 'aspect-[4/3]'
+
+  // Format date from YYYY-MM-DD to MM.DD
+  const [year, month, day] = date.split(',')[0].split('-')
+  const formattedDate = month && day ? `${month}.${day}` : date.split(',')[0]
+
   return (
     <Link href={`/blog/${slug}`} className="block group">
-      <article className="h-full flex flex-col gap-4 p-5 rounded-3xl border border-transparent hover:border-black/10 dark:hover:border-white/10 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.04)] transition-all duration-500 hover:bg-black/5 dark:hover:bg-white/5 hover:-translate-y-1">
-        <div className="text-2xl sm:text-3xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
-          {date.split(',')[0]}
+      <article className="h-full flex flex-col gap-4 pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
+        <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
+          {formattedDate}
         </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[4rem] sm:h-[4.5rem]">
+        <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[3.5rem] sm:h-[4.5rem]">
           {title}
         </h2>
         {coverImage ? (
-          <div className="aspect-[4/3] w-full relative overflow-hidden rounded-2xl bg-black/10 dark:bg-black/50 border border-black/5 dark:border-white/5 group-hover:border-black/15 dark:group-hover:border-white/20 transition-colors duration-500 mt-2">
+          <div className={`${aspectClass} w-full relative overflow-hidden bg-black/10 dark:bg-black/50 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
             <img
               src={coverImage}
               alt={title}
-              className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-110 group-hover:rotate-1 transition-all duration-700"
+              className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
               loading="lazy"
             />
           </div>
         ) : (
-          <div className="aspect-[4/3] w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 transition-colors duration-500 mt-2">
+          <div className={`${aspectClass} w-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
             <span className="text-8xl max-w-full truncate px-4 opacity-10 dark:opacity-20 font-display font-bold text-gray-900 dark:text-white">
               {title.charAt(0)}
             </span>
