@@ -25,24 +25,24 @@ export default function PostCard({
 
   if (variant === 'list') {
     return (
-      <Link href={`/blog/${slug}`} className="block group border-b border-white/5 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0 hover:bg-white/[0.02] transition-colors p-4 -mx-4 rounded-2xl">
-        <article className="flex items-center gap-6 sm:gap-10">
+      <Link href={`/blog/${slug}`} className="block group border-b border-black/5 dark:border-white/5 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors p-4 -mx-4 rounded-2xl">
+        <article className="flex items-center gap-6 sm:gap-10 transition-transform duration-300 group-hover:-translate-y-1">
           <div className="w-16 sm:w-20 shrink-0">
-            <span className="text-xl sm:text-2xl font-display font-bold text-gray-500 group-hover:text-white transition-colors">{date.split(',')[0]}</span>
+            <span className="text-xl sm:text-2xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors">{date.split(',')[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-white group-hover:text-peach transition-colors leading-snug line-clamp-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-snug line-clamp-2">
               {title}
             </h2>
           </div>
           {coverImage ? (
-            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-white/5 relative">
-              <img src={coverImage} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
-              <div className="absolute inset-0 border border-white/10 rounded-xl pointer-events-none" />
+            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 relative group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-shadow duration-500">
+              <img src={coverImage} alt={title} className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700" loading="lazy" />
+              <div className="absolute inset-0 border border-black/10 dark:border-white/10 rounded-xl pointer-events-none" />
             </div>
           ) : (
-            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-colors">
-              <span className="text-4xl text-gray-500">{title.charAt(0)}</span>
+            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-all duration-500">
+              <span className="text-4xl text-gray-400 dark:text-gray-500 font-display font-bold">{title.charAt(0)}</span>
             </div>
           )}
         </article>
@@ -53,25 +53,25 @@ export default function PostCard({
   // Grid Variant (Default)
   return (
     <Link href={`/blog/${slug}`} className="block group">
-      <article className="h-full flex flex-col gap-4 p-5 rounded-3xl border border-transparent hover:border-white/10 dark:hover:border-white/20 transition-all duration-300 hover:bg-white/5 dark:hover:bg-white/5">
-        <div className="text-2xl sm:text-3xl font-display font-bold text-gray-400 group-hover:text-white transition-colors tracking-tighter">
+      <article className="h-full flex flex-col gap-4 p-5 rounded-3xl border border-transparent hover:border-black/10 dark:hover:border-white/10 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.04)] transition-all duration-500 hover:bg-black/5 dark:hover:bg-white/5 hover:-translate-y-1">
+        <div className="text-2xl sm:text-3xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
           {date.split(',')[0]}
         </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[4rem] sm:h-[4.5rem]">
+        <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[4rem] sm:h-[4.5rem]">
           {title}
         </h2>
         {coverImage ? (
-          <div className="aspect-[4/3] w-full relative overflow-hidden rounded-2xl bg-black/50 border border-white/5 group-hover:border-white/20 transition-colors duration-300 mt-2">
+          <div className="aspect-[4/3] w-full relative overflow-hidden rounded-2xl bg-black/10 dark:bg-black/50 border border-black/5 dark:border-white/5 group-hover:border-black/15 dark:group-hover:border-white/20 transition-colors duration-500 mt-2">
             <img
               src={coverImage}
               alt={title}
-              className="w-full h-full object-cover filter brightness-90 group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
+              className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-110 group-hover:rotate-1 transition-all duration-700"
               loading="lazy"
             />
           </div>
         ) : (
-          <div className="aspect-[4/3] w-full bg-white/5 dark:bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center group-hover:border-white/20 transition-colors duration-300 mt-2">
-            <span className="text-8xl max-w-full truncate px-4 opacity-20 font-display font-bold">
+          <div className="aspect-[4/3] w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 transition-colors duration-500 mt-2">
+            <span className="text-8xl max-w-full truncate px-4 opacity-10 dark:opacity-20 font-display font-bold text-gray-900 dark:text-white">
               {title.charAt(0)}
             </span>
           </div>
