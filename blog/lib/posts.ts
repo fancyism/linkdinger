@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
+import GithubSlugger from 'github-slugger'
 
 const postsDirectory = path.join(process.cwd(), 'content/posts')
 
@@ -131,12 +132,11 @@ export function extractHeadings(content: string): TocItem[] {
   const headings: TocItem[] = []
   let match
 
+  const slugger = new GithubSlugger()
+
   while ((match = headingRegex.exec(content)) !== null) {
     const text = match[2].trim()
-    const id = text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
+    const id = slugger.slug(text)
 
     headings.push({
       id,
