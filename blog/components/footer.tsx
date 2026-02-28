@@ -49,7 +49,7 @@ export default function Footer() {
             </h4>
             <div className="flex gap-3 mb-5">
               <a
-                href="https://github.com"
+                href="https://github.com/fancyism"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
