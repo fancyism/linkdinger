@@ -1,13 +1,14 @@
 ---
-title: "Building a Smart Blog with Dark Glassmorphism"
-date: "2026-02-27"
-category: "Tech"
-excerpt: "How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns."
-tags: 
-  - VIBE CODING
+title: Building a Smart Blog with Dark Glassmorphism
+date: 2026-02-27
+category: Tech
+excerpt: How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns.
+tags:
   - NextJS
   - Glassmorphism
-coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop"
+  - vibe-coding
+  - AI
+coverImage: https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop
 publish: true
 ---
 
