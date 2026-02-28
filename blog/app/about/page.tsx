@@ -115,7 +115,7 @@ export default function AboutPage() {
             <a href="https://facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Facebook'>
               <Facebook size={20} />
             </a>
-            <a href="https://yourwebsite.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Website'>
+            <a href="https://fan-portfolio-zeta.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Website'>
               <Globe size={20} />
             </a>
           </div>

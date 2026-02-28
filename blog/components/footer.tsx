@@ -92,7 +92,7 @@ export default function Footer() {
                 <Facebook size={18} className="text-gray-400" />
               </a>
               <a
-                href="https://yourwebsite.com"
+                href="https://fan-portfolio-zeta.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
