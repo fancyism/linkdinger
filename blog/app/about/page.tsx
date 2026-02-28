@@ -26,20 +26,20 @@ export default function AboutPage() {
               alt="Affan"
               width={100}
               height={100}
-              className="rounded-full object-cover ring-1 ring-white/10"
+              className="rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10 shrink-0 aspect-square"
             />
             <div className="pt-2">
-              <h1 className="text-3xl sm:text-4xl font-display font-bold mb-3 text-white">
+              <h1 className="text-3xl sm:text-4xl font-display font-bold mb-3 text-gray-900 dark:text-white">
                 Hi, I&apos;m Affan
               </h1>
-              <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-4">
                 <MapPin size={14} className="text-peach" />
                 <span>Bangkok ↔ The Internet</span>
               </div>
             </div>
           </div>
 
-          <div className="prose prose-invert prose-lg text-gray-300 font-light leading-relaxed">
+          <div className="prose dark:prose-invert prose-lg text-gray-600 dark:text-gray-300 font-light leading-relaxed">
             <p className="mb-4">
               Deep in <strong>vibe-coding</strong> mode – tinkering with shiny web tech, chasing fresh ideas.
             </p>
@@ -49,20 +49,20 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <hr className="border-white/10 my-12" />
+        <hr className="border-black/10 dark:border-white/10 my-12" />
 
         {/* GitHub Activity Section */}
         <div className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
-              <Github size={24} className="text-gray-400" />
+            <h2 className="text-2xl font-display font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Github size={24} className="text-gray-600 dark:text-gray-400" />
               GitHub Activity
             </h2>
             <a
               href="https://github.com/fancyism"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1"
             >
               Follow @fancyism <ExternalLink size={14} />
             </a>
@@ -85,14 +85,14 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <hr className="border-white/10 my-12" />
+        <hr className="border-black/10 dark:border-white/10 my-12" />
 
         {/* Stay Connected Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-display font-bold mb-4 text-white">Stay Connected</h2>
-          <p className="text-gray-300 mb-8 font-light leading-relaxed">
+          <h2 className="text-2xl font-display font-bold mb-4 text-gray-900 dark:text-white">Stay Connected</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8 font-light leading-relaxed">
             New posts, shipping stories, and nerdy links straight to your inbox.<br />
-            <span className="text-gray-500 text-sm mt-1 block">2× per month, pure signal, zero fluff.</span>
+            <span className="text-gray-400 dark:text-gray-500 text-sm mt-1 block">2× per month, pure signal, zero fluff.</span>
           </p>
 
           <div className="max-w-md">
@@ -100,22 +100,22 @@ export default function AboutPage() {
           </div>
 
           <div className="flex gap-4 mt-10">
-            <a href="https://github.com/fancyism" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='GitHub'>
+            <a href="https://github.com/fancyism" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='GitHub'>
               <Github size={20} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Twitter'>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='Twitter'>
               <Twitter size={20} />
             </a>
-            <a href="mailto:hello@example.com" className="text-gray-500 hover:text-white transition-colors" aria-label='Email'>
+            <a href="mailto:hello@example.com" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='Email'>
               <Mail size={20} />
             </a>
-            <a href="www.linkedin.com/in/fan-affan" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='LinkedIn'>
+            <a href="www.linkedin.com/in/fan-affan" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='LinkedIn'>
               <Linkedin size={20} />
             </a>
-            <a href="https://facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Facebook'>
+            <a href="https://facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='Facebook'>
               <Facebook size={20} />
             </a>
-            <a href="https://fan-portfolio-zeta.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Website'>
+            <a href="https://fan-portfolio-zeta.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label='Website'>
               <Globe size={20} />
             </a>
           </div>

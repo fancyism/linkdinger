@@ -68,7 +68,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 href={link.href}
                 className={`relative py-1 text-sm font-medium transition-colors ${isActive(link.href)
                   ? 'text-peach'
-                  : 'text-gray-400 hover:text-white dark:hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
                 {link.label}
@@ -83,7 +83,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={() => setIsCommandOpen(true)}
-              className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all text-sm flex items-center gap-2 group"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-peach hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm flex items-center gap-2 group"
               aria-label="Search"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline-block">
@@ -95,7 +95,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
               href="https://github.com/fancyism"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-peach hover:bg-black/5 dark:hover:bg-white/5 transition-all"
               aria-label="GitHub"
             >
               <Github size={18} />
@@ -104,7 +104,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-peach hover:bg-black/5 dark:hover:bg-white/5 transition-all"
               aria-label="Twitter"
             >
               <Twitter size={18} />
@@ -114,7 +114,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
             {mounted && (
               <button
                 onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all"
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-peach hover:bg-black/5 dark:hover:bg-white/5 transition-all"
                 aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} theme`}
               >
                 {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -127,14 +127,14 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
             {mounted && (
               <button
                 onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-lg text-gray-400"
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-400"
                 aria-label="Toggle theme"
               >
                 {resolvedTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             )}
             <button
-              className="p-2 rounded-lg text-gray-300"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-300"
               onClick={() => setIsOpen(!isOpen)}
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
@@ -156,7 +156,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 onClick={() => setIsOpen(false)}
                 className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(link.href)
                   ? 'text-peach bg-peach/5'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
               >
                 {link.label}
@@ -167,7 +167,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 setIsOpen(false);
                 setIsCommandOpen(true);
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left"
             >
               <Search size={16} />
               Search
