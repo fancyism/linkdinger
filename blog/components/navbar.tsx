@@ -79,8 +79,8 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
               className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all text-sm flex items-center gap-2 group"
               aria-label="Search"
             >
-              <Search size={18} />
               <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline-block">Cmd K</span>
+              <Search size={18} />
             </button>
             <a
               href="https://github.com"
