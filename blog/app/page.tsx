@@ -1,17 +1,25 @@
-import { getAllPosts, getFeaturedPost, getAllCategories } from '@/lib/posts'
+import { getAllPosts, getAllCategories } from '@/lib/posts'
 import Hero from '@/components/hero'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
 import NewsletterForm from '@/components/newsletter-form'
+import HomeGallery from '@/components/home-gallery'
+import Pagination from '@/components/pagination'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const posts = getAllPosts()
-  const featured = getFeaturedPost()
+  const page = 1
+  const allPosts = getAllPosts()
   const categories = getAllCategories()
-  const remainingPosts = featured ? posts.filter(p => p.slug !== featured.slug) : posts
-  const gridPosts = remainingPosts.slice(0, 4)
-  const listPosts = remainingPosts.slice(4)
+
+  const POSTS_PER_PAGE = 11
+  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE)
+  const startIndex = (page - 1) * POSTS_PER_PAGE
+  const currentPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE)
+
+  const featured = currentPosts[0]
+  const gridPosts = currentPosts.slice(1, 5)
+  const listPosts = currentPosts.slice(5)
 
   const getAspectForHome = (index: number) => {
     const pattern = ['portrait', 'square', 'wide', 'wide']
@@ -50,7 +58,7 @@ export default function HomePage() {
       </section>
 
       {/* Category Cloud */}
-      {categories.length > 0 && (
+      {categories.length > 0 && page === 1 && (
         <section className="pt-10 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -92,33 +100,20 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* 1-Column List Posts */}
+      {/* 1-Column List Posts (Gallery Layout) */}
       {listPosts.length > 0 && (
-        <section className="py-12 px-4 sm:px-6 border-t border-white/5">
+        <section className="py-12 px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col">
-              {listPosts.map((post) => (
-                <PostCard
-                  key={post.slug}
-                  slug={post.slug}
-                  title={post.title}
-                  date={post.date}
-                  excerpt={post.excerpt}
-                  tags={post.tags}
-                  readTime={post.readTime}
-                  coverImage={post.coverImage}
-                  variant="list"
-                />
-              ))}
-            </div>
-            <div className="mt-12 text-center">
-              <Link
-                href="/blog"
-                className="brutal-btn"
-              >
-                View all stories
-              </Link>
-            </div>
+            <HomeGallery posts={listPosts} />
+          </div>
+        </section>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <section className="pb-12 px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto flex justify-center">
+            <Pagination currentPage={page} totalPages={totalPages} basePath="/" />
           </div>
         </section>
       )}
