@@ -73,32 +73,52 @@ export default function PostCard({
   const formattedDate = month && day ? `${month}.${day}` : dateStr.split(',')[0]
 
   return (
-    <Link href={`/blog/${slug}`} className="block group">
-      <article className="h-full flex flex-col gap-4 pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
-        <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
-          {formattedDate}
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[3.5rem] sm:h-[4.5rem]">
-          {title}
-        </h2>
-        {coverImage ? (
-          <div className={`${aspectClass} w-full relative overflow-hidden bg-black/10 dark:bg-black/50 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
-            <img
-              src={coverImage}
-              alt={title}
-              className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
-              loading="lazy"
-            />
+    <div className="group">
+      <Link href={`/blog/${slug}`} className="block">
+        <article className="h-full flex flex-col gap-4 pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
+          <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
+            {formattedDate}
           </div>
-        ) : (
-          <div className={`${aspectClass} w-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
-            <span className="text-8xl max-w-full truncate px-4 opacity-10 dark:opacity-20 font-display font-bold text-gray-900 dark:text-white">
-              {title.charAt(0)}
+          <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[3.5rem] sm:h-[4.5rem]">
+            {title}
+          </h2>
+          {coverImage ? (
+            <div className={`${aspectClass} w-full relative overflow-hidden bg-black/10 dark:bg-black/50 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
+              <img
+                src={coverImage}
+                alt={title}
+                className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className={`${aspectClass} w-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
+              <span className="text-8xl max-w-full truncate px-4 opacity-10 dark:opacity-20 font-display font-bold text-gray-900 dark:text-white">
+                {title.charAt(0)}
+              </span>
+            </div>
+          )}
+        </article>
+      </Link>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {tags.slice(0, 3).map(tag => (
+            <Link
+              key={tag}
+              href={`/blog/tag/${encodeURIComponent(tag)}`}
+              className="text-[0.65rem] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-400 hover:text-peach hover:border-peach/40 transition-colors font-display"
+            >
+              #{tag}
+            </Link>
+          ))}
+          {tags.length > 3 && (
+            <span className="text-[0.65rem] px-2 py-0.5 text-gray-500 font-display">
+              +{tags.length - 3}
             </span>
-          </div>
-        )}
-      </article>
-    </Link>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
