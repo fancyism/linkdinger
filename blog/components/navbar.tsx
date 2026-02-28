@@ -17,7 +17,14 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
 
-  useEffect(() => { setMounted(true) }, [])
+  const [isMac, setIsMac] = useState(true)
+
+  useEffect(() => {
+    setMounted(true)
+    if (typeof window !== 'undefined') {
+      setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0)
+    }
+  }, [])
 
   useEffect(() => {
     const onScroll = () => {
@@ -79,7 +86,9 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
               className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all text-sm flex items-center gap-2 group"
               aria-label="Search"
             >
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline-block">Cmd K</span>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline-block">
+                {mounted ? (isMac ? 'Cmd K' : 'Ctrl K') : 'Cmd K'}
+              </span>
               <Search size={18} />
             </button>
             <a
