@@ -74,7 +74,7 @@ export default function Footer() {
                 <Mail size={18} className="text-gray-400" />
               </a>
               <a
-                href="https://linkedin.com/in/yourprofile"
+                href="www.linkedin.com/in/fan-affan"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"

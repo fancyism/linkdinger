@@ -109,7 +109,7 @@ export default function AboutPage() {
             <a href="mailto:hello@example.com" className="text-gray-500 hover:text-white transition-colors" aria-label='Email'>
               <Mail size={20} />
             </a>
-            <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='LinkedIn'>
+            <a href="www.linkedin.com/in/fan-affan" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='LinkedIn'>
               <Linkedin size={20} />
             </a>
             <a href="https://facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Facebook'>
