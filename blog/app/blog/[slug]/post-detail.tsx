@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import ReadingProgress from '@/components/reading-progress'
 import TableOfContents from '@/components/table-of-contents'
@@ -17,6 +18,9 @@ interface PostDetailProps {
 }
 
 export default function PostDetail({ post, html, headings, related }: PostDetailProps) {
+    const [isTagsExpanded, setIsTagsExpanded] = useState(false)
+    const MAX_TAGS = 3
+
     return (
         <>
             <ReadingProgress />
@@ -45,10 +49,30 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                             {post.tags && post.tags.length > 0 && (
                                 <>
                                     <span className="opacity-30">|</span>
-                                    <div className="flex gap-2">
-                                        {post.tags.map(tag => (
-                                            <BrutalTag key={tag}>{tag}</BrutalTag>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        {(isTagsExpanded ? post.tags : post.tags.slice(0, MAX_TAGS)).map(tag => (
+                                            <Link key={tag} href={`/blog/tag/${encodeURIComponent(tag)}`}>
+                                                <BrutalTag className="hover:border-peach hover:text-peach hover:bg-peach/10 transition-colors cursor-pointer">
+                                                    {tag}
+                                                </BrutalTag>
+                                            </Link>
                                         ))}
+                                        {post.tags.length > MAX_TAGS && !isTagsExpanded && (
+                                            <button
+                                                onClick={() => setIsTagsExpanded(true)}
+                                                className="text-[0.65rem] font-display px-2 py-0.5 rounded-full border border-dashed border-white/20 text-gray-400 hover:text-peach hover:border-peach transition-colors"
+                                            >
+                                                +{post.tags.length - MAX_TAGS}
+                                            </button>
+                                        )}
+                                        {post.tags.length > MAX_TAGS && isTagsExpanded && (
+                                            <button
+                                                onClick={() => setIsTagsExpanded(false)}
+                                                className="text-xs font-display text-gray-500 hover:text-peach transition-colors ml-1"
+                                            >
+                                                Show less
+                                            </button>
+                                        )}
                                     </div>
                                 </>
                             )}
