@@ -51,11 +51,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+import { getAllPosts } from '@/lib/posts'
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const posts = getAllPosts()
+
   return (
     <html
       lang="en"
@@ -71,7 +75,7 @@ export default function RootLayout({
         >
           <AmbientBackground />
           <div className="relative z-10 flex flex-col min-h-screen">
-            <Navbar />
+            <Navbar posts={posts} />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>

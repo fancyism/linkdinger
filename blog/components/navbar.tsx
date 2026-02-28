@@ -5,9 +5,11 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { Menu, X, Search, Github, Twitter, Sun, Moon } from 'lucide-react'
+import { CommandPalette } from './command-palette'
 
-export default function Navbar() {
+export default function Navbar({ posts = [] }: { posts?: any[] }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isCommandOpen, setIsCommandOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [visible, setVisible] = useState(true)
   const [lastScroll, setLastScroll] = useState(0)
@@ -58,8 +60,8 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`relative py-1 text-sm font-medium transition-colors ${isActive(link.href)
-                    ? 'text-peach'
-                    : 'text-gray-400 hover:text-white dark:hover:text-white'
+                  ? 'text-peach'
+                  : 'text-gray-400 hover:text-white dark:hover:text-white'
                   }`}
               >
                 {link.label}
@@ -72,13 +74,14 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              href="/search"
-              className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all"
+            <button
+              onClick={() => setIsCommandOpen(true)}
+              className="p-2 rounded-lg text-gray-400 hover:text-peach hover:bg-white/5 transition-all text-sm flex items-center gap-2 group"
               aria-label="Search"
             >
               <Search size={18} />
-            </Link>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline-block">Cmd K</span>
+            </button>
             <a
               href="https://github.com"
               target="_blank"
@@ -143,24 +146,28 @@ export default function Navbar() {
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(link.href)
-                    ? 'text-peach bg-peach/5'
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  ? 'text-peach bg-peach/5'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`}
               >
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/search"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setIsCommandOpen(true);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-left"
             >
               <Search size={16} />
               Search
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      <CommandPalette open={isCommandOpen} setOpen={setIsCommandOpen} posts={posts} />
     </nav>
   )
 }
