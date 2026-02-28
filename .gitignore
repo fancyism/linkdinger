@@ -10,3 +10,10 @@ Thumbs.db
 blog/node_modules/
 blog/.next/
 blog/out/
+
+# ไม่เอาภาพเก็บใน git เพราะเรามีบน R2 แล้ว
+_assets/*.png
+_assets/*.jpeg
+_assets/*.jpg
+_assets/*.webp
+_assets/*.gif
