@@ -87,9 +87,9 @@ export default function AboutPage() {
 
         <hr className="border-black/10 dark:border-white/10 my-12" />
 
-        {/* Stay Connected Section */}
+        {/* Stay In the loop Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-display font-bold mb-4 text-gray-900 dark:text-white">Stay Connected</h2>
+          <h2 className="text-2xl font-display font-bold mb-4 text-gray-900 dark:text-white">Stay in the loop</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-8 font-light leading-relaxed">
             New posts, shipping stories, and nerdy links straight to your inbox.<br />
             <span className="text-gray-400 dark:text-gray-500 text-sm mt-1 block">2× per month, pure signal, zero fluff.</span>
