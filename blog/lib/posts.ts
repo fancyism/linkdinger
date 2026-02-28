@@ -38,7 +38,8 @@ export function getPostSlugs(): string[] {
 }
 
 export function getPostBySlug(slug: string): Post | null {
-  const realSlug = slug.replace(/\.md$/, '')
+  const decodedSlug = decodeURIComponent(slug)
+  const realSlug = decodedSlug.replace(/\.md$/, '')
   const fullPath = path.join(postsDirectory, `${realSlug}.md`)
 
   if (!fs.existsSync(fullPath)) {
@@ -47,11 +48,12 @@ export function getPostBySlug(slug: string): Post | null {
 
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
+  console.log(`Parsed ${realSlug}: title="${data.title}"`)
 
   return {
     slug: realSlug,
     title: data.title || 'Untitled',
-    date: data.date || '',
+    date: data.date instanceof Date ? data.date.toISOString().split('T')[0] : (data.date || ''),
     excerpt: data.excerpt || content.slice(0, 150) + '...',
     content,
     category: data.category || 'General',

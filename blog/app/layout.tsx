@@ -5,6 +5,7 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import AmbientBackground from '@/components/ambient-background'
 import './globals.css'
+import 'highlight.js/styles/github-dark.min.css'
 
 const inter = Inter({
   subsets: ['latin'],

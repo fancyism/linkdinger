@@ -13,6 +13,8 @@ watcher:
     - ".png"
     - ".jpg"
     - ".jpeg"
+    - ".webp"
+    - ".gif"
   output_format: "webp"
   quality: 80
 

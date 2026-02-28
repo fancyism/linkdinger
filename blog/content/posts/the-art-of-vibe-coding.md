@@ -1,12 +1,11 @@
 ---
-title: "The Art of Vibe Coding"
-date: "2026-02-10"
-category: "Thoughts"
-excerpt: "Coding is no longer just about logic and algorithms. It's about flow state, aesthetics, and building systems that feel alive."
-tags: 
-  - VIBE CODING
+title: The Art of Vibe Coding
+date: 2026-02-10
+category: Thoughts
+excerpt: Coding is no longer just about logic and algorithms. It's about flow state, aesthetics, and building systems that feel alive.
+tags:
   - Thoughts
-coverImage: "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=630&fit=crop"
+coverImage: https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=630&fit=crop
 publish: true
 ---
 

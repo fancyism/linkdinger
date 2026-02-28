@@ -26,13 +26,14 @@ export default function PostCard({
   index,
   imageAspect,
 }: PostCardProps) {
+  const dateStr = date ? (typeof date === 'string' ? date : new Date(date).toISOString().split('T')[0]) : ''
 
   if (variant === 'list') {
     return (
       <Link href={`/blog/${slug}`} className="block group border-b border-black/5 dark:border-white/5 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors p-4 -mx-4 rounded-2xl">
         <article className="flex items-center gap-6 sm:gap-10 transition-transform duration-300 group-hover:-translate-y-1">
           <div className="w-16 sm:w-20 shrink-0">
-            <span className="text-xl sm:text-2xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors">{date.split(',')[0]}</span>
+            <span className="text-xl sm:text-2xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors">{dateStr.split(',')[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-snug line-clamp-2">
@@ -46,7 +47,7 @@ export default function PostCard({
             </div>
           ) : (
             <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-all duration-500">
-              <span className="text-4xl text-gray-400 dark:text-gray-500 font-display font-bold">{title.charAt(0)}</span>
+              <span className="text-4xl text-gray-400 dark:text-gray-500 font-display font-bold">{title?.charAt(0) || 'U'}</span>
             </div>
           )}
         </article>
@@ -68,8 +69,8 @@ export default function PostCard({
   }
 
   // Format date from YYYY-MM-DD to MM.DD
-  const [year, month, day] = date.split(',')[0].split('-')
-  const formattedDate = month && day ? `${month}.${day}` : date.split(',')[0]
+  const [year, month, day] = dateStr.split(',')[0].split('-')
+  const formattedDate = month && day ? `${month}.${day}` : dateStr.split(',')[0]
 
   return (
     <Link href={`/blog/${slug}`} className="block group">

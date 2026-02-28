@@ -124,6 +124,38 @@ def _rewrite_image_links(content: str, upload_log: dict) -> str:
 
     # Remove non-image wiki links [[internal-link]]
     content = re.sub(r"\[\[(.+?)\]\]", r"\1", content)
+    
+    # Process YAML frontmatter coverImage replacements
+    if content.startswith("---"):
+        end_idx = content.find("---", 3)
+        if end_idx != -1:
+            frontmatter = content[:end_idx+3]
+            body_content = content[end_idx+3:]
+            
+            # Find coverImage: "[[filename]]" or just "filename"
+            def replace_cover_image(match):
+                prefix = match.group(1)
+                img_val = match.group(2)
+                suffix = match.group(3)
+                
+                # Strip [[ ]] if present
+                clean_img_val = img_val
+                if clean_img_val.startswith("[[") and clean_img_val.endswith("]]"):
+                    clean_img_val = clean_img_val[2:-2]
+                    
+                basename = os.path.basename(clean_img_val)
+                if basename in upload_log:
+                    url = upload_log[basename]
+                    return f"{prefix}{url}{suffix}"
+                return match.group(0)
+                
+            new_frontmatter = re.sub(
+                r'(coverImage:\s*["\']?)((?:\[\[)?.*?([^"\']+\.(?:png|jpe?g|webp|gif))(?:\]\])?)(["\']?)',
+                replace_cover_image,
+                frontmatter,
+                flags=re.IGNORECASE
+            )
+            content = new_frontmatter + body_content
 
     return content
 

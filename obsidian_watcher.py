@@ -93,9 +93,19 @@ class ImageProcessor:
         self.config = config
 
     def convert_to_webp(self, filepath: str) -> tuple[str, str]:
+        original_ext = os.path.splitext(filepath)[1].lower()
         original_name = os.path.basename(filepath)
-        new_name = f"{uuid.uuid4().hex}.{self.config.output_format}"
+        
+        # Determine output format and name based on input
+        # Don't convert gifs
+        out_format = "gif" if original_ext == ".gif" else self.config.output_format
+        new_name = f"{uuid.uuid4().hex}.{out_format}"
         new_path = filepath.replace(original_name, new_name)
+
+        if original_ext in (".webp", ".gif"):
+            # Just copy the file over instead of reconverting
+            shutil.copy2(filepath, new_path)
+            return new_path, new_name
 
         img = Image.open(filepath)
 
@@ -140,6 +150,14 @@ class MarkdownUpdater:
         new_content = content
         for pattern in patterns:
             new_content = re.sub(pattern, f"![image]({new_url})", new_content)
+
+        # Replace in frontmatter for coverImage
+        # Matches: coverImage: "old_filename.png" or coverImage: old_filename.png or coverImage: "[[old_filename.png]]"
+        new_content = re.sub(
+            r'(coverImage:\s*["\']?)(?:\[\[)?(.*?' + re.escape(old_filename) + r')(?:\]\])?(["\']?)', 
+            rf'\g<1>{new_url}\3', 
+            new_content
+        )
 
         if new_content != content:
             with open(latest_md, "w", encoding="utf-8") as f:
