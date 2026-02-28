@@ -42,5 +42,4 @@ publish: true
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 ```
-
-![image](https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/fafd6820875b48d0a6b6cfa8c93a4571.webp)
+![image](https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/4a465b6eb17b4e3fa3d9be00291bd0a1.webp)
