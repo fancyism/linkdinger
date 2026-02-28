@@ -26,19 +26,31 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
             <ReadingProgress />
 
             {/* Hero */}
-            <section className="relative pt-12 lg:pt-24 pb-12 px-4 sm:px-6 mb-12 border-b border-white/10 dark:border-white/10">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 relative">
+            <section className="relative pt-12 lg:pt-32 pb-12 lg:pb-32 px-4 sm:px-6 mb-12 border-b border-white/10 dark:border-white/10 overflow-hidden">
+                {/* Background Image Setup */}
+                {post.coverImage && (
+                    <>
+                        <div
+                            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 dark:opacity-40"
+                            style={{ backgroundImage: `url(${post.coverImage})` }}
+                        />
+                        <div className="absolute inset-0 z-0 bg-gradient-to-t from-white via-white/80 dark:from-[#0a0a0a] dark:via-[#0a0a0a]/50 to-transparent" />
+                        <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/50 dark:from-[#0a0a0a]/30 to-transparent" />
+                    </>
+                )}
+
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 relative z-10 w-full">
                     {/* Artistic Title Area */}
                     <div className="flex-1 md:w-2/3 pr-0 md:pr-12">
                         <Link
                             href="/blog"
-                            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-peach transition-colors mb-8 font-bold tracking-widest uppercase"
+                            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-peach transition-colors mb-8 font-bold tracking-widest uppercase"
                         >
                             <ArrowLeft size={16} />
                             Back to Index
                         </Link>
 
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-black text-stroke-hero mb-8 leading-[1.05] tracking-tighter drop-shadow-sm">
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-black text-stroke-hero drop-shadow-sm leading-[1.2] tracking-tighter mb-8">
                             {post.title}
                         </h1>
 
@@ -52,7 +64,7 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                                     <div className="flex flex-wrap gap-2 items-center">
                                         {(isTagsExpanded ? post.tags : post.tags.slice(0, MAX_TAGS)).map(tag => (
                                             <Link key={tag} href={`/blog/tag/${encodeURIComponent(tag)}`}>
-                                                <BrutalTag className="hover:border-peach hover:text-peach hover:bg-peach/10 transition-colors cursor-pointer">
+                                                <BrutalTag className="hover:border-peach hover:text-peach hover:bg-peach/10 transition-colors cursor-pointer text-xs py-1 px-3">
                                                     {tag}
                                                 </BrutalTag>
                                             </Link>
@@ -68,7 +80,7 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                                         {post.tags.length > MAX_TAGS && isTagsExpanded && (
                                             <button
                                                 onClick={() => setIsTagsExpanded(false)}
-                                                className="text-xs font-display text-gray-500 hover:text-peach transition-colors ml-1"
+                                                className="text-xs font-display text-gray-400 hover:text-peach transition-colors ml-1"
                                             >
                                                 Show less
                                             </button>
@@ -78,25 +90,6 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                             )}
                         </div>
                     </div>
-
-                    {/* Right side Cover Image or artistic block */}
-                    {post.coverImage && (
-                        <div className="w-full md:w-1/3 relative flex justify-end">
-                            <div className="aspect-[3/4] w-full max-w-sm relative glass-card overflow-hidden rotate-2 hover:rotate-0 transition-transform duration-500">
-                                <img
-                                    src={post.coverImage}
-                                    alt={post.title}
-                                    className="w-full h-full object-cover filter contrast-125"
-                                />
-                                {/* Vertical text accent */}
-                                <div className="absolute right-2 top-0 bottom-0 flex items-center mix-blend-difference pointer-events-none">
-                                    <span className="transform rotate-90 text-white font-bold tracking-[0.4em] uppercase text-xs opacity-80 whitespace-nowrap">
-                                        {post.tags?.[0] || 'VIBE CODING'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </section>
 
