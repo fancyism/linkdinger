@@ -274,7 +274,11 @@ class MarkdownHandler(FileSystemEventHandler):
         """Check if file is a .md in the publish folder."""
         if not filepath.endswith(".md"):
             return False
-        return filepath.startswith(self.config.publish_folder)
+        
+        # Normalize paths to handle mixed slashes on Windows
+        norm_filepath = os.path.normpath(filepath)
+        norm_publish_folder = os.path.normpath(self.config.publish_folder)
+        return norm_filepath.startswith(norm_publish_folder)
 
     def on_created(self, event):
         if not event.is_directory and self._is_publish_md(event.src_path):

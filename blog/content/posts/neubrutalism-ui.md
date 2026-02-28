@@ -29,3 +29,5 @@ Neubrutalism rejects the premise that software should look soft and approachable
 By making UI elements brutally obvious, Neubrutalism ironically improves usability in certain contexts. A button with a thick black border and a solid drop shadow leaves absolutely no ambiguity about whether it can be clicked.
 
 In our redesign of Linkdinger, we merged the high-contrast ethos of Neubrutalism with the depth of Glassmorphism—creating a unique, striking aesthetic.
+
+![image](https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/57fe2c32ada743bda253239ce1a95f31.webp)

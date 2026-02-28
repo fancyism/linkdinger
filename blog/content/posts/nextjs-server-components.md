@@ -1,13 +1,13 @@
 ---
-title: "Mastering Next.js Server Components"
-date: "2026-02-22"
-category: "Tech"
-excerpt: "A deep dive into how React Server Components change the way we architect web applications for maximum performance."
-tags: 
+title: Mastering Next.js Server Components
+date: 2026-02-22
+category: Tech
+excerpt: A deep dive into how React Server Components change the way we architect web applications for maximum performance.
+tags:
   - NextJS
   - React
-  - Web Dev
-coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop"
+  - web-dev
+coverImage: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop
 publish: true
 ---
 
