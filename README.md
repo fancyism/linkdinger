@@ -218,6 +218,19 @@ linkdinger/
 - Use scoped R2 API tokens for one bucket only.
 - Use a private Git repository for personal vault content.
 
+## Deployment
+
+This site is set up for easy deployment on Vercel. Just connect your GitHub repository to Vercel, and it will automatically build and deploy the site when changes are pushed.
+
+## License
+
+This repository uses dual licensing:
+
+- **Documentation & Blog Posts**: Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Code & Code Snippets**: Licensed under the [MIT License](LICENSE)
+
+See the [LICENSE](LICENSE) file for full details.
+
 ---
 
 If you want the same workflow on another machine, copy the repo, set `config.yaml`, create `.env`, run `python linkdinger.py`, and you are ready.

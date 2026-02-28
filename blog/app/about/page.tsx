@@ -1,5 +1,7 @@
-import { Github, Twitter, Mail, ExternalLink, Code2, MapPin } from 'lucide-react'
+import { Github, Twitter, Mail, ExternalLink, MapPin, Linkedin, Facebook, Globe } from 'lucide-react'
 import { GitHubCalendar } from 'react-github-calendar'
+import Image from 'next/image'
+import NewsletterForm from '@/components/newsletter-form'
 
 export const metadata = {
   title: 'About | Affan',
@@ -8,77 +10,68 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <section className="py-12 px-4 sm:px-6 relative overflow-hidden min-h-screen">
+    <section className="py-16 px-4 sm:px-6 relative overflow-hidden min-h-screen">
 
-      {/* Ambient Background Glows */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-peach/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full mix-blend-screen pointer-events-none" />
+      {/* Subtle Ambient Background */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-peach/5 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/5 blur-[150px] rounded-full mix-blend-screen pointer-events-none" />
 
-      <div className="max-w-3xl mx-auto relative z-10">
+      <div className="max-w-2xl mx-auto relative z-10">
 
-        {/* Intro Section - The Liquid Glass Vibe Hero */}
-        <div className="liquid-glass rounded-3xl p-8 sm:p-12 mb-12 relative overflow-hidden group">
-          {/* Subtle physics-like shine effect on hover */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-xl pointer-events-none" />
-
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-8">
-            <div className="shrink-0 relative">
-              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-peach via-peach-dark to-purple-500 flex items-center justify-center text-5xl shadow-[0_0_40px_rgba(255,107,53,0.3)] animate-float">
-                👨‍💻
-              </div>
-              {/* Decorative floating badge */}
-              <div className="absolute -bottom-3 -right-3 glass-card !rounded-full p-2 animate-float-delayed">
-                <Code2 size={20} className="text-peach" />
-              </div>
-            </div>
-
-            <div>
-              <h1 className="text-4xl sm:text-5xl font-display font-bold mb-4 tracking-tight drop-shadow-md text-white">
-                Hi, I&apos;m <span className="text-transparent bg-clip-text bg-gradient-to-r from-peach to-purple-400">Affan</span>
+        {/* Intro Section - Clean and text-focused */}
+        <div className="mb-16">
+          <div className="flex flex-col sm:flex-row gap-6 items-start mb-8">
+            <Image
+              src="/images/about/profile-photo.png"
+              alt="Affan"
+              width={100}
+              height={100}
+              className="rounded-full object-cover ring-1 ring-white/10"
+            />
+            <div className="pt-2">
+              <h1 className="text-3xl sm:text-4xl font-display font-bold mb-3 text-white">
+                Hi, I&apos;m Affan
               </h1>
-              <p className="text-xl text-gray-300 leading-relaxed font-light">
-                Deep in <strong className="text-peach font-semibold">vibe-coding</strong> mode – tinkering with shiny web tech, chasing fresh ideas.
-                After years of building standard software, the modern web feels like a canvas for magical, physics-driven experiences.
-              </p>
+              <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
+                <MapPin size={14} className="text-peach" />
+                <span>Bangkok ↔ The Internet</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm">
-            <div className="flex items-center gap-1.5 glass-button px-3 py-1.5 rounded-full cursor-default">
-              <MapPin size={14} className="text-peach" />
-              <span>Bangkok ↔ The Internet</span>
-            </div>
-            <div>
-              Open source everything. Learning in public.
-            </div>
+          <div className="prose prose-invert prose-lg text-gray-300 font-light leading-relaxed">
+            <p className="mb-4">
+              Deep in <strong>vibe-coding</strong> mode – tinkering with shiny web tech, chasing fresh ideas.
+            </p>
+            <p>
+              After years of building standard software, the modern web feels like a canvas for magical experiences. I build what excites me and release it all as open source. Learning in public and documenting the journey.
+            </p>
           </div>
         </div>
 
+        <hr className="border-white/10 my-12" />
+
         {/* GitHub Activity Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6 px-1">
+        <div className="mb-16">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
-              <Github className="text-peach" />
+              <Github size={24} className="text-gray-400" />
               GitHub Activity
             </h2>
             <a
-              href="https://github.com/Affanj"
+              href="https://github.com/fancyism"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-gray-400 hover:text-peach transition-colors flex items-center gap-1"
+              className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
             >
-              Follow me <ExternalLink size={14} />
+              Follow @fancyism <ExternalLink size={14} />
             </a>
           </div>
 
-          <div className="liquid-glass rounded-3xl p-6 sm:p-8 overflow-x-auto">
-            <p className="text-gray-300 mb-6 font-light">
-              I build what excites me and release it all as open source. Every commit lands here for you to fork & remix.
-            </p>
-            <div className="min-w-[750px] flex justify-center opacity-90 hover:opacity-100 transition-opacity">
-              {/* Hardcoding a mock username for demo, change to your real one */}
+          <div className="overflow-x-auto pb-4">
+            <div className="min-w-[750px] opacity-90 hover:opacity-100 transition-opacity">
               <GitHubCalendar
-                username="Affanj"
+                username="fancyism"
                 colorScheme="dark"
                 theme={{
                   light: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
@@ -92,42 +85,39 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Stay Connected Section */}
-        <div className="liquid-glass rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden group">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-display font-bold mb-4 text-white">Stay Connected</h2>
-            <p className="text-gray-300 mb-8 max-w-lg mx-auto font-light leading-relaxed">
-              New posts, shipping stories, and nerdy links right to your vibe.
-              If you&apos;d like to connect or have questions about my work, feel free to reach out.
-            </p>
+        <hr className="border-white/10 my-12" />
 
-            <div className="flex justify-center gap-4">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass-button group/btn !p-4 !rounded-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1"
-                aria-label="GitHub"
-              >
-                <Github size={24} className="group-hover/btn:text-peach transition-colors" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass-button group/btn !p-4 !rounded-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1"
-                aria-label="Twitter"
-              >
-                <Twitter size={24} className="group-hover/btn:text-peach transition-colors" />
-              </a>
-              <a
-                href="mailto:hello@example.com"
-                className="glass-button group/btn !p-4 !rounded-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1"
-                aria-label="Email"
-              >
-                <Mail size={24} className="group-hover/btn:text-peach transition-colors" />
-              </a>
-            </div>
+        {/* Stay Connected Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-display font-bold mb-4 text-white">Stay Connected</h2>
+          <p className="text-gray-300 mb-8 font-light leading-relaxed">
+            New posts, shipping stories, and nerdy links straight to your inbox.<br />
+            <span className="text-gray-500 text-sm mt-1 block">2× per month, pure signal, zero fluff.</span>
+          </p>
+
+          <div className="max-w-md">
+            <NewsletterForm />
+          </div>
+
+          <div className="flex gap-4 mt-10">
+            <a href="https://github.com/fancyism" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='GitHub'>
+              <Github size={20} />
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Twitter'>
+              <Twitter size={20} />
+            </a>
+            <a href="mailto:hello@example.com" className="text-gray-500 hover:text-white transition-colors" aria-label='Email'>
+              <Mail size={20} />
+            </a>
+            <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='LinkedIn'>
+              <Linkedin size={20} />
+            </a>
+            <a href="https://facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Facebook'>
+              <Facebook size={20} />
+            </a>
+            <a href="https://yourwebsite.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors" aria-label='Website'>
+              <Globe size={20} />
+            </a>
           </div>
         </div>
 

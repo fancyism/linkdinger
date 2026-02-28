@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Twitter, Mail } from 'lucide-react'
+import { Github, Twitter, Mail, Linkedin, Facebook, Globe } from 'lucide-react'
 import NewsletterForm from './newsletter-form'
 
 export default function Footer() {
@@ -72,6 +72,33 @@ export default function Footer() {
                 aria-label="Email"
               >
                 <Mail size={18} className="text-gray-400" />
+              </a>
+              <a
+                href="https://linkedin.com/in/yourprofile"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
+                aria-label="LinkedIn"
+              >
+                <Linkedin size={18} className="text-gray-400" />
+              </a>
+              <a
+                href="https://facebook.com/yourprofile"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
+                aria-label="Facebook"
+              >
+                <Facebook size={18} className="text-gray-400" />
+              </a>
+              <a
+                href="https://yourwebsite.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
+                aria-label="Website"
+              >
+                <Globe size={18} className="text-gray-400" />
               </a>
             </div>
 
