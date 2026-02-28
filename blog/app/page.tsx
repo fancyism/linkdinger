@@ -2,7 +2,6 @@ import { getAllPosts, getAllCategories } from '@/lib/posts'
 import Hero from '@/components/hero'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
-import NewsletterForm from '@/components/newsletter-form'
 import HomeGallery from '@/components/home-gallery'
 import Pagination from '@/components/pagination'
 import Link from 'next/link'
@@ -12,14 +11,14 @@ export default function HomePage() {
   const allPosts = getAllPosts()
   const categories = getAllCategories()
 
-  const POSTS_PER_PAGE = 11
+  const POSTS_PER_PAGE = 13
   const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE)
   const startIndex = (page - 1) * POSTS_PER_PAGE
   const currentPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE)
 
   const featured = currentPosts[0]
-  const gridPosts = currentPosts.slice(1, 5)
-  const listPosts = currentPosts.slice(5)
+  const gridPosts = currentPosts.slice(1, 7)
+  const listPosts = currentPosts.slice(7)
 
   const getAspectForHome = (index: number) => {
     const pattern = ['portrait', 'square', 'wide', 'wide']
@@ -118,20 +117,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Newsletter CTA */}
-      <section className="pb-20 px-4 sm:px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="liquid-glass rounded-2xl p-8 text-center">
-            <h3 className="text-xl font-display font-bold mb-2">
-              Stay in the loop
-            </h3>
-            <p className="text-gray-400 mb-5 text-sm">
-              Get notified when I publish something new. No spam, unsubscribe anytime.
-            </p>
-            <NewsletterForm />
-          </div>
-        </div>
-      </section>
+
     </>
   )
 }

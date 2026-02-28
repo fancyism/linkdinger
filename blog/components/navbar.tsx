@@ -100,15 +100,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
             >
               <Github size={18} />
             </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-peach hover:bg-black/5 dark:hover:bg-white/5 transition-all"
-              aria-label="Twitter"
-            >
-              <Twitter size={18} />
-            </a>
+
 
             {/* Theme Toggle */}
             {mounted && (
