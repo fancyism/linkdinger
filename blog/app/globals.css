@@ -561,3 +561,202 @@ body {
     background-position: 200% 0;
   }
 }
+
+/* ──────────────────────────────────────────── */
+/* ── 404 PAGE — GLITCH & EFFECTS ──           */
+/* ──────────────────────────────────────────── */
+
+/* ── Glitch 404 Typography ── */
+.glitch-404 {
+  color: #FF6B35;
+  position: relative;
+  text-shadow:
+    0 0 40px rgba(255, 107, 53, 0.4),
+    0 0 80px rgba(255, 107, 53, 0.15);
+  animation: glitch-skew 8s ease-in-out infinite alternate;
+}
+
+.glitch-404::before,
+.glitch-404::after {
+  content: '404';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.glitch-404::before {
+  color: rgba(255, 107, 53, 0.7);
+  animation: glitch-clip-1 4s infinite linear alternate-reverse;
+  clip-path: inset(20% 0 40% 0);
+  transform: translate(-3px, -2px);
+}
+
+.glitch-404::after {
+  color: rgba(37, 99, 235, 0.5);
+  animation: glitch-clip-2 4s infinite linear alternate-reverse;
+  clip-path: inset(60% 0 10% 0);
+  transform: translate(3px, 2px);
+}
+
+@keyframes glitch-clip-1 {
+  0% {
+    clip-path: inset(20% 0 40% 0);
+  }
+
+  20% {
+    clip-path: inset(50% 0 20% 0);
+  }
+
+  40% {
+    clip-path: inset(10% 0 60% 0);
+  }
+
+  60% {
+    clip-path: inset(70% 0 5% 0);
+  }
+
+  80% {
+    clip-path: inset(30% 0 30% 0);
+  }
+
+  100% {
+    clip-path: inset(45% 0 25% 0);
+  }
+}
+
+@keyframes glitch-clip-2 {
+  0% {
+    clip-path: inset(60% 0 10% 0);
+  }
+
+  20% {
+    clip-path: inset(15% 0 55% 0);
+  }
+
+  40% {
+    clip-path: inset(80% 0 0% 0);
+  }
+
+  60% {
+    clip-path: inset(5% 0 70% 0);
+  }
+
+  80% {
+    clip-path: inset(40% 0 20% 0);
+  }
+
+  100% {
+    clip-path: inset(25% 0 45% 0);
+  }
+}
+
+@keyframes glitch-skew {
+  0% {
+    transform: skewX(0deg);
+  }
+
+  20% {
+    transform: skewX(0deg);
+  }
+
+  21% {
+    transform: skewX(-0.5deg);
+  }
+
+  22% {
+    transform: skewX(0deg);
+  }
+
+  60% {
+    transform: skewX(0deg);
+  }
+
+  61% {
+    transform: skewX(0.3deg);
+  }
+
+  62% {
+    transform: skewX(0deg);
+  }
+
+  100% {
+    transform: skewX(0deg);
+  }
+}
+
+/* ── Light Theme Glitch ── */
+.light .glitch-404 {
+  color: #FF6B35;
+  text-shadow:
+    0 0 40px rgba(255, 107, 53, 0.3),
+    0 0 80px rgba(255, 107, 53, 0.1);
+}
+
+.light .glitch-404::before {
+  color: rgba(255, 107, 53, 0.5);
+}
+
+.light .glitch-404::after {
+  color: rgba(88, 28, 135, 0.3);
+}
+
+/* ── Gentle Float ── */
+.gentle-float {
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ── Scan Line Effect ── */
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.4), transparent);
+  animation: scanLine 4s ease-in-out infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@keyframes scanLine {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.5;
+  }
+
+  90% {
+    opacity: 0.5;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* ── 404 Light Theme Text Overrides ── */
+.light .light-text-override {
+  color: #111111;
+}
+
+.light .light-subtext-override {
+  color: #666666;
+}
