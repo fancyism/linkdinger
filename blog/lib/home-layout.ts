@@ -1,4 +1,5 @@
 export const DEFAULT_HOME_POSTS_PER_PAGE = 13
+export const DEFAULT_HOME_GRID_POSTS = 6
 
 function toPositiveInteger(value: unknown, fallback: number): number {
   const parsed = Number(value)
@@ -9,6 +10,10 @@ function toPositiveInteger(value: unknown, fallback: number): number {
 
 export function getHomePostsPerPage(): number {
   return toPositiveInteger(process.env.HOME_POSTS_PER_PAGE, DEFAULT_HOME_POSTS_PER_PAGE)
+}
+
+export function getHomeGridPostsCount(): number {
+  return toPositiveInteger(process.env.HOME_GRID_POSTS, DEFAULT_HOME_GRID_POSTS)
 }
 
 export function getTotalPages(totalItems: number, pageSize = getHomePostsPerPage()): number {
@@ -29,11 +34,11 @@ export function splitHomePosts<T>(posts: T[]): {
 } {
   const featured = posts[0] ?? null
   const remaining = posts.slice(1)
-  const gridCount = Math.ceil(remaining.length / 2)
+  const gridCount = getHomeGridPostsCount()
 
   return {
     featured,
-    gridPosts: remaining.slice(0, gridCount),
-    listPosts: remaining.slice(gridCount),
+    gridPosts: remaining.slice(0, Math.min(gridCount, remaining.length)),
+    listPosts: remaining.slice(Math.min(gridCount, remaining.length)),
   }
 }

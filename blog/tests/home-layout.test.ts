@@ -14,6 +14,15 @@ test('splitHomePosts keeps every post without dropping items', () => {
   }
 })
 
+test('splitHomePosts uses featured + 6 grid + rest list layout by default', () => {
+  const posts = Array.from({ length: 8 }, (_, i) => `post-${i + 1}`)
+  const { featured, gridPosts, listPosts } = splitHomePosts(posts)
+
+  assert.equal(featured, 'post-1')
+  assert.deepEqual(gridPosts, ['post-2', 'post-3', 'post-4', 'post-5', 'post-6', 'post-7'])
+  assert.deepEqual(listPosts, ['post-8'])
+})
+
 test('paginatePosts returns page slices based on page size', () => {
   const posts = Array.from({ length: 8 }, (_, i) => `post-${i + 1}`)
 
