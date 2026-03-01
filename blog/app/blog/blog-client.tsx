@@ -1,6 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
 
@@ -22,9 +23,48 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
     const searchParams = useSearchParams()
     const activeCategory = searchParams.get('category')
 
+    const [viewCounts, setViewCounts] = useState<Record<string, number>>({})
+    const [sortBy, setSortBy] = useState<'date' | 'views'>('date')
+
+    useEffect(() => {
+        const fetchAllViews = async () => {
+            const url = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL
+            const token = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN
+            if (!url || !token || posts.length === 0) return
+
+            try {
+                const keys = posts.map(p => `page_views:${p.slug}`)
+                const res = await fetch(`${url}/mget/${keys.join('/')}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                if (res.ok) {
+                    const data = await res.json()
+                    const counts = data.result
+                    const map: Record<string, number> = {}
+                    posts.forEach((p, i) => {
+                        map[p.slug] = counts[i] ? parseInt(counts[i], 10) : 0
+                    })
+                    setViewCounts(map)
+                }
+            } catch (e) {
+                console.error('Failed to fetch all view counts', e)
+            }
+        }
+        fetchAllViews()
+    }, [posts])
+
     const filtered = activeCategory
         ? posts.filter(p => p.category === activeCategory)
         : posts
+
+    const sorted = [...filtered].sort((a, b) => {
+        if (sortBy === 'views') {
+            const viewsA = viewCounts[a.slug] || 0
+            const viewsB = viewCounts[b.slug] || 0
+            return viewsB - viewsA
+        }
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
 
     const getAspectForBlog = (index: number) => {
         // Create an organic, highly asymmetric pattern with occasional symmetric breaks
@@ -41,36 +81,54 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
 
     return (
         <>
-            {/* Category Filter */}
-            {categories.length > 0 && (
-                <div className="flex items-center gap-3 overflow-x-auto pb-2 mb-8">
-                    <a
-                        href="/blog"
-                        className={!activeCategory ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
+            {/* Category Filter and Sorting */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-black/5 dark:border-white/5 pb-4">
+                {categories.length > 0 ? (
+                    <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0">
+                        <a
+                            href="/blog"
+                            className={!activeCategory ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
+                        >
+                            <BrutalTag className={!activeCategory ? "bg-peach text-black border-peach" : ""}>
+                                All ({posts.length})
+                            </BrutalTag>
+                        </a>
+                        {categories.map((cat) => {
+                            const count = posts.filter(p => p.category === cat).length
+                            return (
+                                <a
+                                    key={cat}
+                                    href={`/blog?category=${cat}`}
+                                    className={activeCategory === cat ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
+                                >
+                                    <BrutalTag>{cat} ({count})</BrutalTag>
+                                </a>
+                            )
+                        })}
+                    </div>
+                ) : <div />}
+
+                <div className="flex items-center gap-4 text-xs font-display tracking-widest uppercase shrink-0">
+                    <span className="text-gray-500">Sort by:</span>
+                    <button
+                        onClick={() => setSortBy('date')}
+                        className={`transition-colors ${sortBy === 'date' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                     >
-                        <BrutalTag className={!activeCategory ? "bg-peach text-black border-peach" : ""}>
-                            All ({posts.length})
-                        </BrutalTag>
-                    </a>
-                    {categories.map((cat) => {
-                        const count = posts.filter(p => p.category === cat).length
-                        return (
-                            <a
-                                key={cat}
-                                href={`/blog?category=${cat}`}
-                                className={activeCategory === cat ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
-                            >
-                                <BrutalTag>{cat} ({count})</BrutalTag>
-                            </a>
-                        )
-                    })}
+                        Latest
+                    </button>
+                    <button
+                        onClick={() => setSortBy('views')}
+                        className={`transition-colors flex items-center gap-1 ${sortBy === 'views' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                    >
+                        Popular
+                    </button>
                 </div>
-            )}
+            </div>
 
             {/* Posts Grid */}
-            {filtered.length > 0 ? (
+            {sorted.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
-                    {filtered.map((post, index) => (
+                    {sorted.map((post, index) => (
                         <PostCard
                             key={post.slug}
                             index={index}
@@ -82,6 +140,7 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
                             readTime={post.readTime}
                             coverImage={post.coverImage}
                             imageAspect={getAspectForBlog(index)}
+                            staticViews={viewCounts[post.slug]}
                         />
                     ))}
                 </div>

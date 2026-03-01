@@ -9,6 +9,7 @@ import ShareButtons from '@/components/share-buttons'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
 import type { Post, TocItem } from '@/lib/posts'
+import ViewCounter from '@/components/view-counter'
 
 interface PostDetailProps {
     post: Post
@@ -58,6 +59,8 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                             <time className="text-peach">{post.date}</time>
                             <span className="opacity-30">|</span>
                             <span>{post.readTime} read</span>
+                            <span className="opacity-30">|</span>
+                            <ViewCounter slug={post.slug} trackView={true} />
                             {post.tags && post.tags.length > 0 && (
                                 <>
                                     <span className="opacity-30">|</span>

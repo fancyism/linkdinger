@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import BrutalTag from './ui/brutal-tag'
+import ViewCounter from './view-counter'
 
 interface PostCardProps {
   slug: string
@@ -12,6 +13,7 @@ interface PostCardProps {
   variant?: 'grid' | 'list'
   index?: number
   imageAspect?: 'square' | 'portrait' | 'landscape' | 'wide'
+  staticViews?: number
 }
 
 export default function PostCard({
@@ -25,6 +27,7 @@ export default function PostCard({
   variant = 'grid',
   index,
   imageAspect,
+  staticViews,
 }: PostCardProps) {
   const dateStr = date ? (typeof date === 'string' ? date : new Date(date).toISOString().split('T')[0]) : ''
 
@@ -36,9 +39,12 @@ export default function PostCard({
             <span className="text-xl sm:text-2xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors">{dateStr.split(',')[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-snug line-clamp-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-snug line-clamp-2 mb-2">
               {title}
             </h2>
+            <div className="text-xs text-gray-400 font-display uppercase tracking-widest">
+              <ViewCounter slug={slug} trackView={false} staticViews={staticViews} />
+            </div>
           </div>
           {coverImage ? (
             <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 relative group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-shadow duration-500">
@@ -75,9 +81,14 @@ export default function PostCard({
   return (
     <div className="group">
       <Link href={`/blog/${slug}`} className="block">
-        <article className="h-full flex flex-col gap-4 pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
-          <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
-            {formattedDate}
+        <article className="h-full flex flex-col pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
+              {formattedDate}
+            </div>
+            <div className="text-xs text-gray-400 font-display uppercase tracking-widest">
+              <ViewCounter slug={slug} trackView={false} staticViews={staticViews} />
+            </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach transition-colors leading-tight line-clamp-2 h-[3.5rem] sm:h-[4.5rem]">
             {title}
