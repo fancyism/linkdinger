@@ -22,6 +22,7 @@ import logging
 from obsidian_watcher import Config, create_watcher
 from auto_git import AutoGit
 from content_sync import SyncConfig, sync_all, notify as cms_notify
+from dashboard import start_dashboard, set_daemon_state
 
 logging.basicConfig(
     level=logging.INFO,
@@ -81,7 +82,7 @@ def run_cms_only():
     sys.exit(0 if count >= 0 else 1)
 
 
-def run_daemon(watch: bool = True, git: bool = True, cms: bool = True):
+def run_daemon(watch: bool = True, git: bool = True, cms: bool = True, dashboard: bool = True):
     """Run the unified daemon."""
 
     # Load config
@@ -110,6 +111,9 @@ def run_daemon(watch: bool = True, git: bool = True, cms: bool = True):
 
     # Print banner
     print_status(config, auto_git, sync_config)
+
+    # Initialize dashboard state
+    set_daemon_state(started_at=datetime.now())
 
     services = []
 
@@ -145,11 +149,21 @@ def run_daemon(watch: bool = True, git: bool = True, cms: bool = True):
         services.append("🔄 Auto-git")
         print(f"  🔄 Auto-git:     RUNNING → idle {auto_git.idle_minutes}m")
 
+    # Start dashboard
+    if dashboard:
+        start_dashboard(port=9999)
+        services.append("🖥️  Dashboard")
+        print(f"  🖥️  Dashboard:    RUNNING → http://localhost:9999")
+
+    # Share state references for live dashboard updates
+    set_daemon_state(auto_git_ref=auto_git, sync_config_ref=sync_config)
+
     # Initial sync on startup
     if sync_config:
         print(f"\n  🔄 Running initial CMS sync...")
         count = sync_all(sync_config)
         print(f"  ✓  Initial sync: {count} file(s)")
+        set_daemon_state(posts_synced=count)
 
     if not services:
         print("❌ No services enabled. Use --watch or --git.")
@@ -212,6 +226,7 @@ Examples:
         """
     )
     parser.add_argument("--watch", action="store_true", help="Run watcher only")
+    parser.add_argument("--no-dashboard", action="store_true", help="Disable web dashboard")
     parser.add_argument("--git", action="store_true", help="Run auto-git only")
     parser.add_argument("--cms", action="store_true", help="Run CMS sync (one-shot)")
     parser.add_argument("--status", action="store_true", help="Show config status and exit")
@@ -232,10 +247,11 @@ Examples:
         return
 
     # If neither flag is set, run all
+    use_dashboard = not args.no_dashboard
     if not args.watch and not args.git:
-        run_daemon(watch=True, git=True, cms=True)
+        run_daemon(watch=True, git=True, cms=True, dashboard=use_dashboard)
     else:
-        run_daemon(watch=args.watch, git=args.git, cms=False)
+        run_daemon(watch=args.watch, git=args.git, cms=False, dashboard=use_dashboard)
 
 
 if __name__ == "__main__":
