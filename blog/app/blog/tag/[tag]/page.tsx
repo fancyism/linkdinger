@@ -14,6 +14,9 @@ export function generateMetadata({ params }: { params: { tag: string } }) {
     return {
         title: `Posts tagged "${tag}"`,
         description: `All blog posts tagged with ${tag}`,
+        alternates: {
+            canonical: `/blog/tag/${encodeURIComponent(tag)}/`,
+        },
     }
 }
 

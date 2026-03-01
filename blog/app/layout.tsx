@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Outfit, JetBrains_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import Navbar from '@/components/navbar'
@@ -27,18 +27,25 @@ const jetbrains = JetBrains_Mono({
   weight: ['400', '500'],
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Linkdinger — AI Tools & Thoughts',
     template: '%s | Linkdinger',
   },
   description: 'AI-powered tools and thoughts. Every commit lands on GitHub for you to fork & remix.',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'Linkdinger',
     description: 'AI-powered tools and thoughts.',
     type: 'website',
     locale: 'en_US',
     siteName: 'Linkdinger',
+    url: '/',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,6 +56,15 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 }
 
 import { getAllPosts } from '@/lib/posts'

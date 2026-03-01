@@ -6,6 +6,9 @@ import TagCloud from '@/components/tag-cloud'
 export const metadata = {
   title: 'Blog',
   description: 'Thoughts, tutorials, and explorations',
+  alternates: {
+    canonical: '/blog/',
+  },
 }
 
 export default function BlogPage() {

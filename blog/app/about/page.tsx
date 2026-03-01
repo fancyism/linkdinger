@@ -4,8 +4,11 @@ import Image from 'next/image'
 import NewsletterForm from '@/components/newsletter-form'
 
 export const metadata = {
-  title: 'About | Affan',
+  title: 'About',
   description: 'Deep in vibe-coding mode – tinkering with shiny web tech, chasing fresh ideas.',
+  alternates: {
+    canonical: '/about/',
+  },
 }
 
 export default function AboutPage() {

@@ -4,6 +4,10 @@ import SearchClient from './client'
 export const metadata = {
   title: 'Search',
   description: 'Search through all blog posts',
+  robots: { index: false, follow: false },
+  alternates: {
+    canonical: '/search/',
+  },
 }
 
 export default function SearchPage() {

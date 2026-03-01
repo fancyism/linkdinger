@@ -1,0 +1,10 @@
+# Robots.txt - Linkdinger Blog
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: /sitemap.xml
+
+# Disallow search & API routes (no useful content)
+Disallow: /search/
+Disallow: /api/
