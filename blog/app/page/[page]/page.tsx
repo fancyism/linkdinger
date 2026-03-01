@@ -1,4 +1,5 @@
 import { getAllPosts, getAllCategories } from '@/lib/posts'
+import { getHomePostsPerPage, getTotalPages, paginatePosts, splitHomePosts } from '@/lib/home-layout'
 import Hero from '@/components/hero'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
@@ -8,11 +9,10 @@ import Pagination from '@/components/pagination'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-const POSTS_PER_PAGE = 11
-
 export function generateStaticParams() {
     const posts = getAllPosts()
-    const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE)
+    const postsPerPage = getHomePostsPerPage()
+    const totalPages = getTotalPages(posts.length, postsPerPage)
 
     // We don't need to generate a param for page 1 because app/page.tsx handles it.
     const paths = []
@@ -30,7 +30,8 @@ export default function PaginatedHomePage({
 }) {
     const page = parseInt(params.page, 10)
     const allPosts = getAllPosts()
-    const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE)
+    const postsPerPage = getHomePostsPerPage()
+    const totalPages = getTotalPages(allPosts.length, postsPerPage)
 
     // Invalid page numbers go to 404
     if (isNaN(page) || page < 1 || page > totalPages) {
@@ -38,12 +39,8 @@ export default function PaginatedHomePage({
     }
 
     const categories = getAllCategories()
-    const startIndex = (page - 1) * POSTS_PER_PAGE
-    const currentPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE)
-
-    const featured = currentPosts[0]
-    const gridPosts = currentPosts.slice(1, 5)
-    const listPosts = currentPosts.slice(5)
+    const currentPosts = paginatePosts(allPosts, page, postsPerPage)
+    const { featured, gridPosts, listPosts } = splitHomePosts(currentPosts)
 
     const getAspectForHome = (index: number) => {
         const pattern = ['portrait', 'square', 'wide', 'wide']

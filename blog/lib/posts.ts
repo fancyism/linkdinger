@@ -24,6 +24,10 @@ export interface TocItem {
   level: number
 }
 
+export function isMarkdownPostFile(filename: string): boolean {
+  return !filename.startsWith('.') && /\.md$/i.test(filename)
+}
+
 function calculateReadTime(content: string): string {
   const wordsPerMinute = 200
   const words = content.split(/\s+/).length
@@ -35,7 +39,10 @@ export function getPostSlugs(): string[] {
   if (!fs.existsSync(postsDirectory)) {
     return []
   }
-  return fs.readdirSync(postsDirectory).filter(file => file.endsWith('.md'))
+  return fs
+    .readdirSync(postsDirectory, { withFileTypes: true })
+    .filter(entry => entry.isFile() && isMarkdownPostFile(entry.name))
+    .map(entry => entry.name)
 }
 
 export function getPostBySlug(slug: string): Post | null {
@@ -49,7 +56,6 @@ export function getPostBySlug(slug: string): Post | null {
 
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
-  console.log(`Parsed ${realSlug}: title="${data.title}"`)
 
   return {
     slug: realSlug,

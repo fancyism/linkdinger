@@ -1,4 +1,5 @@
 import { getAllPosts, getAllCategories } from '@/lib/posts'
+import { getHomePostsPerPage, getTotalPages, paginatePosts, splitHomePosts } from '@/lib/home-layout'
 import Hero from '@/components/hero'
 import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
@@ -11,14 +12,10 @@ export default function HomePage() {
   const allPosts = getAllPosts()
   const categories = getAllCategories()
 
-  const POSTS_PER_PAGE = 13
-  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE)
-  const startIndex = (page - 1) * POSTS_PER_PAGE
-  const currentPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE)
-
-  const featured = currentPosts[0]
-  const gridPosts = currentPosts.slice(1, 7)
-  const listPosts = currentPosts.slice(7)
+  const postsPerPage = getHomePostsPerPage()
+  const totalPages = getTotalPages(allPosts.length, postsPerPage)
+  const currentPosts = paginatePosts(allPosts, page, postsPerPage)
+  const { featured, gridPosts, listPosts } = splitHomePosts(currentPosts)
 
   const getAspectForHome = (index: number) => {
     const pattern = ['portrait', 'square', 'wide', 'wide']

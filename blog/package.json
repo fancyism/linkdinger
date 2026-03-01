@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "node scripts/generate-sitemap.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test --import tsx \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
@@ -30,6 +31,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
+    "tsx": "^4.20.6",
     "typescript": "^5.4.5"
   }
 }
