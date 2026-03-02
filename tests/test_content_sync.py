@@ -17,6 +17,8 @@ from content_sync import (
     _has_publish_flag,
     _rewrite_image_links,
     _collect_publish_files,
+    validate_file_for_publish,
+    validate_publish_files,
 )
 
 
@@ -71,7 +73,7 @@ class TestSyncFile:
         """A1/A2: File in publish/ is copied to blog content."""
         src = os.path.join(temp_env["publish"], "my-post.md")
         with open(src, "w") as f:
-            f.write("---\ntitle: Test\n---\n\nHello world")
+            f.write("---\ntitle: Test\ndate: 2026-03-02\n---\n\nHello world")
 
         result = sync_file(src, config, rewrite_links=False)
 
@@ -97,7 +99,7 @@ class TestSyncFile:
 
         src = os.path.join(temp_env["publish"], "post.md")
         with open(src, "w") as f:
-            f.write("# Post")
+            f.write("---\ntitle: Post\ndate: 2026-03-02\n---\n\n# Post")
 
         result = sync_file(src, config, rewrite_links=False)
         assert result is not None
@@ -109,15 +111,17 @@ class TestSyncFile:
         dest = os.path.join(temp_env["blog_content"], "post.md")
 
         with open(src, "w") as f:
-            f.write("Version 1")
+            f.write("---\ntitle: Post\ndate: 2026-03-02\n---\n\nVersion 1")
         sync_file(src, config, rewrite_links=False)
 
         with open(src, "w") as f:
-            f.write("Version 2")
+            f.write("---\ntitle: Post\ndate: 2026-03-02\n---\n\nVersion 2")
         sync_file(src, config, rewrite_links=False)
 
         with open(dest) as f:
-            assert f.read() == "Version 2"
+            saved = f.read()
+            assert "Version 2" in saved
+            assert "Version 1" not in saved
 
     def test_sync_missing_source(self, config):
         """Source file doesn't exist → returns None."""
@@ -163,7 +167,7 @@ class TestSyncAll:
         # Create 2 posts in publish/
         for name in ["a.md", "b.md"]:
             with open(os.path.join(temp_env["publish"], name), "w") as f:
-                f.write(f"# {name}")
+                f.write(f"---\ntitle: {name}\ndate: 2026-03-02\n---\n\n# {name}")
 
         count = sync_all(config)
         assert count == 2
@@ -289,7 +293,7 @@ class TestNotify:
     def test_notify_syncs_publish_folder_file(self, temp_env, config):
         src = os.path.join(temp_env["publish"], "event-post.md")
         with open(src, "w") as f:
-            f.write("# Event post")
+            f.write("---\ntitle: Event post\ndate: 2026-03-02\n---\n\n# Event post")
 
         notify(src, config, deleted=False)
         dest = os.path.join(temp_env["blog_content"], "event-post.md")
@@ -317,3 +321,59 @@ class TestNotify:
 
         notify(src, config, deleted=False)
         assert not os.path.exists(dest)
+
+
+class TestValidation:
+    def test_validate_file_missing_required_frontmatter(self, temp_env, config):
+        src = os.path.join(temp_env["publish"], "invalid-frontmatter.md")
+        with open(src, "w") as f:
+            f.write("---\npublish: true\n---\n\nBody")
+
+        issues = validate_file_for_publish(src, config)
+        assert "missing required frontmatter: title" in issues
+        assert "missing required frontmatter: date" in issues
+
+        result = sync_file(src, config)
+        assert result is None
+
+    def test_validate_file_broken_obsidian_image(self, temp_env, config):
+        src = os.path.join(temp_env["publish"], "broken-image.md")
+        with open(src, "w") as f:
+            f.write(
+                "---\n"
+                "title: Broken image\n"
+                "date: 2026-03-02\n"
+                "---\n\n"
+                "Image: ![[missing.png]]\n"
+            )
+
+        issues = validate_file_for_publish(src, config)
+        assert "image not found in upload log: missing.png" in issues
+
+        result = sync_file(src, config)
+        assert result is None
+        dest = os.path.join(temp_env["blog_content"], "broken-image.md")
+        assert not os.path.exists(dest)
+
+    def test_validate_publish_files_duplicate_slug(self, temp_env, config):
+        src_publish = os.path.join(temp_env["publish"], "dup.md")
+        src_flagged = os.path.join(temp_env["notes"], "dup.md")
+
+        with open(src_publish, "w") as f:
+            f.write("---\ntitle: Dup A\ndate: 2026-03-02\n---\n\nFrom publish")
+
+        with open(src_flagged, "w") as f:
+            f.write("---\ntitle: Dup B\ndate: 2026-03-02\npublish: true\n---\n\nFrom notes")
+
+        candidates = _collect_publish_files(config)
+        valid_files, errors = validate_publish_files(candidates, config)
+
+        assert valid_files == []
+        assert src_publish in errors
+        assert src_flagged in errors
+        assert any("duplicate slug" in issue for issue in errors[src_publish])
+        assert any("duplicate slug" in issue for issue in errors[src_flagged])
+
+        count = sync_all(config)
+        assert count == 0
+        assert not os.path.exists(os.path.join(temp_env["blog_content"], "dup.md"))

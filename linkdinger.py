@@ -22,7 +22,12 @@ import logging
 from datetime import datetime
 from obsidian_watcher import Config, create_watcher
 from auto_git import AutoGit
-from content_sync import SyncConfig, sync_all, notify as cms_notify
+from content_sync import (
+    SyncConfig,
+    has_due_scheduled_posts,
+    notify as cms_notify,
+    sync_all,
+)
 from dashboard import start_dashboard, set_daemon_state, log_activity
 
 logging.basicConfig(
