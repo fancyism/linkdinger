@@ -14,6 +14,8 @@ interface PostCardProps {
   index?: number
   imageAspect?: 'square' | 'portrait' | 'landscape' | 'wide'
   staticViews?: number
+  isPopular?: boolean
+  rank?: number
 }
 
 export default function PostCard({
@@ -28,6 +30,8 @@ export default function PostCard({
   index,
   imageAspect,
   staticViews,
+  isPopular = false,
+  rank,
 }: PostCardProps) {
   const dateStr = date ? (typeof date === 'string' ? date : new Date(date).toISOString().split('T')[0]) : ''
 
@@ -42,18 +46,33 @@ export default function PostCard({
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors leading-snug line-clamp-2 mb-2">
               {title}
             </h2>
-            <div className="text-xs text-gray-400 font-display uppercase tracking-widest">
+            <div className="flex items-center gap-3 text-xs text-gray-400 font-display uppercase tracking-widest">
               <ViewCounter slug={slug} trackView={false} staticViews={staticViews} />
+              {isPopular && (
+                <span className="text-[0.6rem] font-bold px-2 py-0.5 rounded-full bg-peach/10 text-peach border border-peach/20 flex items-center gap-1 whitespace-nowrap">
+                  <span className="text-xs leading-none">🔥</span> Popular
+                </span>
+              )}
             </div>
           </div>
           {coverImage ? (
             <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 relative group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-shadow duration-500">
               <img src={coverImage} alt={title} className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700" loading="lazy" />
               <div className="absolute inset-0 border border-black/10 dark:border-white/10 rounded-xl pointer-events-none" />
+              {rank && (
+                <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-sm font-display font-black shadow-lg text-black dark:text-white z-10">
+                  {rank}
+                </div>
+              )}
             </div>
           ) : (
-            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-all duration-500">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl relative bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:border-black/20 dark:group-hover:border-white/20 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-all duration-500">
               <span className="text-4xl text-gray-400 dark:text-gray-500 font-display font-bold">{title?.charAt(0) || 'U'}</span>
+              {rank && (
+                <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-sm font-display font-black shadow-lg text-black dark:text-white z-10">
+                  {rank}
+                </div>
+              )}
             </div>
           )}
         </article>
@@ -83,8 +102,15 @@ export default function PostCard({
       <Link href={`/blog/${slug}`} className="block">
         <article className="h-full flex flex-col pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
-              {formattedDate}
+            <div className="flex items-center gap-3">
+              <div className="text-lg sm:text-xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tighter">
+                {formattedDate}
+              </div>
+              {isPopular && (
+                <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-peach/10 text-peach border border-peach/20 uppercase tracking-widest flex items-center gap-1 shadow-sm whitespace-nowrap">
+                  <span className="text-xs leading-none">🔥</span> Popular
+                </span>
+              )}
             </div>
             <div className="text-xs text-gray-400 font-display uppercase tracking-widest">
               <ViewCounter slug={slug} trackView={false} staticViews={staticViews} />
@@ -101,12 +127,22 @@ export default function PostCard({
                 className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
                 loading="lazy"
               />
+              {rank && (
+                <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-xl font-display font-black shadow-lg text-black dark:text-white z-10 transition-transform group-hover:scale-110">
+                  {rank}
+                </div>
+              )}
             </div>
           ) : (
-            <div className={`${aspectClass} w-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
+            <div className={`${aspectClass} w-full relative bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
               <span className="text-8xl max-w-full truncate px-4 opacity-10 dark:opacity-20 font-display font-bold text-gray-900 dark:text-white">
                 {title.charAt(0)}
               </span>
+              {rank && (
+                <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-xl font-display font-black shadow-lg text-black dark:text-white z-10 transition-transform group-hover:scale-110">
+                  {rank}
+                </div>
+              )}
             </div>
           )}
         </article>

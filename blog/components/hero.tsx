@@ -9,6 +9,7 @@ interface HeroProps {
   readTime: string
   tags?: string[]
   coverImage?: string
+  badgeText?: string
 }
 
 export default function Hero({
@@ -19,6 +20,7 @@ export default function Hero({
   readTime,
   tags = [],
   coverImage,
+  badgeText,
 }: HeroProps) {
   // Try to parse date heavily or simply display it raw, but make it striking
   const dateStr = date || ''
@@ -31,6 +33,12 @@ export default function Hero({
             {/* Left Content Area (Typography Focus) */}
             <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative z-10 w-full md:w-3/5">
               <div className="max-w-xl">
+                {badgeText && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-peach/10 text-peach border border-peach/20 text-xs font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
+                    <span className="w-1.5 h-1.5 bg-peach rounded-full animate-pulse shadow-[0_0_8px_rgba(255,107,53,0.8)]" />
+                    {badgeText}
+                  </div>
+                )}
                 <h1 className="text-5xl sm:text-6xl lg:text-[5rem] font-display font-black text-gray-900 dark:text-white leading-[1.05] tracking-tighter mb-6 group-hover:text-peach dark:group-hover:text-peach transition-colors drop-shadow-sm dark:drop-shadow-md">
                   {title}
                 </h1>

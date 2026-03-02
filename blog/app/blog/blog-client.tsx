@@ -66,6 +66,12 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
         )
         : filteredByCategory
 
+    // Determine top 3 popular posts for badges
+    const popularSlugs = [...posts]
+        .sort((a, b) => (viewCounts[b.slug] || 0) - (viewCounts[a.slug] || 0))
+        .slice(0, 3)
+        .map(p => p.slug)
+
     const sorted = [...filtered].sort((a, b) => {
         if (sortBy === 'views') {
             const viewsA = viewCounts[a.slug] || 0
@@ -170,6 +176,7 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
                             coverImage={post.coverImage}
                             imageAspect={getAspectForBlog(index)}
                             staticViews={viewCounts[post.slug]}
+                            isPopular={popularSlugs.includes(post.slug)}
                         />
                     ))}
                 </div>
