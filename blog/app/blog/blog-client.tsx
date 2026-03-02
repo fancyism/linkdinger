@@ -25,6 +25,7 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
 
     const [viewCounts, setViewCounts] = useState<Record<string, number>>({})
     const [sortBy, setSortBy] = useState<'date' | 'views'>('date')
+    const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => {
         const fetchAllViews = async () => {
@@ -53,9 +54,17 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
         fetchAllViews()
     }, [posts])
 
-    const filtered = activeCategory
+    const filteredByCategory = activeCategory
         ? posts.filter(p => p.category === activeCategory)
         : posts
+
+    const filtered = searchQuery
+        ? filteredByCategory.filter(p =>
+            p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.tags && p.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+        )
+        : filteredByCategory
 
     const sorted = [...filtered].sort((a, b) => {
         if (sortBy === 'views') {
@@ -108,20 +117,40 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
                     </div>
                 ) : <div />}
 
-                <div className="flex items-center gap-4 text-xs font-display tracking-widest uppercase shrink-0">
-                    <span className="text-gray-500">Sort by:</span>
-                    <button
-                        onClick={() => setSortBy('date')}
-                        className={`transition-colors ${sortBy === 'date' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-                    >
-                        Latest
-                    </button>
-                    <button
-                        onClick={() => setSortBy('views')}
-                        className={`transition-colors flex items-center gap-1 ${sortBy === 'views' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-                    >
-                        Popular
-                    </button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0 mt-4 md:mt-0">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-transparent border border-black/10 dark:border-white/10 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-peach w-full sm:w-48 transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:hover:text-white text-xs"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs font-display tracking-widest uppercase justify-end">
+                        <span className="text-gray-500 hidden lg:inline">Sort by:</span>
+                        <button
+                            onClick={() => setSortBy('date')}
+                            className={`transition-colors ${sortBy === 'date' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                        >
+                            Latest
+                        </button>
+                        <button
+                            onClick={() => setSortBy('views')}
+                            className={`transition-colors flex items-center gap-1 ${sortBy === 'views' ? 'text-peach font-bold' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                        >
+                            Popular
+                        </button>
+                    </div>
                 </div>
             </div>
 
