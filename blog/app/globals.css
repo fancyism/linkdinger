@@ -272,6 +272,8 @@ body {
     font-size: 0.8rem;
     transition: all 0.1s ease;
     display: inline-block;
+    margin-right: 4px;
+    margin-bottom: 4px;
   }
 
   .brutal-tag:hover {
