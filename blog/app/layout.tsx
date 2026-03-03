@@ -38,6 +38,9 @@ export const metadata: Metadata = {
   description: 'AI-powered tools and thoughts. Every commit lands on GitHub for you to fork & remix.',
   alternates: {
     canonical: '/',
+    types: {
+      'application/rss+xml': '/rss.xml',
+    },
   },
   openGraph: {
     title: 'Linkdinger',
