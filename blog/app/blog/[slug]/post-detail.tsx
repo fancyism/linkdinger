@@ -10,15 +10,20 @@ import PostCard from '@/components/post-card'
 import BrutalTag from '@/components/ui/brutal-tag'
 import type { Post, TocItem } from '@/lib/posts'
 import ViewCounter from '@/components/view-counter'
+import KofiButton from '@/components/kofi-button'
+import GiscusComments from '@/components/giscus-comments'
+import Reactions from '@/components/reactions'
+import SeriesNav from '@/components/series-nav'
 
 interface PostDetailProps {
     post: Post
     html: string
     headings: TocItem[]
     related: Post[]
+    adjacent: { prev: Post | null; next: Post | null }
 }
 
-export default function PostDetail({ post, html, headings, related }: PostDetailProps) {
+export default function PostDetail({ post, html, headings, related, adjacent }: PostDetailProps) {
     const [isTagsExpanded, setIsTagsExpanded] = useState(false)
     const MAX_TAGS = 3
 
@@ -114,13 +119,41 @@ export default function PostDetail({ post, html, headings, related }: PostDetail
                 </div>
             </section>
 
+            {/* Support */}
+            <section className="px-4 sm:px-6 pb-6">
+                <div className="max-w-[65ch] mx-auto flex justify-center">
+                    <KofiButton />
+                </div>
+            </section>
+
             {/* Share + Divider */}
             <section className="px-4 sm:px-6 pb-10">
                 <div className="max-w-[65ch] mx-auto">
-                    <div className="border-t border-glass-border pt-6 flex items-center justify-between">
+                    <div className="border-t border-glass-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <span className="text-sm text-gray-500">Share this post</span>
                         <ShareButtons title={post.title} />
                     </div>
+                </div>
+            </section>
+
+            {/* Reactions */}
+            <section className="px-4 sm:px-6 pb-4">
+                <div className="max-w-[65ch] mx-auto">
+                    <Reactions slug={post.slug} />
+                </div>
+            </section>
+
+            {/* Series Navigation */}
+            <section className="px-4 sm:px-6 border-b border-glass-border">
+                <div className="max-w-[65ch] mx-auto">
+                    <SeriesNav adjacent={adjacent} />
+                </div>
+            </section>
+
+            {/* Comments */}
+            <section className="px-4 sm:px-6 py-12">
+                <div className="max-w-[65ch] mx-auto">
+                    <GiscusComments />
                 </div>
             </section>
 

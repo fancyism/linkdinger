@@ -5,12 +5,12 @@
     <link>http://localhost:3000</link>
     <description>AI-powered tools and thoughts. Every commit lands on GitHub for you to fork &amp; remix.</description>
     <language>en</language>
-    <lastBuildDate>Tue, 03 Mar 2026 07:07:39 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Mar 2026 07:12:54 GMT</lastBuildDate>
     <atom:link href="http://localhost:3000/rss.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>Context Engineer</title>
-      <link>http://localhost:3000/blog/context-engineer/</link>
-      <guid isPermaLink="true">http://localhost:3000/blog/context-engineer/</guid>
+      <link>http://localhost:3000/blog/Context%20Engineer/</link>
+      <guid isPermaLink="true">http://localhost:3000/blog/Context%20Engineer/</guid>
       <description>Test on production</description>
       <pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
       <category>Tech</category>

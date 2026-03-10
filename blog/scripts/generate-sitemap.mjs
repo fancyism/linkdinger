@@ -48,12 +48,15 @@ function generateSitemap() {
     const allPages = [...staticPages, ...postPages]
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${allPages.map(page => `  <url>
     <loc>${SITE_URL}${page.url}</loc>
     <lastmod>${page.lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="${SITE_URL}/en${page.url}" />
+    <xhtml:link rel="alternate" hreflang="th" href="${SITE_URL}/th${page.url}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${page.url}" />
   </url>`).join('\n')}
 </urlset>`
 

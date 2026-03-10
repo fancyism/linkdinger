@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   description: 'AI-powered tools and thoughts. Every commit lands on GitHub for you to fork & remix.',
   alternates: {
     canonical: '/',
+    languages: {
+      'en': '/en',
+      'th': '/th',
+      'x-default': '/',
+    },
     types: {
       'application/rss+xml': '/rss.xml',
     },
@@ -86,6 +91,40 @@ export default async function RootLayout({
       className={`${inter.variable} ${outfit.variable} ${jetbrains.variable}`}
     >
       <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'Linkdinger',
+                url: siteUrl,
+                description: 'AI-powered tools and thoughts. Every commit lands on GitHub for you to fork & remix.',
+                inLanguage: 'en',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: {
+                    '@type': 'EntryPoint',
+                    urlTemplate: `${siteUrl}/search?q={search_term_string}`,
+                  },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'Linkdinger',
+                url: siteUrl,
+                logo: `${siteUrl}/icon.png`,
+                sameAs: [
+                  'https://github.com/fancyism',
+                  'https://www.linkedin.com/in/fan-affan',
+                ],
+              },
+            ]),
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

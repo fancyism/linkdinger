@@ -29,39 +29,25 @@ export default function ViewCounter({
 
         const fetchViews = async () => {
             try {
-                const url = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL
-                const token = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN
-
-                if (!url || !token) {
-                    console.warn('Upstash Redis credentials are not configured.')
-                    setViews(0)
-                    return
-                }
-
                 let currentViews = 0
 
                 if (trackView) {
                     // Increment views
-                    const res = await fetch(`${url}/incr/page_views:${slug}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+                    const res = await fetch(`/api/views/${slug}`, {
+                        method: 'POST',
                     })
                     if (res.ok) {
                         const data = await res.json()
-                        currentViews = data.result ? parseInt(data.result, 10) : 0
+                        currentViews = data.views ?? 0
                     }
                 } else {
                     // Get views
-                    const res = await fetch(`${url}/get/page_views:${slug}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+                    const res = await fetch(`/api/views/${slug}`, {
+                        method: 'GET',
                     })
                     if (res.ok) {
                         const data = await res.json()
-                        // Upstash returns numerical value as string or directly if it's incr
-                        currentViews = data.result ? parseInt(data.result, 10) : 0
+                        currentViews = data.views ?? 0
                     }
                 }
 

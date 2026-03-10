@@ -40,6 +40,8 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/blog', label: 'Blog' },
+    { href: '/products', label: 'Products' },
+    { href: '/consultation', label: 'Consultation' },
     { href: '/about', label: 'About' },
   ]
 

@@ -5,10 +5,16 @@ import GithubSlugger from 'github-slugger'
 
 const postsDirectory = path.join(process.cwd(), 'content/posts')
 
+export interface FaqItem {
+  question: string
+  answer: string
+}
+
 export interface Post {
   slug: string
   title: string
   date: string
+  dateModified?: string
   excerpt: string
   content: string
   category?: string
@@ -16,6 +22,8 @@ export interface Post {
   readTime?: string
   coverImage?: string
   publish?: boolean
+  faq?: FaqItem[]
+  howTo?: { name: string; text: string }[]
 }
 
 export interface TocItem {
@@ -61,6 +69,7 @@ export function getPostBySlug(slug: string): Post | null {
     slug: realSlug,
     title: data.title || 'Untitled',
     date: data.date instanceof Date ? data.date.toISOString().split('T')[0] : (data.date || ''),
+    dateModified: data.dateModified instanceof Date ? data.dateModified.toISOString().split('T')[0] : (data.dateModified || undefined),
     excerpt: data.excerpt || content.slice(0, 150) + '...',
     content,
     category: data.category || 'General',
@@ -68,6 +77,8 @@ export function getPostBySlug(slug: string): Post | null {
     readTime: calculateReadTime(content),
     coverImage: data.coverImage,
     publish: data.publish ?? true,
+    faq: Array.isArray(data.faq) ? data.faq : undefined,
+    howTo: Array.isArray(data.howTo) ? data.howTo : undefined,
   }
 }
 
@@ -152,4 +163,17 @@ export function extractHeadings(content: string): TocItem[] {
   }
 
   return headings
+}
+
+export function getAdjacentPosts(slug: string): { prev: Post | null; next: Post | null } {
+  const current = getPostBySlug(slug)
+  if (!current) return { prev: null, next: null }
+
+  const categoryPosts = getAllPosts().filter(p => p.category === current.category)
+  const index = categoryPosts.findIndex(p => p.slug === slug)
+
+  return {
+    prev: index < categoryPosts.length - 1 ? categoryPosts[index + 1] : null,
+    next: index > 0 ? categoryPosts[index - 1] : null,
+  }
 }
