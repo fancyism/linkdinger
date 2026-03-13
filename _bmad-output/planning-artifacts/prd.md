@@ -1,201 +1,434 @@
 ---
-stepsCompleted: ['step-01-init', 'step-02-discovery']
+stepsCompleted: ['step-01-init', 'step-02-discovery', 'step-e-01-discovery']
 inputDocuments:
   - config.yaml
   - AGENTS.md
   - docs/principle-blog.md
   - docs/uxui-principle.md
-  - implementation_plan.md (Phase 6 CMS section)
+  - docs/ARCHITECTURE.md
   - obsidian_watcher.py
   - auto_git.py
   - linkdinger.py
+  - dashboard.py
+  - content_sync.py
   - blog/lib/posts.ts
+  - blog/app/blog/[slug]/page.tsx
+  - blog/components/hero.tsx
+  - _bmad/bmb/workflows/agent/data/brainstorm-context.md
 workflowType: 'prd'
 projectType: 'brownfield'
 ---
 
-# PRD: CMS Content Sync — Obsidian → Blog Pipeline
+# PRD: Content Automation and Media Publishing Platform
 
-**Author:** Affan
-**Date:** 2026-02-27
-**Project:** Linkdinger
-**Status:** Draft — Awaiting Review
+**Author:** Affan  
+**Date:** 2026-03-12  
+**Project:** Linkdinger  
+**Status:** Draft - Feature Breakdown Ready for Architecture and Delivery Planning
 
 ---
 
 ## 1. Problem Statement
 
-Linkdinger currently has two disconnected systems:
+Linkdinger already handles:
 
-- **Private notes** are auto-synced to GitHub via `auto_git.py` ✅
-- **Blog posts** must be manually placed in `blog/content/posts/` ❌
+- private note storage and git sync
+- image upload and markdown replacement
+- blog markdown rendering
+- dashboard monitoring
 
-There is no automated bridge. A user writing in Obsidian cannot publish a blog post without manually copying files. This breaks the "write once, publish everywhere" vision.
+But the product still stops at "markdown sync."
+
+There is no operator-friendly system that can:
+
+- take a source note and additional research
+- generate multiple media outputs from one content source
+- create on-brand cover images automatically
+- publish to YouTube with metadata
+- package outputs into blog-ready artifacts
+- log progress, ETA, retry state, and failures
+
+This creates a broken workflow between content ideation and distribution. The user still has to manually coordinate research, generation, publishing, cover creation, and blog embedding across separate tools.
 
 ## 2. Product Vision
 
-> Write in Obsidian → publish to blog by simply adding `publish: true` to frontmatter or moving a file to the `publish/` folder. Zero manual steps.
+> Write once in Obsidian, enrich once, generate once, publish everywhere.
 
-### Core Flow
+The target experience is:
 
+```text
+Obsidian source note
+  -> automation intake
+  -> research assembly
+  -> artifact generation
+  -> auto cover generation
+  -> YouTube distribution
+  -> blog packaging
+  -> blog sync and rendering
 ```
-Obsidian Vault (private)
-├── notes/           → auto-git → private GitHub ✅ Done
-├── _assets/         → watcher → WebP → R2      ✅ Done
-└── publish/         → content_sync → blog/      ⬜ This PRD
-    └── my-post.md → rewrites links → blog/content/posts/
-```
 
-## 3. Scope: 4 Parts (Incremental Delivery)
+The system must remain:
 
-Each part is independently testable and deployable.
+- local-first
+- operator-controlled
+- backward-compatible with current markdown publishing
+- visually consistent with the Linkdinger design language
+
+## 3. Product Goals
+
+### Primary Goals
+
+1. Turn Linkdinger from a markdown sync tool into a full content automation platform.
+2. Let one source note drive multiple outputs: video, podcast, slides, and infographic.
+3. Make the dashboard the single control plane for queue, logs, progress, retry, and approvals.
+4. Add automatic brand-consistent cover generation as a first-class feature, not a manual afterthought.
+5. Produce blog-ready outputs that require little to no manual post-processing.
+
+### Product Principles
+
+- **Source of truth stays in Obsidian:** author intent begins in markdown, not in a separate CMS.
+- **Runtime state stays out of notes:** queues, logs, retries, and ETAs live in the automation system.
+- **Approval beats surprise:** default behavior is review-first, not public-first.
+- **Brand identity must survive automation:** generated covers and media assets must feel like Linkdinger, not random stock output.
+- **The old publishing flow must not break:** plain markdown-only publishing still works.
+
+## 4. Out of Scope for v1
+
+- multi-user roles and permissions
+- generic web crawling beyond user-provided sources
+- exam generation
+- multi-vault support
+- full no-code workflow builder
+- automatic public publishing as the default path
+- dependency on WhyralAds
+
+## 5. Feature Breakdown
+
+This PRD is intentionally split by feature so implementation can be scheduled slice by slice.
 
 ---
 
-### Part A: Core Sync Engine (`content_sync.py`)
+### Feature 1: Automation Job Orchestrator
 
-**Goal:** Standalone module that copies `.md` files from vault `publish/` folder to `blog/content/posts/` directory.
+**Goal:** Add a persistent automation layer between authoring and blog sync.
 
-**Requirements:**
+**User Value:** The operator can create, monitor, retry, and complete jobs without relying on ad hoc scripts or memory.
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| A1 | Detect `.md` files in `{vault}/publish/` folder | Must |
-| A2 | Copy files to `blog/content/posts/` preserving filename | Must |
-| A3 | Strip `publish/` prefix from output path | Must |
-| A4 | On file delete in `publish/` → delete from `blog/content/posts/` | Must |
-| A5 | On file modify → overwrite target (re-sync) | Must |
-| A6 | Skip non-`.md` files silently | Must |
-| A7 | Dual publish mode from `config.yaml`: `folder`, `flag`, `both` | Must |
-| A8 | In `flag` mode: scan vault `.md` files for `publish: true` frontmatter | Should |
-| A9 | Create target directory if it doesn't exist | Must |
-| A10 | Log all sync operations with timestamps | Must |
+**Requirements**
 
-**Config used:**
+- `F1.1` Add a persistent job store for automation runs.
+- `F1.2` Support job states: `draft`, `queued`, `validating`, `researching`, `composing`, `generating_artifacts`, `generating_cover`, `awaiting_cover_approval`, `packaging`, `publishing_youtube`, `building_blog_pack`, `syncing_blog`, `completed`, `failed`, `cancelled`.
+- `F1.3` Run jobs from the unified daemon rather than the watcher.
+- `F1.4` Keep worker concurrency at `1` for v1.
+- `F1.5` Store append-only stage events and error reasons.
+- `F1.6` Estimate remaining time using historical stage durations, not fixed constants.
+- `F1.7` Allow retry from the failed stage when the stage is safe to repeat.
+- `F1.8` Allow job cancellation before final publish/sync stages.
+- `F1.9` Never mutate blog content until the job reaches `syncing_blog`.
+
+**Dependencies**
+
+- unified daemon
+- dashboard state sharing
+- SQLite or equivalent embedded store
+
+**Acceptance**
+
+- operator can create a job and see it move from `queued` to `completed` or `failed`
+- failed jobs retain logs and can be retried
+- ETA is present and updates per stage
+
+---
+
+### Feature 2: Source Intake and Research Assembly
+
+**Goal:** Normalize all author inputs into one job payload.
+
+**User Value:** The user can start from a note they wrote, enrich it with additional context, and avoid manually building prompts from scratch.
+
+**Requirements**
+
+- `F2.1` Accept source markdown notes from the vault.
+- `F2.2` Accept additional sources: URLs, PDFs, text blocks, local files, and YouTube playlists.
+- `F2.3` Accept prompt addendum from the user per job.
+- `F2.4` Allow frontmatter-driven job creation for automation-enabled notes.
+- `F2.5` Allow dashboard-driven job creation without forcing note edits first.
+- `F2.6` Store the resolved research input set inside the job record.
+- `F2.7` Validate missing files, malformed URLs, and unsupported source types before generation begins.
+- `F2.8` Preserve backward compatibility for posts that only use `publish: true` or the `publish/` folder.
+
+**Recommended Frontmatter Contract**
 
 ```yaml
-# Already exists in config.yaml
-publish:
-  method: "both"     # folder | flag | both
-  folder: "publish"  # Subfolder in vault
-  flag: "publish"    # Frontmatter key to look for
-
-# New — to add
-blog:
-  content_dir: "blog/content/posts"
+automation:
+  enabled: true
+  prompt_addendum: "Audience: Thai school operators"
+  research:
+    enabled: true
+    queries:
+      - "K-12 AI adoption trends 2026"
+    extra_sources:
+      - "https://example.com/report.pdf"
+      - "https://youtube.com/playlist?list=PL123"
+  outputs:
+    - type: video
+    - type: podcast
+    - type: infographic
+  publish_policy: review_then_publish
 ```
 
-**Entry/Exit Points:**
+**Acceptance**
 
-- `sync_file(source_path, config)` → copies single file
-- `sync_all(config)` → full scan + sync
-- `remove_synced(source_path, config)` → delete from blog
-- `notify()` → event-driven trigger (for Part C integration)
-
----
-
-### Part B: Image Link Rewriting
-
-**Goal:** Transform Obsidian image syntax to standard markdown with R2 URLs.
-
-**Requirements:**
-
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| B1 | Rewrite `![[image.png]]` → `![image](R2_PUBLIC_URL/uuid.webp)` | Must |
-| B2 | Rewrite `![[image.png\|600]]` (with resize) → standard markdown | Must |
-| B3 | Resolve image filename → R2 URL via upload log or filename lookup | Must |
-| B4 | Handle images not yet uploaded: leave link as-is with warning log | Should |
-| B5 | Rewrite `[[internal-link]]` → remove (don't publish internal wiki links) | Should |
-| B6 | Preserve standard markdown image syntax `![alt](url)` unchanged | Must |
-| B7 | Preserve all frontmatter fields during rewrite | Must |
-
-**Key Challenge:**
-The watcher converts images to WebP with UUID filenames and uploads to R2. The sync module needs to know the mapping: `original-filename.png → uuid.webp`. Options:
-
-1. **Upload log file** (recommended): `_assets/.upload_log.json` mapping original → R2 URL
-2. **Filename-based search**: Query the blog/assets folder
-3. **R2 API query**: List bucket objects (slow, network-dependent)
-
-**Recommended approach:** Modify `obsidian_watcher.py` to write an upload manifest (`_assets/.upload_log.json`). Then `content_sync.py` reads this manifest for link rewriting.
+- one job can be created from a note plus at least two extra source types
+- invalid source inputs fail fast during validation
+- legacy markdown-only publishing remains untouched
 
 ---
 
-### Part C: Watcher Integration
+### Feature 3: Artifact Generation Pipeline
 
-**Goal:** Integrate content sync into the unified daemon so sync happens automatically when markdown files change.
+**Goal:** Generate multiple media outputs from one normalized content job.
 
-**Requirements:**
+**User Value:** One note can produce several content formats without repeating the research and prompt setup work.
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| C1 | Add `MarkdownHandler` to `obsidian_watcher.py` | Must |
-| C2 | Watch `publish/` folder for `.md` changes (create/modify/delete) | Must |
-| C3 | Debounce rapid changes (same as image handler, 0.5s) | Must |
-| C4 | Call `content_sync.sync_file()` on change events | Must |
-| C5 | Call `content_sync.remove_synced()` on delete events | Must |
-| C6 | In `flag` mode: watch ALL vault `.md` files for frontmatter changes | Should |
-| C7 | Integrate into `linkdinger.py` — add `--cms` flag | Must |
-| C8 | Trigger git sync after content sync (reuse auto_git.notify()) | Should |
+**Requirements**
+
+- `F3.1` Support v1 artifact types: `video`, `podcast`, `slides`, `infographic`.
+- `F3.2` Use one generation adapter layer so provider-specific logic stays isolated.
+- `F3.3` Normalize generated outputs into one artifact manifest schema.
+- `F3.4` Store artifact metadata: `id`, `type`, `status`, `title`, canonical URL, optional download URL, and provider metadata.
+- `F3.5` Support partial success: one artifact type may fail while others succeed.
+- `F3.6` Allow jobs to continue to packaging if the minimum requested artifact set succeeds.
+- `F3.7` Record failures per artifact type for operator review.
+
+**Artifact Manifest Minimum Shape**
+
+```json
+{
+  "sourceSlug": "ai-strategy-for-schools",
+  "jobId": "job_20260312_001",
+  "artifacts": [
+    {
+      "id": "main-video",
+      "type": "video",
+      "status": "ready"
+    }
+  ]
+}
+```
+
+**Acceptance**
+
+- one job can request multiple output types
+- successful outputs are visible even if one output type fails
+- all generated outputs are normalized into one manifest
 
 ---
 
-### Part D: Testing & Documentation
+### Feature 4: Automatic Cover Generation and Theme System
 
-**Goal:** Comprehensive tests + updated docs for the complete CMS pipeline.
+**Goal:** Generate a distinct, on-brand cover image automatically for automation-enabled content.
 
-**Requirements:**
+**User Value:** Every post and media package gets a recognizable, brand-consistent cover without manual design work.
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| D1 | Unit tests for `sync_file()` — happy path | Must |
-| D2 | Unit tests for file delete propagation | Must |
-| D3 | Unit tests for image link rewriting (all Obsidian syntaxes) | Must |
-| D4 | Unit tests for frontmatter flag detection | Must |
-| D5 | Unit tests for dual publish mode switching | Should |
-| D6 | Edge case: file with no frontmatter | Must |
-| D7 | Edge case: file in nested subdirectory of `publish/` | Should |
-| D8 | Update `AGENTS.md` with CMS sync section | Must |
-| D9 | Update `config.yaml` example with `blog.content_dir` | Must |
-| D10 | Add CMS-related commands to Quick Commands | Must |
+**Product Decision Defaults**
+
+- provider architecture: `pluggable`
+- initial provider: `Nano Banana`
+- generation policy: `auto draft + approve`
+- theme model: `one core theme + dynamic modifiers`
+
+**Requirements**
+
+- `F4.1` Add a dedicated cover generation stage after content composition.
+- `F4.2` Use a provider abstraction rather than hard-coding Nano Banana into the daemon.
+- `F4.3` Generate a draft cover for every automation-enabled post unless cover generation is disabled or locked.
+- `F4.4` Store multiple cover revisions per job.
+- `F4.5` Require explicit approval before the cover becomes the canonical post cover.
+- `F4.6` Allow operator regeneration with prompt variation hints.
+- `F4.7` Preserve manual override with `locked: true`.
+- `F4.8` Produce one approved hero image and one OG derivative.
+- `F4.9` Keep the existing `coverImage` frontmatter key as the final approved visual.
+- `F4.10` Add `coverOgImage` for metadata-specific output.
+- `F4.11` Store prompt version, provider name, revision number, and approval timestamp in metadata.
+- `F4.12` Add one core brand prompt file plus category/series/topic modifiers.
+- `F4.13` The generated cover must not depend on WhyralAds in v1.
+
+**Cover Settings Contract**
+
+```yaml
+automation:
+  cover:
+    mode: auto
+    provider: nanobanana
+    theme: linkdinger-default
+    prompt_addendum: "Emphasize strategic optimism"
+    locked: false
+```
+
+**Asset Rules**
+
+- master hero image: landscape cover for blog surfaces
+- OG image: social derivative from the approved cover
+- prompt metadata: stored for reproducibility
+- blur placeholder: stored for future UI optimization
+
+**Acceptance**
+
+- a draft cover is created automatically for a qualifying job
+- operator can approve or regenerate without restarting the whole job
+- approved cover updates final blog-facing metadata
+- locked manual covers are never overwritten
 
 ---
 
-## 4. Non-Functional Requirements
+### Feature 5: YouTube Publishing and Result Pack
+
+**Goal:** Publish generated video outputs to YouTube with automated metadata and return ready-to-use links.
+
+**User Value:** The user gets a publishable YouTube asset and a blog-ready embed package from the same job.
+
+**Requirements**
+
+- `F5.1` Add a separate YouTube publisher adapter.
+- `F5.2` Support metadata fields: title, description, tags, playlist, privacy status, scheduled publish time, and AI disclosure metadata where required.
+- `F5.3` Default privacy to `unlisted`.
+- `F5.4` Support `review_then_publish` and `publish_immediately`, with the first as the default.
+- `F5.5` Store publish results: video ID, watch URL, embed URL, playlist ID, publish status, and error details.
+- `F5.6` Block public publish if the cover approval policy has not been satisfied.
+- `F5.7` Produce a result pack containing shareable links and blog-ready embed info.
+
+**Acceptance**
+
+- a successful video job yields a YouTube URL and an embed URL
+- a failed publish keeps the job in a recoverable state
+- default publish behavior is unlisted review flow
+
+---
+
+### Feature 6: Dashboard Automation Console
+
+**Goal:** Make automation visible and operable from the existing local dashboard.
+
+**User Value:** The operator can control the entire pipeline without leaving Linkdinger.
+
+**Requirements**
+
+- `F6.1` Add an `Automation` area to the dashboard instead of creating a new admin app.
+- `F6.2` Add views for `Create Job`, `Queue`, `Job Detail`, `Cover Review`, and `Result Pack`.
+- `F6.3` Show stage badges, progress bars, ETA, latest logs, and failure status.
+- `F6.4` Add actions: retry, cancel, approve cover, regenerate cover, publish, and copy result links.
+- `F6.5` Reuse the existing activity log model where possible.
+- `F6.6` Add automation API routes in the Flask dashboard app.
+- `F6.7` Preserve the current overview, content audit, git, and health tabs.
+
+**Acceptance**
+
+- operator can create and manage a job from the dashboard
+- operator can review a draft cover before final publish
+- job detail page surfaces enough data to diagnose failure without terminal access
+
+---
+
+### Feature 7: Blog Delivery and Reader Experience
+
+**Goal:** Present generated media and approved covers cleanly on the blog without breaking existing posts.
+
+**User Value:** Readers get article, video, and podcast experiences from one post without awkward manual embeds.
+
+**Requirements**
+
+- `F7.1` Extend the post schema to parse `artifacts`, `researchSources`, `coverOgImage`, `coverMeta`, and `podcast`.
+- `F7.2` Add a `Media Capsule` section near the top of the post detail view.
+- `F7.3` Add a podcast toggle as a reader preference when podcast artifacts exist.
+- `F7.4` Prefer `coverOgImage` for Open Graph and structured metadata.
+- `F7.5` Preserve current rendering for legacy posts with only `coverImage`.
+- `F7.6` Continue to support trending/popular surfaces that already depend on the current post model.
+- `F7.7` Keep RSS generation compatible with the new content model.
+
+**Acceptance**
+
+- posts with new artifact metadata render media blocks
+- posts without artifact metadata still render unchanged
+- Open Graph metadata uses the approved generated OG asset when available
+
+---
+
+### Feature 8: Content Sync, Safety, Logging, and Retry
+
+**Goal:** Integrate automation outputs into the existing publishing pipeline safely.
+
+**User Value:** The system is inspectable, recoverable, and does not corrupt the blog when things go wrong.
+
+**Requirements**
+
+- `F8.1` Keep `content_sync.py` as the final handoff into `blog/content/posts`.
+- `F8.2` Do not embed automation logic into `obsidian_watcher.py`.
+- `F8.3` Sync only approved, blog-ready metadata into post content.
+- `F8.4` Log every job stage, retry, approval action, publish action, and failure event.
+- `F8.5` Clean temporary files on failure or cancellation.
+- `F8.6` Keep jobs idempotent where safe to repeat.
+- `F8.7` Never delete source markdown or manual blog content as part of an automation failure.
+- `F8.8` Mask secrets and tokens in logs.
+- `F8.9` Keep old markdown publishing flow usable when automation is not enabled.
+
+**Acceptance**
+
+- failed jobs do not corrupt existing blog posts
+- temporary files are removed after fail/cancel
+- automation and non-automation publishing can coexist
+
+## 6. Non-Functional Requirements
 
 | NFR | Requirement |
 |-----|-------------|
-| Performance | Sync single file < 100ms (no network I/O except R2 lookup) |
-| Reliability | Never corrupt existing blog posts on error |
-| Safety | Never delete vault originals — sync is one-way copy |
-| Idempotent | Running sync twice produces same result |
-| Fallback | If image rewrite fails, copy file with original links + warning |
-| Logging | All operations logged with timestamp + file path |
+| Performance | Job queue remains responsive with one active worker and multiple queued jobs |
+| Reliability | Partial artifact failure does not destroy successful outputs |
+| Safety | No source content is deleted by automation failures |
+| Auditability | Every operator action and stage transition is logged |
+| Brand Consistency | Auto-generated covers reuse one core Linkdinger theme with controlled modifiers |
+| Backward Compatibility | Existing posts with manual `coverImage` continue to render correctly |
+| Extensibility | Cover generation and artifact generation providers are adapter-based |
 
-## 5. Out of Scope (Future)
+## 7. Delivery Sequence
 
-- RSS/Atom feed generation
-- Auto-rebuild blog on content change (Next.js ISR)
-- Multi-vault support
-- Draft preview server
-- Image optimization during sync (already handled by watcher)
+Implementation should happen in this order:
 
-## 6. Verification Plan
+1. Feature 1 - Automation Job Orchestrator
+2. Feature 2 - Source Intake and Research Assembly
+3. Feature 3 - Artifact Generation Pipeline
+4. Feature 4 - Automatic Cover Generation and Theme System
+5. Feature 6 - Dashboard Automation Console
+6. Feature 5 - YouTube Publishing and Result Pack
+7. Feature 7 - Blog Delivery and Reader Experience
+8. Feature 8 - Content Sync, Safety, Logging, and Retry
 
-### Per Part
+This order keeps the system testable at each layer and ensures cover approval exists before public distribution becomes possible.
 
-| Part | Test | How |
-|------|------|-----|
-| A | File sync | `pytest tests/test_content_sync.py -k sync` |
-| B | Link rewrite | `pytest tests/test_content_sync.py -k rewrite` |
-| C | Watcher integration | Manual: create file in `publish/` → verify appears in `blog/content/posts/` |
-| D | Full pipeline | Start `python linkdinger.py` → write post in Obsidian → verify blog renders it |
+## 8. Verification Plan
 
-### Acceptance Criteria
+### Per Feature
 
-- [ ] Write `.md` in `publish/` folder → appears in `blog/content/posts/`
-- [ ] Delete from `publish/` → removed from `blog/content/posts/`
-- [ ] `![[image.png]]` rewritten to R2 URL
-- [ ] `publish: true` frontmatter triggers sync in `flag` mode
-- [ ] All 4 test categories pass
-- [ ] `python linkdinger.py --cms` runs CMS sync standalone
+| Feature | Verification |
+|---------|--------------|
+| F1 | Create, fail, retry, and cancel jobs via tests and dashboard API |
+| F2 | Validate note + URL + file + playlist intake combinations |
+| F3 | Generate multiple requested artifact types and inspect normalized manifest |
+| F4 | Generate draft cover, approve it, regenerate it, and verify lock behavior |
+| F5 | Publish video as unlisted and verify watch/embed URLs are returned |
+| F6 | Operate full job lifecycle from dashboard views |
+| F7 | Render media capsule and podcast toggle on an automation-enabled post |
+| F8 | Fail a job mid-pipeline and verify no blog corruption or temp leakage |
+
+### Global Acceptance Criteria
+
+- [ ] A source note can create an automation job with extra research inputs
+- [ ] A job can request at least `video + podcast + infographic` together
+- [ ] A draft cover is generated automatically using the configured provider
+- [ ] A cover can be approved or regenerated from the dashboard
+- [ ] Approved cover metadata updates the final post payload
+- [ ] Video artifacts can be published to YouTube as unlisted
+- [ ] A blog-ready result pack is available after job completion
+- [ ] The post renders generated media without breaking legacy posts
+- [ ] The old markdown-only publish path still works
+- [ ] Failures are logged with stage-specific context and retry remains possible
