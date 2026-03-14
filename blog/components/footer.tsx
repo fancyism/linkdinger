@@ -1,7 +1,16 @@
-import Link from 'next/link'
-import { Github, Twitter, Mail, Linkedin, Facebook, Globe, Coffee } from 'lucide-react'
-import NewsletterForm from './newsletter-form'
-import KofiButton from './kofi-button'
+import Link from "next/link";
+import {
+  Github,
+  Twitter,
+  Mail,
+  Linkedin,
+  Facebook,
+  Globe,
+  Coffee,
+} from "lucide-react";
+import NewsletterForm from "./newsletter-form";
+import KofiButton from "./kofi-button";
+import ScrollToTop from "./scroll-to-top";
 
 export default function Footer() {
   return (
@@ -15,8 +24,8 @@ export default function Footer() {
                 Linkdinger
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                AI-powered tools and thoughts. Every commit lands on GitHub
-                for you to fork &amp; remix. Built with obsession.
+                AI-powered tools and thoughts. Every commit lands on GitHub for
+                you to fork &amp; remix. Built with obsession.
               </p>
             </div>
 
@@ -27,12 +36,12 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2">
                 {[
-                  { href: '/', label: 'Home' },
-                  { href: '/blog', label: 'Blog' },
-                  { href: '/products', label: 'Products' },
-                  { href: '/consultation', label: 'Consultation' },
-                  { href: '/about', label: 'About' },
-                  { href: '/search', label: 'Search' },
+                  { href: "/", label: "Home" },
+                  { href: "/blog", label: "Blog" },
+                  { href: "/products", label: "Products" },
+                  { href: "/consultation", label: "Consultation" },
+                  { href: "/about", label: "About" },
+                  { href: "/search", label: "Search" },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link
@@ -68,7 +77,10 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="GitHub"
                 >
-                  <Github size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Github
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
                 <a
                   href="https://twitter.com"
@@ -77,14 +89,20 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="Twitter"
                 >
-                  <Twitter size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Twitter
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
                 <a
                   href="mailto:hello@example.com"
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="Email"
                 >
-                  <Mail size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Mail
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
                 <a
                   href="https://www.linkedin.com/in/fan-affan"
@@ -93,7 +111,10 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="LinkedIn"
                 >
-                  <Linkedin size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Linkedin
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
                 <a
                   href="https://facebook.com/yourprofile"
@@ -102,7 +123,10 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="Facebook"
                 >
-                  <Facebook size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Facebook
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
                 <a
                   href="https://fan-portfolio-zeta.vercel.app/"
@@ -111,7 +135,10 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover:border-peach/30 transition-all"
                   aria-label="Website"
                 >
-                  <Globe size={18} className="text-gray-600 dark:text-gray-400" />
+                  <Globe
+                    size={18}
+                    className="text-gray-600 dark:text-gray-400"
+                  />
                 </a>
               </div>
 
@@ -132,6 +159,7 @@ export default function Footer() {
         </div>
       </footer>
       <KofiButton variant="floating" />
+      <ScrollToTop />
     </>
-  )
+  );
 }
