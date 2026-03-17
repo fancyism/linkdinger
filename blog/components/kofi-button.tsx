@@ -10,18 +10,13 @@ interface KofiButtonProps {
 
 const KOFI_URL = "https://ko-fi.com/linkdinger";
 
-// Conversation messages
+// Conversation messages - short & sweet
 const CONVERSATION_MESSAGES = [
-  "อยากให้ฉันพัฒนาต่อไหม? 🥺",
-  "กดฉันสิ! ☕",
-  "ช่วยเหลือนักพัฒนาหน่อยนะ 💪",
-  "ซื้อกาแฟให้ฉันสักแก้วไหม? ☕✨",
-  "support ให้กำลังใจ! ❤️",
-  "ทำให้ฉันมีพลังต่อไป! ⚡",
-  "ช่วย fuel ความฝันหน่อย 🚀",
-  "อยากเห็นโปรเจคใหม่ๆ ไหม? 🌟",
-  "กดสิ! ไม่กัดหรอกนะ 😊",
-  "เลี้ยงกาแฟนักพัฒนาสักแก้ว? 🤗",
+  "Support me? 🥺",
+  "Buy me coffee? ☕",
+  "Click me! ✨",
+  "Keep building! 💪",
+  "Fuel dev! 🚀",
 ];
 
 export default function KofiButton({
@@ -43,68 +38,57 @@ export default function KofiButton({
     return () => clearInterval(interval);
   }, [isHovered]);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    setTimeout(() => setShowTooltip(true), 100);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setShowTooltip(false);
-  };
-
   // Floating variant
   if (variant === "floating") {
     return (
       <div 
         className={`fixed bottom-6 left-6 z-50 ${className}`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          setTimeout(() => setShowTooltip(true), 100);
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setShowTooltip(false);
+        }}
       >
-        {/* Tooltip - อยู่ด้านบนขวาของปุ่ม */}
+        {/* Thought Bubble - เอียงขวา ทำมุมเล็กน้อย */}
         <div 
           className={`
-            absolute bottom-full mb-4 left-0
+            absolute bottom-full mb-2 left-full ml-2
             pointer-events-none
             transition-all duration-300 ease-out
+            origin-bottom-left
             ${showTooltip 
-              ? 'opacity-100 translate-y-0' 
-              : 'opacity-0 translate-y-2'}
+              ? 'opacity-100 scale-100 rotate-[8deg]' 
+              : 'opacity-0 scale-75 rotate-0'}
           `}
         >
-          {/* กล่องข้อความ */}
+          {/* กล่องข้อความ - compact */}
           <div 
             className={`
-              relative px-4 py-3 rounded-xl
-              min-w-[180px] max-w-[220px]
-              font-display font-bold text-sm text-center
-              border-2 border-peach
-              shadow-[4px_4px_0_0_rgba(255,107,53,0.5)]
-              
-              /* Light: กล่องดำ */
+              relative px-3 py-2 rounded-xl
+              min-w-[140px]
+              font-display font-bold text-xs text-center
+              whitespace-nowrap
+                
+              /* Light: กล่องดำ ขอบส้ม */
               bg-black text-white
-              
-              /* Dark: กล่องขาว */
+              border-2 border-peach
+                
+              /* Dark: กล่องขาว ขอบส้ม */
               dark:bg-white dark:text-black
+              dark:border-peach
+                
+              /* Shadow */
+              shadow-[2px_2px_0_0_rgba(0,0,0,0.3)
             `}
           >
             {CONVERSATION_MESSAGES[messageIndex]}
-            
-            {/* ลูกศรชี้ลง */}
-            <div 
-              className={`
-                absolute -bottom-2 left-6
-                w-0 h-0
-                border-l-[8px] border-r-[8px] border-t-[10px]
-                border-l-transparent border-r-transparent
-                border-t-black
-                dark:border-t-white
-              `}
-            />
           </div>
         </div>
 
-        {/* Circular Badge - พื้นหลังไม่หมุน */}
+        {/* Circular Badge */}
         <a
           href={KOFI_URL}
           target="_blank"
@@ -117,11 +101,11 @@ export default function KofiButton({
             flex items-center justify-center
             transition-all duration-200 ease-out
             hover:shadow-[5px_5px_0_#000] dark:hover:shadow-[5px_5px_0_#fff]
-            hover:scale-110
+            ${isHovered ? 'scale-110' : 'scale-100'}
           `}
           aria-label="Support on Ko-fi"
         >
-          {/* แก้วกาแฟหมุน 45° เมื่อ hover */}
+          {/* แก้วกาแฟหมุน 45° */}
           <Coffee 
             size={22} 
             className={`
@@ -145,8 +129,8 @@ export default function KofiButton({
         inline-flex items-center gap-2 px-4 py-2 rounded-xl
         bg-[#FF6B35] text-black font-display font-bold text-sm
         border-2 border-black dark:border-white
-        shadow-[2px_2px_0_#000] dark:shadow-[2px_2px_0_#fff]
-        hover:shadow-[3px_3px_0_#000] dark:hover:shadow-[3px_3px_0_#fff]
+        shadow-[2px_2px 0_#000] dark:shadow-[2px_2px 0_#fff]
+        hover:shadow-[3px_3px 0_#000] dark:hover:shadow-[3px_3px 0_#fff]
         hover:scale-105 transition-all duration-150
         ${className}
       `}

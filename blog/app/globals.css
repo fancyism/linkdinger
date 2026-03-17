@@ -818,6 +818,20 @@ body {
     color: #666666;
 }
 
+/* ── Kofi Button Thought Bubble Animation ── */
+@keyframes thoughtBubble {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.light .light-subtext-override {
+    color: #666666;
+}
+
 /* ── Glitch Text Effect ── */
 @keyframes glitchText {
   0% {
@@ -909,14 +923,27 @@ body {
   animation: glitchClip 0.3s steps(1) forwards;
 }
 
-/* ── Kofi Button Neubrutalism ── */
-.kofi-badge {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Kofi Button Thought Bubble Animation ── */
+@keyframes cloudFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  100% {
+    transform: translateY(-6px) scale(1.04);
+  }
 }
 
-.kofi-badge:hover .kofi-cup {
-  animation: pixelShake 0.3s steps(2) infinite;
+@keyframes cloudPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.6;
+  }
 }
