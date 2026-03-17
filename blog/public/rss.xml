@@ -5,38 +5,30 @@
     <link>http://localhost:3000</link>
     <description>AI-powered tools and thoughts. Every commit lands on GitHub for you to fork &amp; remix.</description>
     <language>en</language>
-    <lastBuildDate>Tue, 10 Mar 2026 07:12:54 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 17 Mar 2026 08:46:09 GMT</lastBuildDate>
     <atom:link href="http://localhost:3000/rss.xml" rel="self" type="application/rss+xml"/>
     <item>
-      <title>Context Engineer</title>
-      <link>http://localhost:3000/blog/Context%20Engineer/</link>
-      <guid isPermaLink="true">http://localhost:3000/blog/Context%20Engineer/</guid>
-      <description>Test on production</description>
-      <pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
-      <category>Tech</category>
-    </item>
-    <item>
-      <title>Building a Smart Blog with Dark Glassmorphism</title>
+      <title>Introducing Linkdinger</title>
       <link>http://localhost:3000/blog/hello-world/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/hello-world/</guid>
-      <description>How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns.</description>
-      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
-      <category>Tech</category>
-    </item>
-    <item>
-      <title>ลองเล่น Dark Glassmorphism ใน Next.js</title>
-      <link>http://localhost:3000/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</link>
-      <guid isPermaLink="true">http://localhost:3000/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</guid>
-      <description>พามาดูว่าเทรนด์การออกแบบ UI แบบโปร่งแสง พอกลายมาเป็น Dark Mode แล้วจะดูลึกลับและพรีเมียมขนาดไหน พร้อมตัวอย่างโค้ดไปลองเล่นกัน</description>
-      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
-      <category>Design</category>
+      <description>A unified content workflow connecting Obsidian to the modern web. Auto image processing, git sync, and a beautiful blog — all from one daemon.</description>
+      <pubDate>Fri, 15 Mar 2024 00:00:00 GMT</pubDate>
+      <category>Announcement</category>
     </item>
     <item>
       <title>The Rise of Autonomous AI Agents</title>
       <link>http://localhost:3000/blog/ai-agents-future/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/ai-agents-future/</guid>
       <description>How AI agents are moving from simple chatbots to autonomous systems that can code, design, and orchestrate complex workflows.</description>
-      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <pubDate>Tue, 12 Mar 2024 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>Context Engineering for AI Systems</title>
+      <link>http://localhost:3000/blog/context-engineering/</link>
+      <guid isPermaLink="true">http://localhost:3000/blog/context-engineering/</guid>
+      <description>How to design and manage context for AI systems to get better, more consistent outputs. The emerging discipline of context engineering.</description>
+      <pubDate>Sun, 10 Mar 2024 00:00:00 GMT</pubDate>
       <category>Tech</category>
     </item>
     <item>
@@ -44,7 +36,7 @@
       <link>http://localhost:3000/blog/neubrutalism-ui/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/neubrutalism-ui/</guid>
       <description>Exploring the anti-design movement characterized by high-contrast colors, harsh shadows, and unapologetic typography.</description>
-      <pubDate>Tue, 24 Feb 2026 00:00:00 GMT</pubDate>
+      <pubDate>Fri, 08 Mar 2024 00:00:00 GMT</pubDate>
       <category>Design</category>
     </item>
     <item>
@@ -52,15 +44,15 @@
       <link>http://localhost:3000/blog/nextjs-server-components/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/nextjs-server-components/</guid>
       <description>A deep dive into how React Server Components change the way we architect web applications for maximum performance.</description>
-      <pubDate>Sun, 22 Feb 2026 00:00:00 GMT</pubDate>
+      <pubDate>Tue, 05 Mar 2024 00:00:00 GMT</pubDate>
       <category>Tech</category>
     </item>
     <item>
-      <title>Replacing conventional CMS with Obsidian</title>
+      <title>Replacing Conventional CMS with Obsidian</title>
       <link>http://localhost:3000/blog/obsidian-as-cms/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/obsidian-as-cms/</guid>
       <description>Why I stopped dealing with cluttered database-driven CMS platforms and moved my entire publishing workflow to local markdown files.</description>
-      <pubDate>Sun, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <pubDate>Wed, 28 Feb 2024 00:00:00 GMT</pubDate>
       <category>Productivity</category>
     </item>
     <item>
@@ -68,7 +60,7 @@
       <link>http://localhost:3000/blog/the-art-of-vibe-coding/</link>
       <guid isPermaLink="true">http://localhost:3000/blog/the-art-of-vibe-coding/</guid>
       <description>Coding is no longer just about logic and algorithms. It&apos;s about flow state, aesthetics, and building systems that feel alive.</description>
-      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <pubDate>Tue, 20 Feb 2024 00:00:00 GMT</pubDate>
       <category>Thoughts</category>
     </item>
   </channel>
