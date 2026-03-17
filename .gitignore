@@ -74,8 +74,27 @@ logs/
 .opencode/
 _bmad/
 _bmad-output/
+.github/prompts/bmad*
+.github/agents/bmad*
 AGENTS.md
 CLAUDE.md
+GEMINI.md
+CURSOR.md
+WINDSURF.md
+COPILOT.md
+QWEN.md
+TRAE.md
+KILOCODE.md
+OPENCODE.md
+.codeium/
+.continue/
+.augment/
+.github/copilot-instructions.md
+
+# ── Private Tools & Reports ──
+dashboard.py
+docs/analysis-reports/
+config.local.yaml
 
 # ── Blog Agent Files ──
 blog/.agents/
