@@ -76,7 +76,7 @@ export default function GiscusComments() {
     scriptElem.setAttribute("data-category-id", GISCUS_CONFIG.categoryId);
     scriptElem.setAttribute("data-mapping", "pathname");
     scriptElem.setAttribute("data-strict", "0");
-    scriptElem.setAttribute("data-reactions-enabled", "0");
+    scriptElem.setAttribute("data-reactions-enabled", "1");
     scriptElem.setAttribute("data-emit-metadata", "0");
     scriptElem.setAttribute("data-input-position", "bottom");
     scriptElem.setAttribute("data-lang", "en");

@@ -11,7 +11,6 @@ import BrutalTag from "@/components/ui/brutal-tag";
 import type { Post, TocItem } from "@/lib/posts";
 import ViewCounter from "@/components/view-counter";
 import GiscusComments from "@/components/giscus-comments";
-import Reactions from "@/components/reactions";
 import SeriesNav from "@/components/series-nav";
 
 interface PostDetailProps {
@@ -149,9 +148,6 @@ export default function PostDetail({
             </span>
             <ShareButtons title={post.title} />
           </div>
-
-          {/* Reactions */}
-          <Reactions slug={post.slug} />
         </div>
 
         {/* Series / Adjacent post navigation */}
