@@ -817,3 +817,106 @@ body {
 .light .light-subtext-override {
     color: #666666;
 }
+
+/* ── Glitch Text Effect ── */
+@keyframes glitchText {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(-2px, 1px);
+    clip-path: inset(40% 0 20% 0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(2px, -1px);
+    clip-path: inset(20% 0 40% 0);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-1px, 2px);
+    clip-path: inset(60% 0 10% 0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(1px, -2px);
+    clip-path: inset(10% 0 60% 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes glitchClip {
+  0% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  20% {
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+  }
+  40% {
+    clip-path: polygon(0 40%, 100% 40%, 100% 60%, 0 60%);
+  }
+  60% {
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  }
+  80% {
+    clip-path: polygon(0 80%, 100% 80%, 100% 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes pixelShake {
+  0%, 100% {
+    transform: translate(0, 0);
+    filter: blur(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translate(-1px, 0);
+    filter: blur(0);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translate(1px, 0);
+    filter: blur(0);
+  }
+}
+
+/* ── Glitch Tooltip ── */
+.glitch-tooltip {
+  position: relative;
+}
+
+.glitch-tooltip-content {
+  animation: glitchText 0.5s steps(1) forwards;
+  text-shadow: 
+    0 0 5px rgba(255, 107, 53, 0.5),
+    0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.light .glitch-tooltip-content {
+  text-shadow: 
+    0 0 5px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.glitch-tooltip:hover .glitch-tooltip-content {
+  animation: glitchClip 0.3s steps(1) forwards;
+}
+
+/* ── Kofi Button Neubrutalism ── */
+.kofi-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kofi-badge:hover .kofi-cup {
+  animation: pixelShake 0.3s steps(2) infinite;
+}

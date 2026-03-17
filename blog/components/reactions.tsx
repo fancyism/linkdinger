@@ -14,39 +14,77 @@ const EMOJIS = [
     { id: 'mindblown', emoji: '🤯', label: 'Mind Blown' },
 ]
 
+// Storage key for all reactions across all posts
+const STORAGE_KEY = 'linkdinger_reactions'
+
+// Get all reactions from localStorage
+function getAllReactions(): Record<string, Record<string, number>> {
+    if (typeof window === 'undefined') return {}
+    try {
+        const data = localStorage.getItem(STORAGE_KEY)
+        return data ? JSON.parse(data) : {}
+    } catch {
+        return {}
+    }
+}
+
+// Get user's reaction state for a specific post
+function getUserReactions(slug: string): Record<string, boolean> {
+    const allReactions = getAllReactions()
+    const postReactions = allReactions[slug] || {}
+    
+    // Convert counts to boolean (user has reacted if count > 0)
+    const userState: Record<string, boolean> = {}
+    EMOJIS.forEach(emoji => {
+        userState[emoji.id] = (postReactions[emoji.id] || 0) > 0
+    })
+    return userState
+}
+
+// Get total counts for a specific post
+function getPostCounts(slug: string): Record<string, number> {
+    const allReactions = getAllReactions()
+    return allReactions[slug] || {}
+}
+
 export default function Reactions({ slug }: ReactionsProps) {
     const [counts, setCounts] = useState<Record<string, number>>({})
     const [userReactions, setUserReactions] = useState<Record<string, boolean>>({})
     const [mounted, setMounted] = useState(false)
 
-    // Load initial counts (mock global + precise local)
+    // Load real data from localStorage
     useEffect(() => {
         setMounted(true)
-        const localData = localStorage.getItem(`reactions_${slug}`)
-        const localReactions = localData ? JSON.parse(localData) : {}
-        setUserReactions(localReactions)
-
-        // Mock base counts using a pseudo-random seed based on slug
-        const seed = slug.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-        setCounts({
-            thumbsup: (seed % 20) + (localReactions.thumbsup ? 1 : 0),
-            fire: (seed % 15) + (localReactions.fire ? 1 : 0),
-            heart: (seed % 30) + (localReactions.heart ? 1 : 0),
-            mindblown: (seed % 10) + (localReactions.mindblown ? 1 : 0),
-        })
+        
+        // Load user's reaction state
+        const userState = getUserReactions(slug)
+        setUserReactions(userState)
+        
+        // Load counts (only this user's reactions since we don't have a backend)
+        const postCounts = getPostCounts(slug)
+        setCounts(postCounts)
     }, [slug])
 
     const handleReact = (id: string) => {
         const hasReacted = userReactions[id]
-        const newLocalReactions = { ...userReactions, [id]: !hasReacted }
-
-        setUserReactions(newLocalReactions)
-        setCounts(prev => ({
-            ...prev,
-            [id]: prev[id] + (hasReacted ? -1 : 1)
-        }))
-
-        localStorage.setItem(`reactions_${slug}`, JSON.stringify(newLocalReactions))
+        
+        // Update user reactions
+        const newUserReactions = { ...userReactions, [id]: !hasReacted }
+        setUserReactions(newUserReactions)
+        
+        // Update counts
+        const newCounts = { ...counts }
+        if (hasReacted) {
+            newCounts[id] = Math.max(0, (newCounts[id] || 1) - 1)
+        } else {
+            newCounts[id] = (newCounts[id] || 0) + 1
+        }
+        setCounts(newCounts)
+        
+        // Save to localStorage
+        const allReactions = getAllReactions()
+        allReactions[slug] = newCounts
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(allReactions))
     }
 
     if (!mounted) return <div className="animate-pulse h-12 glass-card rounded-full w-64 mx-auto mb-10"></div>
