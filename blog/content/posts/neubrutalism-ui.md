@@ -1,6 +1,6 @@
 ---
 title: "Why Neubrutalism is Taking Over the Web"
-date: "2026-02-24"
+date: "2024-03-08"
 category: "Design"
 excerpt: "Exploring the anti-design movement characterized by high-contrast colors, harsh shadows, and unapologetic typography."
 tags: 
@@ -28,6 +28,31 @@ Neubrutalism rejects the premise that software should look soft and approachable
 
 By making UI elements brutally obvious, Neubrutalism ironically improves usability in certain contexts. A button with a thick black border and a solid drop shadow leaves absolutely no ambiguity about whether it can be clicked.
 
-In our redesign of Linkdinger, we merged the high-contrast ethos of Neubrutalism with the depth of Glassmorphism—creating a unique, striking aesthetic.
+## Implementing Neubrutalism
 
-![image](https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/57fe2c32ada743bda253239ce1a95f31.webp)
+Here's a simple Tailwind implementation:
+
+```tsx
+<button className="bg-orange-500 text-black font-bold px-6 py-3 
+  border-2 border-black shadow-[4px_4px_0_#000] 
+  hover:translate-x-[-2px] hover:translate-y-[-2px] 
+  hover:shadow-[6px_6px_0_#000] transition-all">
+  Click Me
+</button>
+```
+
+The key elements:
+- Solid, high-saturation background color
+- Thick black border (2px minimum)
+- Offset shadow using `box-shadow`
+- Hover interaction that "lifts" the element
+
+## Combining with Glassmorphism
+
+In Linkdinger, we merged Neubrutalism with Glassmorphism for a unique aesthetic:
+
+- Glass cards for depth and hierarchy
+- Neubrutalist tags and buttons for high-contrast accents
+- The result: depth without losing clarity
+
+This combination works because glass provides the atmosphere while brutalist elements provide the punch.

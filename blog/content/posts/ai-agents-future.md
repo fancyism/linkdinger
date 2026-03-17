@@ -1,6 +1,6 @@
 ---
 title: "The Rise of Autonomous AI Agents"
-date: "2026-02-26"
+date: "2024-03-12"
 category: "Tech"
 excerpt: "How AI agents are moving from simple chatbots to autonomous systems that can code, design, and orchestrate complex workflows."
 tags: 
@@ -25,4 +25,26 @@ While GitHub Copilot revolutionized how we write code, the next generation of ag
 2. **Cognition**: Formulating an implementation plan and making architectural decisions.
 3. **Action**: Writing code, executing scripts, and verifying the output.
 
+## Building with Agents
+
+When I built Linkdinger, I used AI agents extensively. They helped with:
+
+- Initial project scaffolding
+- Writing test cases
+- Debugging edge cases
+- Documentation generation
+
+The key insight: **agents excel at repetitive, well-defined tasks**. They struggle with creative decisions and nuanced trade-offs. Use them accordingly.
+
+## The Future
+
 As we continue to build tools like Linkdinger, integrating agentic workflows will become the standard, not the exception. The future belongs to those who learn to orchestrate fleets of specialized AI agents.
+
+### What This Means for Developers
+
+- Less boilerplate, more architecture
+- Faster iteration cycles
+- More time for creative problem-solving
+- New skills: agent orchestration, prompt engineering, context design
+
+The goal isn't to replace developers—it's to amplify what we can build.

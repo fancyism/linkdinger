@@ -1,19 +1,103 @@
+# ── Environment & Secrets ──
 .env
+.env.local
+.env.*.local
+*.env
+
+# ── Python ──
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Node.js ──
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Next.js ──
+.next/
+out/
+
+# ── IDE & Editors ──
 .vscode/
 .idea/
-*.log
-.DS_Store
-Thumbs.db
-blog/node_modules/
-blog/.next/
-blog/out/
+*.swp
+*.swo
+*~
 
-# ไม่เอาภาพเก็บใน git เพราะเรามีบน R2 แล้ว
+# ── OS Generated ──
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── Logs ──
+*.log
+logs/
+
+# ── Agent Workflow Files (Private) ──
+.agents/
+.agent/
+.claude/
+.cursor/
+.gemini/
+.kilocode/
+.kilocodemodes
+.windsurf/
+.trae/
+.qwen/
+.opencode/
+_bmad/
+_bmad-output/
+AGENTS.md
+CLAUDE.md
+
+# ── Blog Agent Files ──
+blog/.agents/
+blog/.agent/
+blog/.claude/
+blog/.continue/
+blog/.kilocode/
+blog/.trae/
+blog/.windsurf/
+blog/skills/
+blog/skills-lock.json
+
+# ── Assets (stored on R2) ──
 _assets/*.png
 _assets/*.jpeg
 _assets/*.jpg
 _assets/*.webp
 _assets/*.gif
+_assets/*.avif
+
+# ── Build Artifacts ──
+*.tsbuildinfo
+
+# ── Husky ──
+.husky/_/

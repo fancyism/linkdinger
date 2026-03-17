@@ -1,5 +1,5 @@
 vault:
-  path: "D:/Obsidian/Hack - 2nd.Brain"
+  path: "/path/to/your/obsidian/vault"
   assets_dir: "_assets"
 
 r2:

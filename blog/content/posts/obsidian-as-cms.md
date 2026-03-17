@@ -1,6 +1,6 @@
 ---
-title: "Replacing conventional CMS with Obsidian"
-date: "2026-02-15"
+title: "Replacing Conventional CMS with Obsidian"
+date: "2024-02-28"
 category: "Productivity"
 excerpt: "Why I stopped dealing with cluttered database-driven CMS platforms and moved my entire publishing workflow to local markdown files."
 tags: 
@@ -26,4 +26,22 @@ By using **Obsidian** as my single source of truth, I regain complete ownership 
 3. **The Watcher**: A Python script monitors the vault. If it sees a new image, it compresses it, uploads it to Cloudflare R2, and rewrites the markdown link.
 4. **Git Sync**: The script silently commits and pushes the changes. Vercel picks it up and redeploys the Next.js frontend.
 
-No databases. No logins. Just pure writing. This is the exact philosophy behind the Linkdinger infrastructure.
+## Why This Works
+
+| Traditional CMS | Obsidian + Linkdinger |
+|----------------|----------------------|
+| Login required | Just open a file |
+| Database backup | Git version control |
+| WYSIWYG quirks | Pure markdown |
+| Image upload UI | Paste and forget |
+| Deploy manually | Automatic on push |
+
+No databases. No logins. Just pure writing. This is the exact philosophy behind Linkdinger.
+
+## Getting Started
+
+1. Install Obsidian
+2. Create a vault
+3. Write in markdown
+4. Add `publish: true` to frontmatter
+5. Let Linkdinger handle the rest

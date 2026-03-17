@@ -1,75 +1,116 @@
 ---
-title: Building a Smart Blog with Dark Glassmorphism
-date: 2026-02-27
-category: Tech
-excerpt: How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns.
+title: "Introducing Linkdinger"
+date: "2024-03-15"
+category: "Announcement"
+excerpt: "A unified content workflow connecting Obsidian to the modern web. Auto image processing, git sync, and a beautiful blog — all from one daemon."
 tags:
-  - NextJS
-  - Glassmorphism
-  - vibe-coding
-  - AI
-coverImage: https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop
+  - Announcement
+  - Open Source
+  - Productivity
+coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop"
 publish: true
 ---
 
-# The Vision
+# The Problem
 
-What if your personal blog could look like it was designed by the Awwwards jury, while being powered by nothing more than **Obsidian** and **Git**?
+If you use Obsidian for note-taking, you've probably encountered these pain points:
 
-That's exactly what Linkdinger is: a smart blog where writing happens in Obsidian, images are auto-uploaded to Cloudflare R2, and everything syncs to GitHub — all through a single daemon process.
+1. **Image bloat** — Paste a few screenshots and your vault grows by megabytes
+2. **Git repo size** — Images don't belong in version control
+3. **Manual workflows** — Upload to CDN, copy URL, update link... every single time
+4. **Publishing friction** — Getting notes to a blog requires copy-paste or complex setups
 
-## Dark Glassmorphism: More Than Just Blur
+**Linkdinger solves all of this.**
 
-Glassmorphism has been trending for a while, but most implementations miss the point. It's not about adding `backdrop-filter: blur(20px)` to everything — it's about **simulating real glass physics**.
+## What is Linkdinger?
 
-### The Three Pillars
+Linkdinger is a **zero-friction content pipeline** that runs silently in the background:
 
-1. **Multi-Layer Transparency** — Alpha-channel gradients, not flat opacity
-2. **Optical Blur** — 10-20px sweet spot, enough to distort but not erase
-3. **Light Catcher Borders** — 1px `rgba(255,255,255,0.1)` mimics edge refraction
+- **Automatic image processing** — Detect, convert, upload, rewrite
+- **Smart git sync** — Debounced commits after you stop typing
+- **Blog CMS** — Publish from Obsidian to a stunning Next.js blog
 
-```css
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
+No Obsidian plugins required. Just a Python daemon doing the heavy lifting.
+
+## The Architecture
+
+```
+Obsidian Vault
+     │
+     ▼
+┌─────────────────────────────────────────┐
+│           Linkdinger Daemon             │
+│  ┌─────────┐ ┌─────────┐ ┌───────────┐  │
+│  │ Watcher │ │ AutoGit │ │ CMS Sync  │  │
+│  └────┬────┘ └────┬────┘ └─────┬─────┘  │
+└───────┼───────────┼────────────┼────────┘
+        │           │            │
+        ▼           ▼            ▼
+   Cloudflare R2   GitHub    Blog/Content
 ```
 
-### The Critical Missing Piece
+## Key Features
 
-Here's what 90% of developers get wrong: **glass is invisible on a solid dark background**. You need ambient gradient orbs — vibrant blobs of color (deep purple, electric blue, hot pink) floating behind your UI. Without them, you just have grey boxes.
+### 1. Image Pipeline
 
-## The Tech Stack
+```python
+# What happens when you paste an image:
+1. File event detected (.png, .jpg, .jpeg)
+2. Convert to WebP with UUID filename
+3. Upload to Cloudflare R2
+4. Rewrite markdown links
+5. Delete local file
+```
 
-| Component | Technology |
-|-----------|-----------|
-| Writing | Obsidian vault |
-| Images | WebP conversion → Cloudflare R2 |
-| Version Control | Auto-git daemon |
-| Blog | Next.js 14 (Server Components) |
-| Styling | Tailwind CSS + Custom glass system |
-| Fonts | Outfit (display) + Inter (body) + JetBrains Mono (code) |
+### 2. Auto Git Sync
 
-## Dual Theme Architecture
+Never forget to commit again. Linkdinger watches for changes and triggers a debounced commit/push after configurable idle time.
 
-Supporting both dark and light themes with glassmorphism is tricky. The key insight: **invert the glass formula**.
+### 3. Blog CMS
 
-- **Dark mode**: `bg-white/[0.03]` + `border-white/[0.08]`
-- **Light mode**: `bg-black/[0.03]` + `border-black/[0.08]`
+Write in Obsidian, publish to the web. The blog features:
 
-The ambient gradients also transform — from neon orbs to soft pastels.
+- **Dark Glassmorphism** design
+- **Neubrutalism** accents
+- **Server Components** for performance
+- **Full-text search**
+- **Tag filtering**
 
-> The best UI is one that feels alive. Glass surfaces react to the colors behind them, creating a dynamic experience that flat design simply can't match.
+## Getting Started
+
+```bash
+# Clone and install
+git clone https://github.com/yourusername/linkdinger.git
+cd linkdinger
+pip install -r requirements.txt
+
+# Configure
+cp .env.example .env
+# Edit .env with your R2 credentials
+
+# Run
+python linkdinger.py
+```
+
+That's it. Paste an image in Obsidian and watch it transform into a CDN-ready URL.
+
+## Why Cloudflare R2?
+
+- **Zero egress fees** — Unlike S3, you pay nothing for downloads
+- **Global CDN** — Fast delivery worldwide
+- **S3-compatible** — Works with existing tools
+- **Generous free tier** — 10GB storage, 10M operations/month
 
 ## What's Next
 
-- Full-text search with real-time filtering
-- Reading progress bar and table of contents
-- CMS sync from Obsidian's publish folder
-- RSS feed generation
+This is just the beginning. Roadmap includes:
+
+- [ ] Real-time collaboration support
+- [ ] Multiple storage backends (S3, Backblaze, etc.)
+- [ ] Plugin system for custom processors
+- [ ] Mobile companion app
+- [ ] AI-powered image optimization
 
 ---
 
-*Built with obsession. Every commit lands on GitHub for you to fork & remix.*
+*Linkdinger is open source and available on GitHub. Star the repo if you find it useful!*
