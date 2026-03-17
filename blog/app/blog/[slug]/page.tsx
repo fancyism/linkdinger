@@ -10,15 +10,16 @@ export function generateStaticParams() {
   }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const post = getPostBySlug(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   if (!post) return { title: 'Post Not Found' }
 
   return {
     title: post.title,
     description: post.excerpt,
     alternates: {
-      canonical: `/blog/${params.slug}/`,
+      canonical: `/blog/${slug}/`,
     },
     openGraph: {
       title: post.title,
@@ -33,17 +34,17 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   }
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug)
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   if (!post) notFound()
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const related = getRelatedPosts(params.slug, 3)
-  const adjacent = getAdjacentPosts(params.slug)
+  const related = getRelatedPosts(slug, 3)
+  const adjacent = getAdjacentPosts(slug)
   const headings = extractHeadings(post.content)
   const html = await markdownToHtml(post.content)
 
-  // JSON-LD: Article (enhanced with dateModified, author URL, speakable)
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -66,9 +67,9 @@ export default async function PostPage({ params }: { params: { slug: string } })
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `${siteUrl}/blog/${params.slug}/`,
+      '@id': `${siteUrl}/blog/${slug}/`,
     },
-    url: `${siteUrl}/blog/${params.slug}/`,
+    url: `${siteUrl}/blog/${slug}/`,
     inLanguage: 'en',
     ...(post.coverImage && { image: post.coverImage }),
     ...(post.tags && post.tags.length > 0 && { keywords: post.tags.join(', ') }),
@@ -78,7 +79,6 @@ export default async function PostPage({ params }: { params: { slug: string } })
     },
   }
 
-  // JSON-LD: BreadcrumbList
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -99,12 +99,11 @@ export default async function PostPage({ params }: { params: { slug: string } })
         '@type': 'ListItem',
         position: 3,
         name: post.title,
-        item: `${siteUrl}/blog/${params.slug}/`,
+        item: `${siteUrl}/blog/${slug}/`,
       },
     ],
   }
 
-  // JSON-LD: FAQPage (if post has FAQ frontmatter)
   const faqSchema = post.faq && post.faq.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -118,7 +117,6 @@ export default async function PostPage({ params }: { params: { slug: string } })
     })),
   } : null
 
-  // JSON-LD: HowTo (if post has howTo frontmatter)
   const howToSchema = post.howTo && post.howTo.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
@@ -150,4 +148,3 @@ export default async function PostPage({ params }: { params: { slug: string } })
     </>
   )
 }
-

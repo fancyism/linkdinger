@@ -14,7 +14,6 @@ export function generateStaticParams() {
     const postsPerPage = getHomePostsPerPage()
     const totalPages = getTotalPages(posts.length, postsPerPage)
 
-    // We don't need to generate a param for page 1 because app/page.tsx handles it.
     const paths = []
     for (let i = 2; i <= totalPages; i++) {
         paths.push({ page: i.toString() })
@@ -23,17 +22,17 @@ export function generateStaticParams() {
     return paths
 }
 
-export default function PaginatedHomePage({
+export default async function PaginatedHomePage({
     params
 }: {
-    params: { page: string }
+    params: Promise<{ page: string }>
 }) {
-    const page = parseInt(params.page, 10)
+    const { page: pageParam } = await params
+    const page = parseInt(pageParam, 10)
     const allPosts = getAllPosts()
     const postsPerPage = getHomePostsPerPage()
     const totalPages = getTotalPages(allPosts.length, postsPerPage)
 
-    // Invalid page numbers go to 404
     if (isNaN(page) || page < 1 || page > totalPages) {
         notFound()
     }
@@ -65,7 +64,6 @@ export default function PaginatedHomePage({
                 </div>
             </section>
 
-            {/* 2-Column Grid Posts */}
             {gridPosts.length > 0 && (
                 <section className="py-16 px-4 sm:px-6">
                     <div className="max-w-6xl mx-auto">
@@ -90,7 +88,6 @@ export default function PaginatedHomePage({
                 </section>
             )}
 
-            {/* 1-Column List Posts (Gallery Layout) */}
             {listPosts.length > 0 && (
                 <section className="py-12 px-4 sm:px-6">
                     <div className="max-w-4xl mx-auto">
@@ -99,7 +96,6 @@ export default function PaginatedHomePage({
                 </section>
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
                 <section className="pb-12 px-4 sm:px-6">
                     <div className="max-w-4xl mx-auto flex justify-center">
@@ -108,7 +104,6 @@ export default function PaginatedHomePage({
                 </section>
             )}
 
-            {/* Newsletter CTA */}
             <section className="pb-20 px-4 sm:px-6">
                 <div className="max-w-2xl mx-auto">
                     <div className="liquid-glass rounded-2xl p-8 text-center">

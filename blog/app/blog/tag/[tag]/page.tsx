@@ -9,8 +9,9 @@ export function generateStaticParams() {
     }))
 }
 
-export function generateMetadata({ params }: { params: { tag: string } }) {
-    const tag = decodeURIComponent(params.tag)
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }) {
+    const { tag: tagParam } = await params
+    const tag = decodeURIComponent(tagParam)
     return {
         title: `Posts tagged "${tag}"`,
         description: `All blog posts tagged with ${tag}`,
@@ -20,8 +21,9 @@ export function generateMetadata({ params }: { params: { tag: string } }) {
     }
 }
 
-export default function TagPage({ params }: { params: { tag: string } }) {
-    const tag = decodeURIComponent(params.tag)
+export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
+    const { tag: tagParam } = await params
+    const tag = decodeURIComponent(tagParam)
     const posts = getPostsByTag(tag)
 
     if (posts.length === 0) notFound()
@@ -29,7 +31,6 @@ export default function TagPage({ params }: { params: { tag: string } }) {
     return (
         <section className="py-12 px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
-                {/* Header */}
                 <div className="mb-10">
                     <Link
                         href="/blog"
@@ -47,7 +48,6 @@ export default function TagPage({ params }: { params: { tag: string } }) {
                     </div>
                 </div>
 
-                {/* Posts Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-20">
                     {posts.map((post, index) => (
                         <PostCard
