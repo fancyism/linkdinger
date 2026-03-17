@@ -50,7 +50,7 @@ export default function PostDetail({
         )}
 
         {/* Smooth gradient transition to content */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0d0d0d] to-transparent z-[5]" />
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#f8f9fa] dark:from-[#0d0d0d] to-transparent z-[5]" />
 
         {/* Hero content — same max-width as article body for visual alignment */}
         <div className="max-w-[72ch] mx-auto relative z-10">
