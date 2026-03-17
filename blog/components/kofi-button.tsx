@@ -10,7 +10,6 @@ interface KofiButtonProps {
 
 const KOFI_URL = "https://ko-fi.com/linkdinger";
 
-// Conversation messages - short & sweet
 const CONVERSATION_MESSAGES = [
   "Support me? 🥺",
   "Buy me coffee? ☕",
@@ -27,18 +26,14 @@ export default function KofiButton({
   const [messageIndex, setMessageIndex] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Shuffle messages
   useEffect(() => {
     if (!isHovered) return;
-
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % CONVERSATION_MESSAGES.length);
     }, 800);
-
     return () => clearInterval(interval);
   }, [isHovered]);
 
-  // Floating variant
   if (variant === "floating") {
     return (
       <div 
@@ -52,68 +47,85 @@ export default function KofiButton({
           setShowTooltip(false);
         }}
       >
-        {/* Thought Bubble - เอียงขวา ทำมุมเล็กน้อย */}
+        {/* Thought Bubble */}
         <div 
           className={`
-            absolute bottom-full mb-2 left-full ml-2
+            absolute bottom-full mb-3 left-full ml-3
             pointer-events-none
             transition-all duration-300 ease-out
             origin-bottom-left
             ${showTooltip 
-              ? 'opacity-100 scale-100 rotate-[8deg]' 
+              ? 'opacity-100 scale-100 rotate-[6deg]' 
               : 'opacity-0 scale-75 rotate-0'}
           `}
         >
-          {/* กล่องข้อความ - compact */}
+          {/* Glass bubble with glow */}
           <div 
             className={`
-              relative px-3 py-2 rounded-xl
-              min-w-[140px]
-              font-display font-bold text-xs text-center
+              relative px-4 py-2.5 rounded-2xl
+              min-w-[150px]
+              font-display font-bold text-sm text-center
               whitespace-nowrap
                 
-              /* Light: กล่องดำ ขอบส้ม */
-              bg-black text-white
-              border-2 border-peach
-                
-              /* Dark: กล่องขาว ขอบส้ม */
-              dark:bg-white dark:text-black
-              dark:border-peach
-                
-              /* Shadow */
-              shadow-[2px_2px_0_0_rgba(0,0,0,0.3)
+              /* Light & Dark: neubrutalism */
+              bg-peach text-black
+              border-[3px] border-black dark:border-white
+              shadow-[4px_4px_0_#000] dark:shadow-[4px_4px_0_#fff]
             `}
           >
             {CONVERSATION_MESSAGES[messageIndex]}
+            {/* Arrow pointer */}
+            <div 
+              className="absolute -bottom-2 left-0 w-3 h-3 
+                bg-peach
+                border-r-[3px] border-b-[3px]
+                border-black dark:border-white
+                rotate-45 translate-x-3
+              "
+            />
           </div>
         </div>
 
-        {/* Circular Badge */}
+          {/* Circular Badge - Neubrutalism style */}
         <a
           href={KOFI_URL}
           target="_blank"
           rel="noopener noreferrer"
           className={`
             relative w-14 h-14 rounded-full
-            bg-[#FF6B35]
-            border-[3px] border-black dark:border-white
-            shadow-[3px_3px_0_#000] dark:shadow-[3px_3px_0_#fff]
             flex items-center justify-center
-            transition-all duration-200 ease-out
-            hover:shadow-[5px_5px_0_#000] dark:hover:shadow-[5px_5px_0_#fff]
-            ${isHovered ? 'scale-110' : 'scale-100'}
+            transition-all duration-150 ease-out
+            group
           `}
           aria-label="Support on Ko-fi"
         >
-          {/* แก้วกาแฟหมุน 45° */}
-          <Coffee 
-            size={22} 
+          {/* Neubrutalism button */}
+          <span
             className={`
-              text-black
-              transition-transform duration-300 ease-out
-              ${isHovered ? 'rotate-45' : 'rotate-0'}
+              relative w-full h-full rounded-full
+              flex items-center justify-center
+              
+              /* Light & Dark: pure neubrutalism */
+              bg-peach
+              border-[3px] border-black dark:border-white
+              shadow-[4px_4px_0_#000] dark:shadow-[4px_4px_0_#fff]
+              
+              hover:translate-x-[-2px] hover:translate-y-[-2px]
+              hover:shadow-[6px_6px_0_#000] dark:hover:shadow-[6px_6px_0_#fff]
+              active:translate-x-[2px] active:translate-y-[2px]
+              active:shadow-[2px_2px_0_#000] dark:active:shadow-[2px_2px_0_#fff]
+              ${isHovered ? 'scale-110' : 'scale-100'}
             `}
-          />
+          >
+            <Coffee 
+              size={22} 
+              className={`
+                text-black dark:text-white
+                transition-transform duration-200 ease-out
+                ${isHovered ? 'rotate-12 scale-110' : 'rotate-0'}
+              `}
+            />
+          </span>
         </a>
       </div>
     );
@@ -126,18 +138,33 @@ export default function KofiButton({
       target="_blank"
       rel="noopener noreferrer"
       className={`
-        inline-flex items-center gap-2 px-4 py-2 rounded-xl
-        bg-[#FF6B35] text-black font-display font-bold text-sm
-        border-2 border-black dark:border-white
-        shadow-[2px_2px 0_#000] dark:shadow-[2px_2px 0_#fff]
-        hover:shadow-[3px_3px 0_#000] dark:hover:shadow-[3px_3px 0_#fff]
-        hover:scale-105 transition-all duration-150
+        relative inline-flex items-center gap-2
+        font-display font-bold text-sm
+        group
         ${className}
       `}
       aria-label="Support on Ko-fi"
     >
-      <Coffee size={18} />
-      <span>Support</span>
+      {/* Neubrutalism button */}
+      <span
+        className={`
+          inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+          
+          /* Light & Dark: neubrutalism */
+          bg-peach text-black
+          border-[3px] border-black dark:border-white
+          shadow-[4px_4px_0_#000] dark:shadow-[4px_4px_0_#fff]
+          
+          hover:translate-x-[-2px] hover:translate-y-[-2px]
+          hover:shadow-[6px_6px_0_#000] dark:hover:shadow-[6px_6px_0_#fff]
+          active:translate-x-[2px] active:translate-y-[2px]
+          active:shadow-[2px_2px_0_#000] dark:active:shadow-[2px_2px_0_#fff]
+          transition-all duration-150
+        `}
+      >
+        <Coffee size={18} className="group-hover:rotate-12 transition-transform duration-150" />
+        <span>Support</span>
+      </span>
     </a>
   );
 }

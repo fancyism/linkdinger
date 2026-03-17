@@ -1,44 +1,73 @@
 'use client'
 
-import { useState } from 'react'
-import { Link2, Twitter, Check, Linkedin, Facebook, MessageCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link2, Twitter, Check, Linkedin, Facebook, MessageCircle, Share2 } from 'lucide-react'
 
 interface ShareButtonsProps {
     title: string
     url?: string
+    excerpt?: string
+    coverImage?: string
 }
 
-export default function ShareButtons({ title, url }: ShareButtonsProps) {
+export default function ShareButtons({ title, url, excerpt, coverImage }: ShareButtonsProps) {
     const [copied, setCopied] = useState(false)
+    const [canShare, setCanShare] = useState(false)
+
+    useEffect(() => {
+        setCanShare(typeof navigator !== 'undefined' && 'share' in navigator)
+    }, [])
 
     const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://linkdinger.com'
+    const fullUrl = shareUrl.startsWith('http') ? shareUrl : `${siteUrl}${shareUrl}`
 
-    const copyLink = async () => {
+    const shareText = excerpt 
+        ? `${title}\n\n${excerpt}` 
+        : title
+
+    const handleShare = async () => {
         try {
-            await navigator.clipboard.writeText(shareUrl)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        } catch {
-            /* fallback */
+            if (canShare && navigator.share) {
+                await navigator.share({
+                    title: title,
+                    text: excerpt || title,
+                    url: fullUrl,
+                })
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+            } else {
+                await navigator.clipboard.writeText(fullUrl)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+            }
+        } catch (err) {
+            if ((err as Error).name !== 'AbortError') {
+                try {
+                    await navigator.clipboard.writeText(fullUrl)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                } catch {
+                    /* fallback */
+                }
+            }
         }
     }
 
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        title
-    )}&url=${encodeURIComponent(shareUrl)}`
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
-    const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`
+    const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(shareText)}`
 
     return (
         <div className="flex flex-wrap items-center gap-2">
             <button
-                onClick={copyLink}
+                onClick={handleShare}
                 className="glass-button !p-2 !rounded-lg flex items-center gap-2 text-sm"
-                aria-label="Copy link"
+                aria-label={canShare ? 'Share' : 'Copy link'}
             >
-                {copied ? <Check size={16} /> : <Link2 size={16} />}
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? <Check size={16} /> : canShare ? <Share2 size={16} /> : <Link2 size={16} />}
+                {copied ? 'Shared!' : canShare ? 'Share' : 'Copy'}
             </button>
             <a
                 href={tweetUrl}
@@ -83,4 +112,3 @@ export default function ShareButtons({ title, url }: ShareButtonsProps) {
         </div>
     )
 }
-

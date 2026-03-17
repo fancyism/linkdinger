@@ -49,6 +49,9 @@ export default function PostDetail({
           </>
         )}
 
+        {/* Smooth gradient transition to content */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0d0d0d] to-transparent z-[5]" />
+
         {/* Hero content — same max-width as article body for visual alignment */}
         <div className="max-w-[72ch] mx-auto relative z-10">
           <Link
@@ -146,7 +149,7 @@ export default function PostDetail({
             <span className="text-sm font-medium text-gray-500 tracking-wide">
               Share this post
             </span>
-            <ShareButtons title={post.title} />
+            <ShareButtons title={post.title} excerpt={post.excerpt} coverImage={post.coverImage} />
           </div>
         </div>
 
