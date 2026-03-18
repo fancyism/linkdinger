@@ -20,8 +20,13 @@ export default async function HomePage() {
   const { featured, gridPosts, listPosts } = splitHomePosts(currentPosts)
 
   const getAspectForHome = (index: number) => {
-    const pattern = ['portrait', 'square', 'wide', 'wide']
-    return pattern[index % pattern.length] as 'portrait' | 'square' | 'wide'
+    // 12-element cycle guaranteeing NO symmetric rows in 2-col or 3-col layouts
+    const pattern = [
+      'portrait', 'wide', 'square', 'landscape',
+      'portrait', 'square', 'wide', 'landscape',
+      'square', 'portrait', 'landscape', 'wide'
+    ]
+    return pattern[index % pattern.length] as 'portrait' | 'square' | 'wide' | 'landscape'
   }
 
   return (

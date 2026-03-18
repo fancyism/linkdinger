@@ -82,14 +82,11 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
     })
 
     const getAspectForBlog = (index: number) => {
-        // Create an organic, highly asymmetric pattern with occasional symmetric breaks
+        // Enforce a pattern that NEVER creates a perfectly symmetric row for 2, 3, or 4 columns!
         const pattern = [
-            'portrait', 'square', 'landscape', // Asymmetric row
-            'landscape', 'portrait', 'square', // Asymmetric row reversed
-            'wide', 'wide', 'wide',            // Symmetric pause
-            'square', 'portrait', 'wide',      // Chaotic mixed row
-            'portrait', 'wide', 'square',      // Chaotic mixed row
-            'square', 'square', 'landscape'    // Asymmetric final
+            'portrait', 'wide', 'square', 'landscape',
+            'portrait', 'square', 'wide', 'landscape',
+            'square', 'portrait', 'landscape', 'wide'
         ]
         return pattern[index % pattern.length] as 'portrait' | 'square' | 'wide' | 'landscape'
     }
