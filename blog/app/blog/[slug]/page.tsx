@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 
 export function generateStaticParams() {
   return getPostSlugs().map(slug => ({
-    slug: encodeURIComponent(slug.replace(/\.md$/, '')),
+    slug: slug.replace(/\.md$/, ''),
   }))
 }
 

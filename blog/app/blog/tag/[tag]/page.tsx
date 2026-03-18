@@ -5,7 +5,7 @@ import PostCard from '@/components/post-card'
 
 export function generateStaticParams() {
     return getAllTags().map(tag => ({
-        tag: encodeURIComponent(tag),
+        tag: tag,
     }))
 }
 
