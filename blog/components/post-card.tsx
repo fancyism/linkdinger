@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import BrutalTag from './ui/brutal-tag'
 import ViewCounter from './view-counter'
@@ -38,6 +38,9 @@ export default function PostCard({
   rank,
 }: PostCardProps) {
   const dateStr = date ? (typeof date === 'string' ? date : new Date(date).toISOString().split('T')[0]) : ''
+
+  // Image Loading State
+  const [isImageLoading, setIsImageLoading] = useState(true)
 
   // 3D Tilt Logic
   const refList = useRef<HTMLDivElement>(null)
@@ -102,8 +105,17 @@ export default function PostCard({
           </div>
           {coverImage ? (
             <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 relative group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] transition-shadow duration-500">
-              <img src={coverImage} alt={title} className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700" loading="lazy" />
-              <div className="absolute inset-0 border border-black/10 dark:border-white/10 rounded-xl pointer-events-none" />
+              {isImageLoading && (
+                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 animate-pulse z-0" />
+              )}
+              <img 
+                src={coverImage} 
+                alt={title} 
+                className={`w-full h-full object-cover transition-all duration-700 relative z-10 ${isImageLoading ? 'opacity-0 scale-105' : 'opacity-100 group-hover:scale-110 group-hover:rotate-1'}`} 
+                loading="lazy" 
+                onLoad={() => setIsImageLoading(false)}
+              />
+              <div className="absolute inset-0 border border-black/10 dark:border-white/10 rounded-xl pointer-events-none z-20" />
               {rank && (
                 <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-sm font-display font-black shadow-lg text-black dark:text-white z-10">
                   {rank}
@@ -181,11 +193,15 @@ export default function PostCard({
           </h2>
           {coverImage ? (
             <div className={`${aspectClass} w-full relative overflow-hidden bg-black/10 dark:bg-black/50 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)] transition-all duration-500 mt-2 rounded-sm`}>
+              {isImageLoading && (
+                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 animate-pulse z-0" />
+              )}
               <img
                 src={coverImage}
                 alt={title}
-                className="w-full h-full object-cover filter dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
+                className={`w-full h-full object-cover filter transition-all duration-700 relative z-10 ${isImageLoading ? 'opacity-0 blur-sm scale-105' : 'opacity-100 blur-0 dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105'}`}
                 loading="lazy"
+                onLoad={() => setIsImageLoading(false)}
               />
               {rank && (
                 <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/20 flex items-center justify-center text-xl font-display font-black shadow-lg text-black dark:text-white z-10 transition-transform group-hover:scale-110">
