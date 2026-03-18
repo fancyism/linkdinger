@@ -19,11 +19,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from collections import Counter, deque
 
-import yaml
-import requests
-import boto3
-from flask import Flask, jsonify, Response, request as flask_request
-from dotenv import load_dotenv
+import yaml  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped]
+import boto3  # type: ignore[import-untyped]
+from flask import Flask, jsonify, Response, request as flask_request  # type: ignore[import-untyped]
+from dotenv import load_dotenv  # type: ignore[import-untyped]
 
 load_dotenv()
 
@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # ─── Shared State (set by linkdinger.py) ────────────────────────
-_daemon_state = {
+from typing import Any, Optional
+
+_daemon_state: dict[str, Any] = {
     "started_at": None,
     "images_processed": 0,
     "posts_synced": 0,
@@ -62,10 +64,10 @@ def set_daemon_state(**kwargs):
 
 # ─── Data Collectors ────────────────────────────────────────────
 
-def get_pipeline_status() -> dict:
-    started = _daemon_state.get("started_at")
-    uptime = None
-    if started:
+def get_pipeline_status() -> dict[str, Any]:
+    started: Optional[datetime] = _daemon_state.get("started_at")
+    uptime: Optional[str] = None
+    if started and isinstance(started, datetime):
         delta = datetime.now() - started
         hours, remainder = divmod(int(delta.total_seconds()), 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -80,18 +82,18 @@ def get_pipeline_status() -> dict:
     }
 
 
-def _parse_post_frontmatter(filepath: str) -> dict:
+def _parse_post_frontmatter(filepath: str) -> dict[str, Any]:
     """Parse a markdown file's frontmatter and compute metadata."""
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
-    fm = {}
-    body = content
+    fm: dict[str, Any] = {}
+    body: str = content
     if content.startswith("---"):
         end = content.find("---", 3)
         if end != -1:
-            fm = yaml.safe_load(content[3:end]) or {}
-            body = content[end + 3:]
+            fm = yaml.safe_load(content[3:end]) or {}  # type: ignore[index]
+            body = content[end + 3:]  # type: ignore[index]
 
     # Word count
     words = len(body.split())
@@ -100,16 +102,16 @@ def _parse_post_frontmatter(filepath: str) -> dict:
     read_min = max(1, round(words / 200))
 
     # Check for images
-    image_urls = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', body)
+    image_urls: list[str] = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', body)
     # Also check coverImage
-    cover = fm.get("coverImage", "")
+    cover: str = fm.get("coverImage", "")
     if cover and cover.startswith("http"):
         image_urls.insert(0, cover)
 
     return {
         "filename": os.path.basename(filepath),
         "title": fm.get("title", os.path.basename(filepath).replace(".md", "")),
-        "date": str(fm.get("date", ""))[:10],
+        "date": str(fm.get("date", ""))[:10],  # type: ignore[index]
         "category": fm.get("category", ""),
         "tags": fm.get("tags", []),
         "excerpt": fm.get("excerpt", fm.get("description", "")),
@@ -124,16 +126,16 @@ def _parse_post_frontmatter(filepath: str) -> dict:
     }
 
 
-def get_content_audit() -> dict:
+def get_content_audit() -> dict[str, Any]:
     """Scan blog/content/posts for quality issues."""
     posts_dir = os.path.join(os.getcwd(), "blog", "content", "posts")
     if not os.path.isdir(posts_dir):
         return {"total": 0, "issues": [], "healthy": 0, "posts": []}
 
-    issues = []
-    posts = []
-    total = 0
-    healthy = 0
+    issues: list[dict[str, Any]] = []
+    posts: list[dict[str, Any]] = []
+    total: int = 0
+    healthy: int = 0
 
     for md_file in sorted(glob.glob(os.path.join(posts_dir, "*.md"))):
         total += 1
@@ -177,7 +179,10 @@ def get_content_audit() -> dict:
 
 
 def get_view_stats() -> dict:
-    """Fetch view counts from Upstash Redis."""
+    """Fetch view counts from Upstash Redis.
+    
+    Uses page_views:* prefix to match the blog's view counter API.
+    """
     url = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_URL")
     token = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN")
 
@@ -186,7 +191,8 @@ def get_view_stats() -> dict:
 
     headers = {"Authorization": f"Bearer {token}"}
     try:
-        resp = requests.get(f"{url}/keys/views:*", headers=headers, timeout=5)
+        # Use page_views:* to match blog/app/api/views/[slug]/route.ts
+        resp = requests.get(f"{url}/keys/page_views:*", headers=headers, timeout=5)
         data = resp.json()
         keys = data.get("result", [])
 
@@ -203,7 +209,8 @@ def get_view_stats() -> dict:
         posts = []
         total = 0
         for key, val in zip(keys, values):
-            slug = key.replace("views:", "")
+            # Strip page_views: prefix to get the slug
+            slug = key.replace("page_views:", "")
             count = int(val or 0)
             total += count
             posts.append({"slug": slug, "views": count})
@@ -252,17 +259,17 @@ def get_r2_stats() -> dict:
             aws_access_key_id=access, aws_secret_access_key=secret,
         )
         paginator = client.get_paginator("list_objects_v2")
-        total_objects = 0
-        total_size = 0
+        total_objects: int = 0
+        total_size: int = 0
 
         for page in paginator.paginate(Bucket=bucket):
             for obj in page.get("Contents", []):
-                total_objects += 1
-                total_size += obj.get("Size", 0)
+                total_objects += 1  # type: ignore[operator]
+                total_size += obj.get("Size", 0)  # type: ignore[operator]
 
         return {
             "total_objects": total_objects,
-            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "total_size_mb": round(total_size / (1024 * 1024), 2),  # type: ignore[call-overload]
             "total_size_bytes": total_size,
             "bucket": bucket,
         }
@@ -283,10 +290,10 @@ def get_publishing_heatmap() -> dict:
                 if content.startswith("---"):
                     end = content.find("---", 3)
                     if end != -1:
-                        fm = yaml.safe_load(content[3:end]) or {}
+                        fm = yaml.safe_load(content[3:end]) or {}  # type: ignore[index]
                         d = fm.get("date")
                         if d:
-                            ds = str(d)[:10]
+                            ds = str(d)[:10]  # type: ignore[index]
                             date_counts[ds] = date_counts.get(ds, 0) + 1
             except Exception:
                 pass
@@ -321,7 +328,7 @@ def get_broken_images() -> list:
             if content.startswith("---"):
                 end = content.find("---", 3)
                 if end != -1:
-                    fm = yaml.safe_load(content[3:end]) or {}
+                    fm = yaml.safe_load(content[3:end]) or {}  # type: ignore[index]
                     cover = fm.get("coverImage", "")
                     if cover and cover.startswith("http") and cover not in urls:
                         urls.insert(0, cover)
@@ -354,12 +361,12 @@ def get_git_history(limit: int = 20) -> list:
             parts = line.split("|")
             if len(parts) >= 6:
                 commits.append({
-                    "hash": parts[0][:8],
+                    "hash": parts[0][:8],  # type: ignore[index]
                     "short": parts[1],
                     "message": parts[2],
                     "author": parts[3],
                     "ago": parts[4],
-                    "date": parts[5][:10],
+                    "date": parts[5][:10],  # type: ignore[index]
                 })
         return commits
     except Exception:
@@ -493,7 +500,7 @@ def api_activity_log():
 @app.route("/api/action/sync", methods=["POST"])
 def action_sync():
     try:
-        from content_sync import SyncConfig, sync_all
+        from content_sync import SyncConfig, sync_all  # type: ignore[import]
         cfg = SyncConfig()
         count = sync_all(cfg)
         return jsonify({"success": True, "synced": count})

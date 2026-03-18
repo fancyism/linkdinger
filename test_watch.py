@@ -1,9 +1,9 @@
 """Minimal test: does watchdog see ANY file events in the vault?"""
 import os
 import time
-import yaml
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+import yaml  # type: ignore[import-untyped]
+from watchdog.observers import Observer  # type: ignore[import-untyped]
+from watchdog.events import FileSystemEventHandler  # type: ignore[import-untyped]
 
 with open("config.yaml", "r", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
@@ -15,7 +15,7 @@ print(f"Is dir? {os.path.isdir(vault)}")
 
 # List immediate contents
 print(f"\nContents of vault root:")
-for item in os.listdir(vault)[:10]:
+for item in os.listdir(vault)[:10]:  # type: ignore[index]
     print(f"  {item}")
 
 class DebugHandler(FileSystemEventHandler):

@@ -4,10 +4,10 @@ import os
 import json
 import tempfile
 import shutil
-import pytest
+import pytest  # type: ignore[import-untyped]
 from unittest.mock import patch
 
-from content_sync import (
+from content_sync import (  # pyre-ignore[21]
     SyncConfig,
     sync_file,
     sync_all,
@@ -15,7 +15,7 @@ from content_sync import (
     notify,
     _parse_frontmatter,
     _has_publish_flag,
-    _rewrite_image_links,
+    _rewrite_links,
     _collect_publish_files,
     validate_file_for_publish,
     validate_publish_files,
@@ -45,7 +45,7 @@ def temp_env():
         "blog": {"content_dir": blog_content},
     }
     with open(config_path, "w") as f:
-        import yaml
+        import yaml  # pyre-ignore[21]
         yaml.dump(config_data, f)
 
     yield {
@@ -155,7 +155,7 @@ class TestSyncAll:
         """Folder mode syncs all .md in publish/."""
         # Override to folder mode
         config_path = temp_env["config_path"]
-        import yaml
+        import yaml  # pyre-ignore[21]
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
         cfg["publish"]["method"] = "folder"
@@ -249,7 +249,7 @@ class TestImageRewriting:
         """B1: ![[image.png]] → ![image](R2_URL)."""
         upload_log = {"photo.png": "https://r2.example.com/abc123.webp"}
         content = "Here is ![[photo.png]] in text"
-        result = _rewrite_image_links(content, upload_log)
+        result = _rewrite_links(content, upload_log)
         assert "![photo](https://r2.example.com/abc123.webp)" in result
         assert "![[" not in result
 
@@ -257,32 +257,38 @@ class TestImageRewriting:
         """B2: ![[image.png|600]] → ![image](R2_URL)."""
         upload_log = {"photo.png": "https://r2.example.com/abc.webp"}
         content = "![[photo.png|600]]"
-        result = _rewrite_image_links(content, upload_log)
+        result = _rewrite_links(content, upload_log)
         assert "![photo](https://r2.example.com/abc.webp)" in result
 
     def test_image_not_in_log(self):
         """B4: Image not uploaded → keep filename, log warning."""
         content = "![[unknown.png]]"
-        result = _rewrite_image_links(content, {})
+        result = _rewrite_links(content, {})
         assert "![unknown](unknown.png)" in result
 
-    def test_wiki_link_removed(self):
-        """B5: [[internal-link]] → plain text."""
+    def test_wiki_link_converted(self):
+        """B5: [[internal-link]] → markdown link."""
         content = "See [[other-note]] for details"
-        result = _rewrite_image_links(content, {})
-        assert "See other-note for details" in result
+        result = _rewrite_links(content, {})
+        assert "See [other-note](/blog/other-note) for details" in result
+
+    def test_wiki_link_with_alias(self):
+        """B5b: [[Filename|Alias]] → markdown link."""
+        content = "See [[other-note|this note]] for details"
+        result = _rewrite_links(content, {})
+        assert "See [this note](/blog/other-note) for details" in result
 
     def test_standard_markdown_preserved(self):
         """B6: Standard ![alt](url) unchanged."""
         content = "![alt](https://example.com/img.png)"
-        result = _rewrite_image_links(content, {})
+        result = _rewrite_links(content, {})
         assert content == result
 
     def test_frontmatter_preserved(self):
         """B7: Frontmatter untouched during rewrite."""
         content = "---\ntitle: Test\npublish: true\n---\n\n![[photo.png]]"
         upload_log = {"photo.png": "https://r2.example.com/x.webp"}
-        result = _rewrite_image_links(content, upload_log)
+        result = _rewrite_links(content, upload_log)
         assert "title: Test" in result
         assert "publish: true" in result
 

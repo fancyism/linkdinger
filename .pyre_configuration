@@ -1,0 +1,17 @@
+{
+  "source_directories": [".", "stubs"],
+  "search_path": [".", "stubs"],
+  "exclude": [
+    "blog",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    "tests",
+    "test_watch.py",
+    "rename_file.py"
+  ],
+  "ignore_missing_imports": true,
+  "stub_path": "stubs"
+}

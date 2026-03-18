@@ -3,7 +3,7 @@
 import os
 import sys
 from unittest.mock import patch, MagicMock, call
-import pytest
+import pytest  # type: ignore[import-untyped]
 
 # ── We need to handle module-level load_dotenv() and boto3 imports ──
 # Patch environment BEFORE importing the module so load_dotenv() and
@@ -37,23 +37,23 @@ def _make_config():
          patch("obsidian_watcher.open", create=True), \
          patch.dict(os.environ, MOCK_ENV):
         # We need to patch open only for the Config.__init__ yaml read
-        import obsidian_watcher
+        import obsidian_watcher  # type: ignore[import]
         # Manually construct config with known values
-        config = object.__new__(obsidian_watcher.Config)
-        config.vault_path = MOCK_CONFIG_DATA["vault"]["path"]
-        config.assets_dir = os.path.join(config.vault_path, MOCK_CONFIG_DATA["vault"]["assets_dir"])
-        config.r2_endpoint = MOCK_ENV["R2_ENDPOINT"]
-        config.r2_access_key = MOCK_ENV["R2_ACCESS_KEY"]
-        config.r2_secret_key = MOCK_ENV["R2_SECRET_KEY"]
-        config.r2_bucket = MOCK_ENV["R2_BUCKET"]
-        config.r2_public_url = MOCK_ENV["R2_PUBLIC_URL"]
-        config.debounce_sec = MOCK_CONFIG_DATA["watcher"]["debounce_sec"]
-        config.formats = MOCK_CONFIG_DATA["watcher"]["formats"]
-        config.output_format = MOCK_CONFIG_DATA["watcher"]["output_format"]
-        config.quality = MOCK_CONFIG_DATA["watcher"]["quality"]
+        config = object.__new__(obsidian_watcher.Config)  # type: ignore[call-arg]
+        config.vault_path = MOCK_CONFIG_DATA["vault"]["path"]  # type: ignore[attr-defined]
+        config.assets_dir = os.path.join(config.vault_path, MOCK_CONFIG_DATA["vault"]["assets_dir"])  # type: ignore[attr-defined]
+        config.r2_endpoint = MOCK_ENV["R2_ENDPOINT"]  # type: ignore[attr-defined]
+        config.r2_access_key = MOCK_ENV["R2_ACCESS_KEY"]  # type: ignore[attr-defined]
+        config.r2_secret_key = MOCK_ENV["R2_SECRET_KEY"]  # type: ignore[attr-defined]
+        config.r2_bucket = MOCK_ENV["R2_BUCKET"]  # type: ignore[attr-defined]
+        config.r2_public_url = MOCK_ENV["R2_PUBLIC_URL"]  # type: ignore[attr-defined]
+        config.debounce_sec = MOCK_CONFIG_DATA["watcher"]["debounce_sec"]  # type: ignore[attr-defined]
+        config.formats = MOCK_CONFIG_DATA["watcher"]["formats"]  # type: ignore[attr-defined]
+        config.output_format = MOCK_CONFIG_DATA["watcher"]["output_format"]  # type: ignore[attr-defined]
+        config.quality = MOCK_CONFIG_DATA["watcher"]["quality"]  # type: ignore[attr-defined]
         # New attributes from CMS integration
-        config.publish_folder = os.path.join(config.vault_path, "publish")
-        config.upload_log_path = os.path.join(config.assets_dir, ".upload_log.json")
+        config.publish_folder = os.path.join(config.vault_path, "publish")  # type: ignore[attr-defined]
+        config.upload_log_path = os.path.join(config.assets_dir, ".upload_log.json")  # type: ignore[attr-defined]
         return config
 
 

@@ -11,7 +11,8 @@ import subprocess
 import logging
 import threading
 from datetime import datetime
-import yaml
+
+import yaml  # type: ignore[import-untyped]
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,10 +62,12 @@ class AutoGit:
                 ["git"] + list(args),
                 cwd=self.vault_path,
                 capture_output=True,
-                text=True,
                 timeout=30
             )
-            return result.returncode == 0, result.stdout + result.stderr
+            # Decode with UTF-8 to handle Thai/Unicode filenames
+            stdout = result.stdout.decode('utf-8', errors='replace')
+            stderr = result.stderr.decode('utf-8', errors='replace')
+            return result.returncode == 0, stdout + stderr
         except subprocess.TimeoutExpired:
             return False, "Command timed out"
         except FileNotFoundError:
@@ -104,6 +107,14 @@ class AutoGit:
         self._sync_count += 1
         logger.info(f"Synced: {message}")
         print(f"📤 Synced to GitHub: {timestamp}")
+
+        # Log to dashboard activity log
+        try:
+            from dashboard import log_activity  # type: ignore[import-untyped]
+            log_activity("git", "Auto-commit & push", message)
+        except ImportError:
+            pass
+
         return True
 
     # ─── Event-Driven Mode ──────────────────────────────────────
@@ -118,8 +129,9 @@ class AutoGit:
             self._last_notify = time.time()
 
             # Cancel existing timer
-            if self._timer is not None:
-                self._timer.cancel()
+            timer = self._timer
+            if timer is not None:
+                timer.cancel()
 
             # Start new timer
             delay = self.idle_minutes * 60
@@ -160,8 +172,9 @@ class AutoGit:
         self._running = False
 
         with self._lock:
-            if self._timer is not None:
-                self._timer.cancel()
+            timer = self._timer
+            if timer is not None:
+                timer.cancel()
                 self._timer = None
 
         # Final sync before shutdown
@@ -174,12 +187,13 @@ class AutoGit:
     @property
     def status(self) -> dict:
         """Return current status for health checks."""
+        timer = self._timer
         return {
             "enabled": self.enabled,
             "running": self._running,
             "sync_count": self._sync_count,
             "last_notify": self._last_notify,
-            "has_pending_timer": self._timer is not None and self._timer.is_alive(),
+            "has_pending_timer": timer is not None and timer.is_alive(),
             "vault_path": self.vault_path,
         }
 

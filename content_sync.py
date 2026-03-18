@@ -15,7 +15,9 @@ import json
 import logging
 from collections import defaultdict
 from datetime import date, datetime, timezone
-import yaml
+from typing import Any, Optional
+
+import yaml  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 REQUIRED_FRONTMATTER_FIELDS = ("title", "date")
@@ -62,7 +64,7 @@ class SyncConfig:
         return os.path.join(os.getcwd(), self.content_dir)
 
 
-def _parse_frontmatter(content: str) -> dict:
+def _parse_frontmatter(content: str) -> dict[str, Any]:
     """Extract YAML frontmatter from markdown content."""
     if not content.startswith("---"):
         return {}
@@ -70,7 +72,8 @@ def _parse_frontmatter(content: str) -> dict:
     if end == -1:
         return {}
     try:
-        return yaml.safe_load(content[3:end]) or {}
+        result: Any = yaml.safe_load(content[3:end])  # type: ignore[index]
+        return result if result is not None else {}
     except yaml.YAMLError:
         return {}
 
@@ -104,7 +107,7 @@ def _is_valid_frontmatter_date(value: object) -> bool:
     if not isinstance(value, str) or not value.strip():
         return False
     try:
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
+        datetime.fromisoformat(value.replace("Z", "+00:00"))  # type: ignore[union-attr]
         return True
     except ValueError:
         return False
@@ -318,17 +321,20 @@ def _log_validation_errors(errors: dict[str, list[str]]):
             print(f"   - {issue}")
 
 
-def _rewrite_image_links(content: str, upload_log: dict) -> str:
-    """Transform Obsidian image syntax to standard markdown with R2 URLs.
+def _rewrite_links(content: str, upload_log: dict) -> str:
+    """Transform Obsidian image syntax and wiki-links to standard markdown.
 
     Rewrites:
       ![[image.png]]        → ![image](R2_URL)
       ![[image.png|600]]    → ![image](R2_URL)
-      [[internal-link]]     → removed (non-image wiki links)
+      [[Page Name]]         → [Page Name](/blog/page%20name)
+      [[Page Name|Alias]]   → [Alias](/blog/page%20name)
 
     Preserves:
       ![alt](url)           → unchanged (standard markdown)
     """
+    import urllib.parse
+    
     # Rewrite ![[image.ext]] and ![[image.ext|size]]
     def replace_obsidian_image(match):
         full = match.group(1)
@@ -350,15 +356,27 @@ def _rewrite_image_links(content: str, upload_log: dict) -> str:
 
     content = re.sub(r"!\[\[(.+?)\]\]", replace_obsidian_image, content)
 
-    # Remove non-image wiki links [[internal-link]]
-    content = re.sub(r"\[\[(.+?)\]\]", r"\1", content)
+    # Process non-image wiki links: [[Filename]] or [[Filename|Alias]]
+    def replace_wiki_link(match):
+        inner = match.group(1)
+        if "|" in inner:
+            filename, alias = inner.split("|", 1)
+        else:
+            filename, alias = inner, inner
+            
+        # URL encode the stripped filename for the next.js link
+        # Our blog routing expects the raw filename (e.g. My%20Page) as the slug
+        url_path = urllib.parse.quote(filename.strip())
+        return f"[{alias.strip()}](/blog/{url_path})"
+
+    content = re.sub(r"\[\[(.+?)\]\]", replace_wiki_link, content)
     
     # Process YAML frontmatter coverImage replacements
     if content.startswith("---"):
         end_idx = content.find("---", 3)
         if end_idx != -1:
-            frontmatter = content[:end_idx+3]
-            body_content = content[end_idx+3:]
+            frontmatter = content[:end_idx+3]  # type: ignore[index]
+            body_content = content[end_idx+3:]  # type: ignore[index]
             
             # Find coverImage: "[[filename]]" or just "filename"
             def replace_cover_image(match):
@@ -437,10 +455,10 @@ def sync_file(
     with open(source_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Rewrite image links if enabled
+    # Rewrite image and wiki links if enabled
     if rewrite_links:
         upload_log = _load_upload_log(config.upload_log_path)
-        content = _rewrite_image_links(content, upload_log)
+        content = _rewrite_links(content, upload_log)
 
     # Write to blog
     with open(dest_path, "w", encoding="utf-8") as f:
@@ -448,6 +466,14 @@ def sync_file(
 
     logger.info(f"Synced: {filename} → {dest_path}")
     print(f"📝 Synced: {filename}")
+
+    # Log to dashboard activity log
+    try:
+        from dashboard import log_activity  # type: ignore[import-untyped]
+        log_activity("cms", f"Synced {filename}", "→ blog/content/posts")
+    except ImportError:
+        pass
+
     return dest_path
 
 
@@ -530,7 +556,7 @@ def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
     for fpath in due_files:
         result = sync_file(fpath, config, validate=False, now=now)
         if result:
-            count += 1
+            count += 1  # type: ignore[operator]
 
     # Clean up orphaned files in blog that are no longer in vault
     if os.path.isdir(config.abs_content_dir):

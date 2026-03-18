@@ -1,0 +1,90 @@
+[project]
+name = "linkdinger"
+version = "1.0.0"
+description = "Obsidian vault watcher with R2 image upload and CMS sync"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Linkdinger Team"}
+]
+keywords = ["obsidian", "cloudflare-r2", "cms", "markdown"]
+
+dependencies = [
+    "boto3>=1.26.0",
+    "Pillow>=9.0.0",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0.0",
+    "watchdog>=3.0.0",
+    "flask>=2.0.0",
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pyre-check>=0.9.0",
+    "types-PyYAML>=6.0.0",
+    "types-requests>=2.28.0",
+    "boto3-stubs>=1.26.0",
+]
+
+[tool.pyre]
+# Pyre2 type checker configuration
+source_directories = ["."]
+search_path = ["."]
+exclude = [
+    "blog",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    "tests",
+    "test_watch.py"
+]
+ignore_missing_imports = true
+stub_path = "stubs"
+
+[tool.pyright]
+# Pyright/Pylance configuration - disabled for this project
+typeCheckingMode = "off"
+reportMissingImports = "none"
+reportMissingTypeStubs = "none"
+reportGeneralTypeIssues = "none"
+pythonVersion = "3.10"
+stubPath = "stubs"
+extraPaths = ["."]
+
+[tool.mypy]
+# MyPy configuration
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    "blog/",
+    "node_modules/",
+    ".venv/",
+    "tests/",
+    "test_*.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

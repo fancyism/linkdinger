@@ -20,7 +20,7 @@ export default function Pagination({ currentPage, totalPages, basePath }: Pagina
             {currentPage > 1 ? (
                 <Link
                     href={getPageUrl(currentPage - 1)}
-                    className="px-6 py-2 rounded-full border border-black/10 dark:border-white/10 text-gray-900 dark:text-white font-display font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="px-6 py-2 rounded-full border border-black/10 dark:border-white/10 text-gray-900 dark:text-white font-display font-medium hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all inline-block"
                 >
                     Previous
                 </Link>
@@ -37,7 +37,7 @@ export default function Pagination({ currentPage, totalPages, basePath }: Pagina
             {currentPage < totalPages ? (
                 <Link
                     href={getPageUrl(currentPage + 1)}
-                    className="px-6 py-2 rounded-full border border-black/10 dark:border-white/10 text-gray-900 dark:text-white font-display font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="px-6 py-2 rounded-full border border-black/10 dark:border-white/10 text-gray-900 dark:text-white font-display font-medium hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all inline-block"
                 >
                     Next
                 </Link>

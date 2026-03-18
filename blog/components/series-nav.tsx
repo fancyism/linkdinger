@@ -26,7 +26,7 @@ export default function SeriesNav({ adjacent }: SeriesNavProps) {
           {adjacent.prev ? (
             <Link
               href={`/blog/${encodeURIComponent(adjacent.prev.slug)}`}
-              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 transition-all"
+              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all"
             >
               <span className="text-[0.65rem] font-display text-gray-500 uppercase flex items-center gap-1 group-hover:text-[#FF6B35] transition-colors">
                 <ArrowLeft
@@ -35,7 +35,7 @@ export default function SeriesNav({ adjacent }: SeriesNavProps) {
                 />
                 Previous
               </span>
-              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-300 group-hover:text-white transition-colors">
+              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white transition-colors">
                 {adjacent.prev.title}
               </span>
             </Link>
@@ -49,7 +49,7 @@ export default function SeriesNav({ adjacent }: SeriesNavProps) {
           {adjacent.next ? (
             <Link
               href={`/blog/${encodeURIComponent(adjacent.next.slug)}`}
-              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 transition-all items-end text-right"
+              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all items-end text-right"
             >
               <span className="text-[0.65rem] font-display text-gray-500 uppercase flex items-center gap-1 group-hover:text-[#FF6B35] transition-colors">
                 Next
@@ -58,7 +58,7 @@ export default function SeriesNav({ adjacent }: SeriesNavProps) {
                   className="group-hover:translate-x-0.5 transition-transform"
                 />
               </span>
-              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-300 group-hover:text-white transition-colors">
+              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white transition-colors">
                 {adjacent.next.title}
               </span>
             </Link>

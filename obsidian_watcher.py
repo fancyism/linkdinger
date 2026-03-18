@@ -13,13 +13,14 @@ import time
 import uuid
 import json
 import logging
+import shutil
 from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import boto3
-from PIL import Image
-import yaml
-from dotenv import load_dotenv
+from watchdog.observers import Observer  # type: ignore[import-untyped]
+from watchdog.events import FileSystemEventHandler  # type: ignore[import-untyped]
+import boto3  # type: ignore[import-untyped]
+from PIL import Image  # type: ignore[import-untyped]
+import yaml  # type: ignore[import-untyped]
+from dotenv import load_dotenv  # type: ignore[import-untyped]
 
 load_dotenv()
 
@@ -170,7 +171,7 @@ class MarkdownUpdater:
 
 def _write_upload_log(log_path: str, original_name: str, r2_url: str):
     """Append to upload manifest for CMS image link rewriting."""
-    log = {}
+    log: dict[str, str] = {}
     if os.path.exists(log_path):
         try:
             with open(log_path, "r", encoding="utf-8") as f:
@@ -178,7 +179,7 @@ def _write_upload_log(log_path: str, original_name: str, r2_url: str):
         except (json.JSONDecodeError, OSError):
             log = {}
 
-    log[original_name] = r2_url
+    log[original_name] = r2_url  # type: ignore[index]
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, "w", encoding="utf-8") as f:
@@ -239,6 +240,13 @@ class ImageHandler(FileSystemEventHandler):
 
             self._processed_count += 1
             print(f"✅ {original_name} → {url}")
+
+            # Log to dashboard activity log
+            try:
+                from dashboard import log_activity  # type: ignore[import-untyped]
+                log_activity("image", f"Uploaded {original_name}", f"→ {url[:50]}...")  # type: ignore[index]
+            except ImportError:
+                pass
 
             # Notify git module
             if self._on_processed:

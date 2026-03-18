@@ -20,15 +20,26 @@ import sys
 import time
 import logging
 from datetime import datetime
-from obsidian_watcher import Config, create_watcher
-from auto_git import AutoGit
-from content_sync import (
+
+# Fix Unicode encoding for Windows terminal (cp1252 → UTF-8)
+# We cast to io.TextIOWrapper because typeshed's TextIO doesn't include reconfigure
+import io
+from typing import cast
+
+if sys.stdout.encoding != 'utf-8':
+    cast(io.TextIOWrapper, sys.stdout).reconfigure(encoding='utf-8')
+
+if sys.stderr.encoding != 'utf-8':
+    cast(io.TextIOWrapper, sys.stderr).reconfigure(encoding='utf-8')
+from obsidian_watcher import Config, create_watcher  # pyre-ignore[21]
+from auto_git import AutoGit  # pyre-ignore[21]
+from content_sync import (  # pyre-ignore[21]
     SyncConfig,
     has_due_scheduled_posts,
     notify as cms_notify,
     sync_all,
 )
-from dashboard import start_dashboard, set_daemon_state, log_activity
+from dashboard import start_dashboard, set_daemon_state, log_activity  # pyre-ignore[21]
 
 logging.basicConfig(
     level=logging.INFO,
@@ -120,6 +131,9 @@ def run_daemon(watch: bool = True, git: bool = True, cms: bool = True, dashboard
 
     # Initialize dashboard state
     set_daemon_state(started_at=datetime.now())
+
+    # Log daemon start
+    log_activity("system", "Daemon started", "Watching for changes...")
 
     services = []
 

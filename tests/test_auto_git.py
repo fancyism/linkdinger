@@ -3,7 +3,7 @@
 import time
 import threading
 from unittest.mock import patch, MagicMock
-import pytest
+import pytest  # type: ignore[import-untyped]
 
 # We need to mock yaml.safe_load before importing AutoGit
 MOCK_CONFIG = {
