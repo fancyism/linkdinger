@@ -29,9 +29,9 @@ export default function Hero({
     <Link href={`/blog/${slug}`} className="block group mb-12">
       <section className="relative overflow-hidden rounded-3xl glass-card border border-white/10 dark:border-white/20 transition-all duration-500 hover:border-peach/50 dark:hover:border-peach/70">
         {coverImage ? (
-          <div className="flex flex-col md:flex-row min-h-[500px] xl:min-h-[600px]">
+          <div className="flex flex-col md:flex-row min-h-[400px] lg:min-h-[480px]">
             {/* Left Content Area (Typography Focus) */}
-            <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative z-10 w-full md:w-3/5">
+            <div className="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between relative z-10 w-full md:w-1/2">
               <div className="max-w-xl">
                 {badgeText && (
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-peach/10 text-peach border border-peach/20 text-xs font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
@@ -39,7 +39,7 @@ export default function Hero({
                     {badgeText}
                   </div>
                 )}
-                <h1 className="text-5xl sm:text-6xl lg:text-[5rem] font-display font-black text-gray-900 dark:text-white leading-[1.05] tracking-tighter mb-6 group-hover:text-peach dark:group-hover:text-peach transition-colors drop-shadow-sm dark:drop-shadow-md">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-gray-900 dark:text-white leading-[1.05] tracking-tighter mb-4 group-hover:text-peach transition-colors drop-shadow-sm dark:drop-shadow-md">
                   {title}
                 </h1>
 
@@ -52,8 +52,8 @@ export default function Hero({
                 )}
               </div>
 
-              <div className="flex items-end justify-between mt-12 sm:mt-24">
-                <span className="text-4xl sm:text-5xl font-display font-extrabold text-gray-900 dark:text-white tracking-tighter">
+              <div className="flex items-end justify-between mt-8 sm:mt-12">
+                <span className="text-3xl sm:text-4xl font-display font-extrabold text-gray-900 dark:text-white tracking-tighter">
                   {dateStr}
                 </span>
 
@@ -64,7 +64,7 @@ export default function Hero({
             </div>
 
             {/* Right Image Area */}
-            <div className="w-full md:w-2/5 relative min-h-[300px] md:min-h-full overflow-hidden bg-black/50">
+            <div className="w-full md:w-1/2 relative min-h-[300px] md:min-h-full overflow-hidden bg-black/50 rounded-b-3xl md:rounded-r-3xl md:rounded-bl-none">
               <img
                 src={coverImage}
                 alt={title}
