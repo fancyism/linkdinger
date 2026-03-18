@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import BrutalTag from './ui/brutal-tag'
 import ViewCounter from './view-counter'
 
@@ -27,7 +30,7 @@ export default function PostCard({
   readTime = '5 min',
   coverImage,
   variant = 'grid',
-  index,
+  index = 0,
   imageAspect,
   staticViews,
   isPopular = false,
@@ -37,8 +40,14 @@ export default function PostCard({
 
   if (variant === 'list') {
     return (
-      <Link href={`/blog/${slug}`} className="block group border-b border-black/5 dark:border-white/5 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors p-4 -mx-4 rounded-2xl">
-        <article className="flex items-center gap-6 sm:gap-10 transition-transform duration-300 group-hover:-translate-y-1">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: index * 0.1 }}
+      >
+        <Link href={`/blog/${slug}`} className="block group border-b border-black/5 dark:border-white/5 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors p-4 -mx-4 rounded-2xl">
+          <article className="flex items-center gap-6 sm:gap-10 transition-transform duration-300 group-hover:-translate-y-1">
           <div className="w-16 sm:w-20 shrink-0">
             <span className="text-xl sm:text-2xl font-display font-bold text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors">{dateStr.split(',')[0]}</span>
           </div>
@@ -77,6 +86,7 @@ export default function PostCard({
           )}
         </article>
       </Link>
+      </motion.div>
     )
   }
 
@@ -98,7 +108,17 @@ export default function PostCard({
   const formattedDate = month && day ? `${month}.${day}` : dateStr.split(',')[0]
 
   return (
-    <div className="group">
+    <motion.div 
+      className="group"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ 
+        duration: 0.7, 
+        ease: [0.22, 1, 0.36, 1], 
+        delay: Math.min((index % 6) * 0.1, 0.5) 
+      }}
+    >
       <Link href={`/blog/${slug}`} className="block">
         <article className="h-full flex flex-col pt-6 border-t border-black/10 dark:border-white/10 group-hover:border-black/40 dark:group-hover:border-white/40 transition-colors duration-500">
           <div className="flex items-center justify-between mb-4">
@@ -165,7 +185,7 @@ export default function PostCard({
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
