@@ -5,11 +5,15 @@
     "cmdk": "^1.1.1",
     "framer-motion": "^12.34.3",
     "github-slugger": "^2.0.0",
+    "gray-matter": "^4.0.3",
+    "next-intl": "^4.8.3",
     "react-github-calendar": "^5.0.5",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "next-sitemap": "^4.2.3"
   },
   "scripts": {
     "prepare": "node -e \"if (process.env.CI || process.env.VERCEL) process.exit(0); require('child_process').execFileSync(process.execPath, ['node_modules/husky/bin.js'], { stdio: 'inherit' });\""
