@@ -43,6 +43,7 @@ export default function GiscusComments() {
   const { resolvedTheme } = useTheme();
   const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -135,7 +136,7 @@ export default function GiscusComments() {
   }
 
   return (
-    <div className="mt-10">
+    <div className="mt-10 mb-10 w-full">
       <h2 className="text-2xl font-display font-bold mb-6 text-gray-900 dark:text-white">
         Comments
       </h2>
@@ -143,10 +144,28 @@ export default function GiscusComments() {
         <span>💬</span>
         <span>Powered by GitHub Discussions</span>
       </div>
+      
       <div 
-        ref={ref} 
-        className="min-h-[200px] rounded-xl overflow-hidden"
-      />
+        className={`relative transition-all duration-700 ease-in-out ${
+          isExpanded ? "max-h-[5000px]" : "max-h-[400px] overflow-hidden"
+        }`}
+      >
+        <div 
+          ref={ref} 
+          className="min-h-[200px] rounded-xl"
+        />
+
+        {!isExpanded && (
+          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-gray-50 dark:from-[#0D0D0D] to-transparent pointer-events-none z-10 flex items-end justify-center pb-2">
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="pointer-events-auto px-6 py-3 rounded-full bg-peach/10 hover:bg-peach/20 border border-peach/30 backdrop-blur-md text-peach font-display font-bold text-sm transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,107,53,0.3)] flex items-center gap-2"
+            >
+              <span>💬</span> Load more comments...
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
