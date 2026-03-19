@@ -10,13 +10,15 @@ Publish modes (from config.yaml):
 """
 
 import hashlib
+import io
 import json
 import logging
 import os
 import re
+import sys
 from collections import defaultdict
 from datetime import date, datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import yaml  # type: ignore[import-untyped]
 from dotenv import load_dotenv  # type: ignore[import-untyped]
@@ -25,9 +27,27 @@ from translation_service import (
     OpenAITranslator,
     TranslationError,
     TranslationRequest,
+    get_provider_config,
 )
 
-load_dotenv()
+if sys.stdout.encoding != "utf-8":
+    cast(io.TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
+
+if sys.stderr.encoding != "utf-8":
+    cast(io.TextIOWrapper, sys.stderr).reconfigure(encoding="utf-8")
+
+
+def _load_project_dotenvs() -> list[str]:
+    """Load supported dotenv files without overriding existing process env."""
+    loaded_paths: list[str] = []
+    for candidate in (".env", os.path.join("blog", ".env")):
+        if os.path.exists(candidate):
+            load_dotenv(candidate, override=False)
+            loaded_paths.append(candidate)
+    return loaded_paths
+
+
+LOADED_DOTENV_PATHS = _load_project_dotenvs()
 
 logger = logging.getLogger(__name__)
 REQUIRED_FRONTMATTER_FIELDS = ("title", "date")
@@ -69,8 +89,11 @@ class SyncConfig:
         translation_cfg = cfg.get("translation", {})
         self.translation_enabled = bool(translation_cfg.get("enabled", False))
         self.translation_provider = str(translation_cfg.get("provider", "openai")).lower()
-        model_from_env = os.getenv("OPENAI_TRANSLATION_MODEL")
+        model_from_env = os.getenv("TRANSLATION_MODEL") or os.getenv("OPENAI_TRANSLATION_MODEL")
         self.translation_model = str(translation_cfg.get("model") or model_from_env or "gpt-5-mini")
+        self.translation_api_key_env = str(translation_cfg.get("api_key_env", "")).strip() or None
+        raw_api_base_url = str(translation_cfg.get("api_base_url", "")).strip()
+        self.translation_api_base_url = raw_api_base_url or None
         self.translation_frontmatter_flag = str(
             translation_cfg.get("frontmatter_flag", TRANSLATION_FLAG_DEFAULT)
         )
@@ -80,13 +103,13 @@ class SyncConfig:
         )
         raw_targets = translation_cfg.get("targets", {})
         self.translation_targets = {
-            _normalize_locale_value(locale): [
-                _normalize_locale_value(target)
+            locale_key: [
+                normalized_target
                 for target in targets
-                if _normalize_locale_value(target)
+                if (normalized_target := _maybe_normalize_locale_value(target))
             ]
             for locale, targets in raw_targets.items()
-            if isinstance(targets, list)
+            if isinstance(targets, list) and (locale_key := _maybe_normalize_locale_value(locale))
         }
 
     @property
@@ -100,6 +123,7 @@ class SyncConfig:
 
 def _parse_frontmatter(content: str) -> dict[str, Any]:
     """Extract YAML frontmatter from markdown content."""
+    content = content.lstrip("\ufeff")
     if not content.startswith("---"):
         return {}
     end = content.find("---", 3)
@@ -114,6 +138,7 @@ def _parse_frontmatter(content: str) -> dict[str, Any]:
 
 def _split_frontmatter_content(content: str) -> tuple[dict[str, Any], str]:
     """Split markdown into frontmatter dict and body text."""
+    content = content.lstrip("\ufeff")
     if not content.startswith("---"):
         return {}, content
 
@@ -190,7 +215,7 @@ def _resolve_target_locales(
 
     targets = []
     for target in raw_targets:
-        locale = _normalize_locale_value(target)
+        locale = _maybe_normalize_locale_value(target)
         if locale and locale != source_locale and locale not in targets:
             targets.append(locale)
 
@@ -345,6 +370,14 @@ def _normalize_locale_value(value: object) -> str:
     return DEFAULT_CONTENT_LOCALE
 
 
+def _maybe_normalize_locale_value(value: object) -> str | None:
+    """Normalize optional locale values for config/translation inputs."""
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        return normalized or None
+    return None
+
+
 def _resolve_output_relative_path(source_path: str) -> str:
     """Resolve the locale-aware relative output path for a markdown file."""
     frontmatter = _read_frontmatter_from_file(source_path)
@@ -367,6 +400,20 @@ def _resolve_output_path_for_locale(
 ) -> str:
     """Resolve a locale-aware output path using an explicit filename + locale."""
     return os.path.join(config.abs_content_dir, locale, filename)
+
+
+def _build_generated_filename(
+    frontmatter: dict[str, Any],
+    fallback_source_path: str,
+) -> str:
+    """Choose a deterministic markdown filename for generated locale siblings."""
+    slug = str(
+        frontmatter.get("slug")
+        or frontmatter.get("translationKey")
+        or _default_translation_key(fallback_source_path)
+    ).strip()
+    safe_slug = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "-", slug).strip(" .")
+    return f"{safe_slug or _default_translation_key(fallback_source_path)}.md"
 
 
 def _get_managed_output_paths(
@@ -414,16 +461,39 @@ def _build_synced_frontmatter(
     return normalized
 
 
+def _normalize_content_frontmatter(
+    frontmatter: dict[str, Any],
+    source_path: str,
+) -> dict[str, Any]:
+    """Normalize locale pairing metadata for content files without sync provenance."""
+    normalized = dict(frontmatter)
+    locale = _normalize_locale_value(normalized.get("locale"))
+    normalized["locale"] = locale
+    normalized["translationKey"] = str(
+        normalized.get("translationKey") or _default_translation_key(source_path)
+    )
+    normalized["canonicalLocale"] = str(normalized.get("canonicalLocale") or locale).lower()
+    return normalized
+
+
 def _create_translator(config: SyncConfig) -> OpenAITranslator:
     """Create the configured translation client."""
-    if config.translation_provider != "openai":
-        raise TranslationError(f"Unsupported translation provider: {config.translation_provider}")
-
-    api_key = os.getenv("OPENAI_API_KEY")
+    provider = get_provider_config(config.translation_provider)
+    api_key_env = config.translation_api_key_env or provider.api_key_env
+    api_key = os.getenv(api_key_env)
     if not api_key:
-        raise TranslationError("OPENAI_API_KEY is not set.")
+        searched_locations = ", ".join(LOADED_DOTENV_PATHS or ["process environment"])
+        raise TranslationError(
+            f"{api_key_env} is not set. Checked process environment and dotenv files: "
+            f"{searched_locations}."
+        )
 
-    return OpenAITranslator(api_key=api_key, model=config.translation_model)
+    return OpenAITranslator(
+        api_key=api_key,
+        model=config.translation_model,
+        provider_name=provider.name,
+        base_url=config.translation_api_base_url or provider.base_url,
+    )
 
 
 def _build_translation_request(
@@ -448,12 +518,15 @@ def _build_translation_request(
 
 def _should_write_translation(
     dest_path: str,
-    source_id: str,
+    source_id: str | None,
     config: SyncConfig,
 ) -> bool:
     """Protect human-edited locale files from being overwritten by automation."""
     if not os.path.exists(dest_path):
         return True
+
+    if source_id is None:
+        return False
 
     try:
         with open(dest_path, "r", encoding="utf-8") as handle:
@@ -476,6 +549,8 @@ def _write_translated_post(
     source_body: str,
     config: SyncConfig,
     target_locale: str,
+    target_filename: str | None = None,
+    source_id: str | None = None,
 ) -> str | None:
     """Translate a post and write the generated locale sibling to disk."""
     translator = _create_translator(config)
@@ -491,6 +566,11 @@ def _write_translated_post(
     translated_frontmatter["locale"] = target_locale
     translated_frontmatter["title"] = translated.title
     translated_frontmatter["excerpt"] = translated.excerpt
+    translated_frontmatter["slug"] = str(
+        source_frontmatter.get("slug")
+        or source_frontmatter.get("translationKey")
+        or _default_translation_key(source_path)
+    )
     translated_frontmatter["canonicalLocale"] = str(
         source_frontmatter.get("canonicalLocale")
         or _normalize_locale_value(source_frontmatter.get("locale"))
@@ -501,6 +581,10 @@ def _write_translated_post(
         source_frontmatter.get("locale")
     )
     translated_frontmatter[config.translation_frontmatter_flag] = False
+    if source_id is None:
+        translated_frontmatter.pop(INTERNAL_SYNC_SOURCE_ID_FIELD, None)
+    else:
+        translated_frontmatter[INTERNAL_SYNC_SOURCE_ID_FIELD] = source_id
 
     if translated.category:
         translated_frontmatter["category"] = translated.category
@@ -520,11 +604,10 @@ def _write_translated_post(
         translated_frontmatter.pop("howTo", None)
 
     dest_path = _resolve_output_path_for_locale(
-        filename=os.path.basename(source_path),
+        filename=target_filename or os.path.basename(source_path),
         locale=target_locale,
         config=config,
     )
-    source_id = str(source_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD))
     if not _should_write_translation(dest_path, source_id, config):
         logger.warning(
             "Skipping auto-translation overwrite for %s -> %s",
@@ -819,6 +902,7 @@ def sync_file(
                 source_body=body,
                 config=config,
                 target_locale=target_locale,
+                source_id=str(synced_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD)),
             )
         except TranslationError as exc:
             logger.warning(
@@ -828,7 +912,7 @@ def sync_file(
                 exc,
             )
             print(f"Translation skipped for {filename} -> {target_locale}: {exc}")
-            break
+            continue
 
         if translated_path:
             try:
@@ -927,6 +1011,115 @@ def _get_expected_output_paths_for_source(
     return expected_paths
 
 
+def _collect_markdown_files(directory: str) -> list[str]:
+    """Collect markdown files recursively from a directory."""
+    if not os.path.isdir(directory):
+        return []
+
+    markdown_files: list[str] = []
+    for root, _, filenames in os.walk(directory):
+        for filename in filenames:
+            if filename.endswith(".md"):
+                markdown_files.append(os.path.join(root, filename))
+
+    return sorted(markdown_files)
+
+
+def _index_posts_by_translation_key(
+    file_paths: list[str],
+) -> dict[str, dict[str, str]]:
+    """Index existing content files by translationKey and locale."""
+    index: dict[str, dict[str, str]] = defaultdict(dict)
+
+    for file_path in file_paths:
+        frontmatter = _read_frontmatter_from_file(file_path)
+        locale = _normalize_locale_value(frontmatter.get("locale"))
+        translation_key = str(
+            frontmatter.get("translationKey") or _default_translation_key(file_path)
+        )
+        index[translation_key][locale] = file_path
+
+    return index
+
+
+def backfill_missing_translations(config: SyncConfig) -> int:
+    """Generate missing locale siblings for already-synced blog content."""
+    if not config.translation_enabled:
+        logger.info("Translation backfill skipped because translation.enabled is false.")
+        return 0
+
+    source_files = _collect_markdown_files(config.abs_content_dir)
+    if not source_files:
+        logger.info("Translation backfill found no content files.")
+        return 0
+
+    existing_index = _index_posts_by_translation_key(source_files)
+    generated_count = 0
+
+    for source_path in source_files:
+        with open(source_path, "r", encoding="utf-8") as handle:
+            content = handle.read()
+
+        frontmatter, body = _split_frontmatter_content(content)
+        normalized_frontmatter = _normalize_content_frontmatter(frontmatter, source_path)
+        source_locale = _normalize_locale_value(normalized_frontmatter.get("locale"))
+        translation_key = str(normalized_frontmatter.get("translationKey"))
+        target_locales = config.translation_targets.get(source_locale, [])
+
+        for target_locale in target_locales:
+            if existing_index.get(translation_key, {}).get(target_locale):
+                continue
+
+            target_filename = _build_generated_filename(normalized_frontmatter, source_path)
+
+            try:
+                translated_path = _write_translated_post(
+                    source_path=source_path,
+                    source_frontmatter=normalized_frontmatter,
+                    source_body=body,
+                    config=config,
+                    target_locale=target_locale,
+                    target_filename=target_filename,
+                    source_id=None,
+                )
+            except TranslationError as exc:
+                logger.warning(
+                    "Backfill translation skipped for %s -> %s: %s",
+                    source_path,
+                    target_locale,
+                    exc,
+                )
+                print(
+                    f"Backfill translation skipped for "
+                    f"{os.path.basename(source_path)} -> {target_locale}: {exc}"
+                )
+                continue
+
+            if translated_path:
+                existing_index[translation_key][target_locale] = translated_path
+                generated_count += 1
+
+                try:
+                    from dashboard import log_activity  # type: ignore[import-untyped]
+
+                    try:
+                        translated_detail = os.path.relpath(translated_path, os.getcwd())
+                    except ValueError:
+                        translated_detail = translated_path
+
+                    log_activity(
+                        "cms",
+                        f"Backfilled {os.path.basename(source_path)}",
+                        f"-> {translated_detail}",
+                    )
+                except ImportError:
+                    pass
+
+    logger.info("Translation backfill complete: %s files", generated_count)
+    print(f"\n🌐 Translation backfill complete: {generated_count} file(s)")
+    return generated_count
+
+
 def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
     """Full sync: scan vault and sync all publishable files.
 
@@ -961,6 +1154,15 @@ def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
                 if not filename.endswith(".md"):
                     continue
                 file_path = os.path.normpath(os.path.join(root, filename))
+                try:
+                    with open(file_path, "r", encoding="utf-8") as handle:
+                        frontmatter = _parse_frontmatter(handle.read(2048))
+                except (OSError, UnicodeDecodeError):
+                    continue
+
+                if INTERNAL_SYNC_SOURCE_ID_FIELD not in frontmatter:
+                    continue
+
                 if file_path not in expected_paths:
                     os.remove(file_path)
                     logger.info(f"Cleaned orphan: {file_path}")
@@ -1014,12 +1216,21 @@ def notify(
 
 
 if __name__ == "__main__":
+    import argparse
     import sys
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
+
+    parser = argparse.ArgumentParser(description="Sync and translate blog content.")
+    parser.add_argument(
+        "--backfill-translations",
+        action="store_true",
+        help="Generate missing locale siblings for existing blog content.",
+    )
+    args = parser.parse_args()
 
     try:
         cfg = SyncConfig()
@@ -1033,4 +1244,7 @@ if __name__ == "__main__":
     print(f"ðŸ”§ Method: {cfg.publish_method}")
     print()
 
-    count = sync_all(cfg)
+    if args.backfill_translations:
+        backfill_missing_translations(cfg)
+    else:
+        sync_all(cfg)

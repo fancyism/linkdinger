@@ -1,17 +1,19 @@
 ---
-title: "Replacing conventional CMS with Obsidian"
-date: "2026-02-15"
+title: Replacing conventional CMS with Obsidian
+date: '2026-02-15'
+category: Productivity
+excerpt: Why I stopped dealing with cluttered database-driven CMS platforms and moved
+  my entire publishing workflow to local markdown files.
+tags:
+- Productivity
+- Obsidian
+- CMS
+coverImage: https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1200&h=630&fit=crop
+publish: true
 locale: en
 translationKey: obsidian-as-cms
 canonicalLocale: en
-category: "Productivity"
-excerpt: "Why I stopped dealing with cluttered database-driven CMS platforms and moved my entire publishing workflow to local markdown files."
-tags: 
-  - Productivity
-  - Obsidian
-  - CMS
-coverImage: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1200&h=630&fit=crop"
-publish: true
+_syncSourceId: a0912e2c573ab92c
 ---
 
 # The Problem with Traditional CMS
@@ -30,3 +32,4 @@ By using **Obsidian** as my single source of truth, I regain complete ownership 
 4. **Git Sync**: The script silently commits and pushes the changes. Vercel picks it up and redeploys the Next.js frontend.
 
 No databases. No logins. Just pure writing. This is the exact philosophy behind the Linkdinger infrastructure.
+

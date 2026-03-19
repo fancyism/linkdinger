@@ -1,17 +1,19 @@
 ---
 title: Mastering Next.js Server Components
 date: 2026-02-22
+category: Tech
+excerpt: A deep dive into how React Server Components change the way we architect
+  web applications for maximum performance.
+tags:
+- NextJS
+- React
+- web-dev
+coverImage: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop
+publish: true
 locale: en
 translationKey: nextjs-server-components
 canonicalLocale: en
-category: Tech
-excerpt: A deep dive into how React Server Components change the way we architect web applications for maximum performance.
-tags:
-  - NextJS
-  - React
-  - web-dev
-coverImage: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop
-publish: true
+_syncSourceId: 92c391bd191401e1
 ---
 
 # The Shift to the Server
@@ -34,3 +36,4 @@ When building a blog like Linkdinger, the vast majority of our UI is static.
 - The **ThemeSwitcher** button? Client Component.
 
 By keeping the heavy lifting (like parsing markdown and generating RSS feeds) strictly on the server, we ensure lightning-fast page loads and zero bundle size bloat.
+

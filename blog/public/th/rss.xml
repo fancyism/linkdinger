@@ -5,7 +5,7 @@
     <link>http://localhost:3000/th/</link>
     <description>เครื่องมือและบทความที่ขับเคลื่อนด้วย AI ทุกคอมมิตขึ้น GitHub ให้คุณ fork และ remix ต่อได้</description>
     <language>th</language>
-    <lastBuildDate>Thu, 19 Mar 2026 15:21:41 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 19 Mar 2026 17:43:56 GMT</lastBuildDate>
     <atom:link href="http://localhost:3000/th/rss.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title> จาก Vibe Coder สู่ Context Engineer: คู่มือสู่การเป็นผู้ควบคุม AI ได้เต็มรูปแบบ</title>
@@ -16,12 +16,60 @@
       <category>Tech</category>
     </item>
     <item>
+      <title>สร้างบล็อกอัจฉริยะด้วย Dark Glassmorphism</title>
+      <link>http://localhost:3000/th/blog/hello-world/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/hello-world/</guid>
+      <description>ฉันสร้างบล็อกสองธีมได้อย่างไร ด้วยการผสานรวม Obsidian CMS, Cloudflare R2 image pipeline และรูปแบบการออกแบบที่ได้รับรางวัล</description>
+      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
+      <category>เทคโนโลยี</category>
+    </item>
+    <item>
       <title>ลองเล่น Dark Glassmorphism ใน Next.js</title>
       <link>http://localhost:3000/th/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</link>
       <guid isPermaLink="true">http://localhost:3000/th/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</guid>
       <description>พามาดูว่าเทรนด์การออกแบบ UI แบบโปร่งแสง พอกลายมาเป็น Dark Mode แล้วจะดูลึกลับและพรีเมียมขนาดไหน พร้อมตัวอย่างโค้ดไปลองเล่นกัน</description>
       <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
       <category>Design</category>
+    </item>
+    <item>
+      <title>การผงาดขึ้นของเอเจนต์ AI อัตโนมัติ</title>
+      <link>http://localhost:3000/th/blog/ai-agents-future/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/ai-agents-future/</guid>
+      <description>เอเจนต์ AI กำลังเปลี่ยนผ่านจากแชทบอทธรรมดาไปสู่ระบบอัตโนมัติที่สามารถเขียนโค้ด ออกแบบ และจัดการเวิร์กโฟลว์ที่ซับซ้อนได้อย่างไร</description>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <category>เทคโนโลยี</category>
+    </item>
+    <item>
+      <title>ทำไม Neubrutalism ถึงกำลังเข้ามาครอบงำโลกเว็บ</title>
+      <link>http://localhost:3000/th/blog/neubrutalism-ui/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/neubrutalism-ui/</guid>
+      <description>สำรวจกระแสการออกแบบที่ต่อต้านแนวคิดเดิม ๆ ซึ่งโดดเด่นด้วยสีสันคอนทราสต์สูง เงาที่คมชัด และการจัดวางตัวอักษรที่ชัดเจนตรงไปตรงมา</description>
+      <pubDate>Tue, 24 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Design</category>
+    </item>
+    <item>
+      <title>การควบคุม Next.js Server Components อย่างเชี่ยวชาญ</title>
+      <link>http://localhost:3000/th/blog/nextjs-server-components/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/nextjs-server-components/</guid>
+      <description>เจาะลึกว่า React Server Components เปลี่ยนแปลงวิธีการออกแบบสถาปัตยกรรมเว็บแอปพลิเคชันเพื่อประสิทธิภาพสูงสุดได้อย่างไร</description>
+      <pubDate>Sun, 22 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>การแทนที่ CMS แบบเดิมด้วย Obsidian</title>
+      <link>http://localhost:3000/th/blog/obsidian-as-cms/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/obsidian-as-cms/</guid>
+      <description>เหตุผลที่ฉันเลิกใช้แพลตฟอร์ม CMS ที่ขับเคลื่อนด้วยฐานข้อมูลที่ยุ่งเหยิง และย้ายเวิร์กโฟลว์การเผยแพร่ทั้งหมดมายังไฟล์ markdown ในเครื่อง</description>
+      <pubDate>Sun, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <category>ประสิทธิภาพการทำงาน</category>
+    </item>
+    <item>
+      <title>ศิลปะแห่ง Vibe Coding</title>
+      <link>http://localhost:3000/th/blog/the-art-of-vibe-coding/</link>
+      <guid isPermaLink="true">http://localhost:3000/th/blog/the-art-of-vibe-coding/</guid>
+      <description>การเขียนโค้ดไม่ได้เป็นเพียงแค่เรื่องของตรรกะและอัลกอริทึมอีกต่อไปแล้ว มันคือเรื่องของสภาวะลื่นไหล ความสวยงาม และการสร้างระบบที่รู้สึกมีชีวิตชีวา</description>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <category>แนวคิด</category>
     </item>
   </channel>
 </rss>

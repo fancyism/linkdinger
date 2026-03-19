@@ -5,8 +5,24 @@
     <link>http://localhost:3000/en/</link>
     <description>AI-powered tools and thoughts. Every commit lands on GitHub for you to fork and remix.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 19 Mar 2026 15:21:41 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 19 Mar 2026 17:43:56 GMT</lastBuildDate>
     <atom:link href="http://localhost:3000/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>From Vibe Coder to Context Engineer: A Guide to Becoming a Full-Fledged AI Controller</title>
+      <link>http://localhost:3000/en/blog/context-engineer/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/context-engineer/</guid>
+      <description>It&apos;s not just about typing long prompts, but the art of context management. How Context Engineers leverage data to drive technology and strategically plan AI sales.</description>
+      <pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>Experimenting with Dark Glassmorphism in Next.js</title>
+      <link>http://localhost:3000/en/blog/dark-glassmorphism-nextjs/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/dark-glassmorphism-nextjs/</guid>
+      <description>Let&apos;s explore how the translucent UI design trend transforms into a mysterious and premium look when adapted to Dark Mode, complete with code examples to experiment with.</description>
+      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Design</category>
+    </item>
     <item>
       <title>Building a Smart Blog with Dark Glassmorphism</title>
       <link>http://localhost:3000/en/blog/hello-world/</link>

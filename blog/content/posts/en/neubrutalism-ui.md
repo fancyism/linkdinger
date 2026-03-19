@@ -1,17 +1,19 @@
 ---
-title: "Why Neubrutalism is Taking Over the Web"
-date: "2026-02-24"
+title: Why Neubrutalism is Taking Over the Web
+date: '2026-02-24'
+category: Design
+excerpt: Exploring the anti-design movement characterized by high-contrast colors,
+  harsh shadows, and unapologetic typography.
+tags:
+- Design
+- UI
+- Web
+coverImage: https://images.unsplash.com/photo-1558655146-d09347e92766?w=1200&h=630&fit=crop
+publish: true
 locale: en
 translationKey: neubrutalism-ui
 canonicalLocale: en
-category: "Design"
-excerpt: "Exploring the anti-design movement characterized by high-contrast colors, harsh shadows, and unapologetic typography."
-tags: 
-  - Design
-  - UI
-  - Web
-coverImage: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=1200&h=630&fit=crop"
-publish: true
+_syncSourceId: 4bcd6c6751986f79
 ---
 
 # The Anti-Design Revolution

@@ -1,18 +1,20 @@
 ---
 title: ลองเล่น Dark Glassmorphism ใน Next.js
 date: 2026-02-27
+category: Design
+excerpt: พามาดูว่าเทรนด์การออกแบบ UI แบบโปร่งแสง พอกลายมาเป็น Dark Mode แล้วจะดูลึกลับและพรีเมียมขนาดไหน
+  พร้อมตัวอย่างโค้ดไปลองเล่นกัน
+tags:
+- glassmorphism
+- nextjs
+- tailwindcss
+- vibe-coding
+coverImage: https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1200&h=630&fit=crop
+publish: true
 locale: th
 translationKey: dark-glassmorphism-nextjs
 canonicalLocale: th
-category: Design
-excerpt: พามาดูว่าเทรนด์การออกแบบ UI แบบโปร่งแสง พอกลายมาเป็น Dark Mode แล้วจะดูลึกลับและพรีเมียมขนาดไหน พร้อมตัวอย่างโค้ดไปลองเล่นกัน
-tags:
-  - glassmorphism
-  - nextjs
-  - tailwindcss
-  - vibe-coding
-coverImage: https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1200&h=630&fit=crop
-publish: true
+_syncSourceId: 09b6b6a6b180e49b
 ---
 
 ## ทำไมถึงต้อง Dark Glassmorphism?
@@ -46,3 +48,5 @@ publish: true
 }
 ```
 ![image](https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/4a465b6eb17b4e3fa3d9be00291bd0a1.webp)
+
+

@@ -1,18 +1,20 @@
 ---
 title: Building a Smart Blog with Dark Glassmorphism
 date: 2026-02-27
-locale: en
-translationKey: building-smart-blog-dark-glassmorphism
-canonicalLocale: en
 category: Tech
-excerpt: How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns.
+excerpt: How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2
+  image pipeline, and award-winning design patterns.
 tags:
-  - NextJS
-  - Glassmorphism
-  - vibe-coding
-  - AI
+- NextJS
+- Glassmorphism
+- vibe-coding
+- AI
 coverImage: https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop
 publish: true
+locale: en
+translationKey: hello-world
+canonicalLocale: en
+_syncSourceId: 643ec8851b6c2d81
 ---
 
 # The Vision
@@ -76,3 +78,4 @@ The ambient gradients also transform — from neon orbs to soft pastels.
 ---
 
 *Built with obsession. Every commit lands on GitHub for you to fork & remix.*
+

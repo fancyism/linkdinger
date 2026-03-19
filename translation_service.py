@@ -8,6 +8,38 @@ from dataclasses import dataclass
 from typing import Any
 
 
+@dataclass(frozen=True)
+class ProviderConfig:
+    """Non-secret provider settings for compatible translation clients."""
+
+    name: str
+    label: str
+    api_key_env: str
+    base_url: str | None = None
+
+
+PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
+    "openai": ProviderConfig(
+        name="openai",
+        label="OpenAI",
+        api_key_env="OPENAI_API_KEY",
+        base_url=None,
+    ),
+    "zai": ProviderConfig(
+        name="zai",
+        label="Z.AI",
+        api_key_env="ZAI_API_KEY",
+        base_url="https://api.z.ai/api/paas/v4/",
+    ),
+    "gemini": ProviderConfig(
+        name="gemini",
+        label="Gemini",
+        api_key_env="GEMINI_API_KEY",
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    ),
+}
+
+
 @dataclass
 class TranslationRequest:
     """Structured translation input for a markdown post."""
@@ -40,10 +72,37 @@ class TranslationError(RuntimeError):
     """Raised when translation fails or returns invalid output."""
 
 
-class OpenAITranslator:
-    """Thin wrapper around the OpenAI Responses API for markdown translation."""
+def get_provider_config(provider_name: str) -> ProviderConfig:
+    """Resolve a provider identifier into its non-secret connection defaults."""
+    normalized = provider_name.strip().lower()
+    provider = PROVIDER_CONFIGS.get(normalized)
+    if provider is None:
+        supported = ", ".join(sorted(PROVIDER_CONFIGS))
+        raise TranslationError(
+            f"Unsupported translation provider '{provider_name}'. Supported providers: {supported}."
+        )
+    return provider
 
-    def __init__(self, api_key: str, model: str = "gpt-5-mini"):
+
+class OpenAITranslator:
+    """OpenAI-compatible chat-completions translator for multiple providers."""
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-5-mini",
+        provider_name: str = "openai",
+        base_url: str | None = None,
+        timeout: float = 120.0,
+        client: Any | None = None,
+    ):
+        self._provider = get_provider_config(provider_name)
+        self._model = model
+
+        if client is not None:
+            self._client = client
+            return
+
         try:
             from openai import OpenAI  # type: ignore[import-not-found]
         except ImportError as exc:
@@ -51,8 +110,14 @@ class OpenAITranslator:
                 "OpenAI SDK is not installed. Run `pip install -r requirements.txt`."
             ) from exc
 
-        self._client = OpenAI(api_key=api_key)
-        self._model = model
+        client_kwargs: dict[str, Any] = {
+            "api_key": api_key,
+            "timeout": timeout,
+        }
+        if base_url or self._provider.base_url:
+            client_kwargs["base_url"] = base_url or self._provider.base_url
+
+        self._client = OpenAI(**client_kwargs)
 
     def translate_markdown(self, request: TranslationRequest) -> TranslationResult:
         payload = {
@@ -67,78 +132,77 @@ class OpenAITranslator:
             "body": request.body,
         }
 
-        response = self._client.responses.create(
-            model=self._model,
-            instructions=(
-                "You are a professional bilingual technical editor. "
-                "Translate markdown blog posts while preserving markdown structure, "
-                "headings, lists, code blocks, inline code, URLs, image URLs, and "
-                "frontmatter semantics. Preserve technical terminology when needed. "
-                "Return publication-ready translated fields only."
-            ),
-            input=json.dumps(payload, ensure_ascii=False),
-            text={
-                "format": {
-                    "type": "json_schema",
-                    "name": "translated_post",
-                    "strict": True,
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string"},
-                            "excerpt": {"type": "string"},
-                            "category": {"type": ["string", "null"]},
-                            "tags": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                            },
-                            "faq": {
-                                "type": ["array", "null"],
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "question": {"type": "string"},
-                                        "answer": {"type": "string"},
-                                    },
-                                    "required": ["question", "answer"],
-                                    "additionalProperties": False,
-                                },
-                            },
-                            "how_to": {
-                                "type": ["array", "null"],
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "name": {"type": "string"},
-                                        "text": {"type": "string"},
-                                    },
-                                    "required": ["name", "text"],
-                                    "additionalProperties": False,
-                                },
-                            },
-                            "body": {"type": "string"},
-                        },
-                        "required": [
-                            "title",
-                            "excerpt",
-                            "category",
-                            "tags",
-                            "faq",
-                            "how_to",
-                            "body",
-                        ],
-                        "additionalProperties": False,
+        try:
+            response = self._client.chat.completions.create(
+                model=self._model,
+                temperature=0.2,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a professional bilingual technical editor. "
+                            "Translate markdown blog posts while preserving markdown structure, "
+                            "headings, lists, tables, code blocks, inline code, URLs, image URLs, "
+                            "and frontmatter semantics. Preserve technical terminology when needed. "
+                            "Return valid JSON only with keys: title, excerpt, category, tags, faq, "
+                            "how_to, body."
+                        ),
                     },
-                }
-            },
-            store=False,
-        )
+                    {
+                        "role": "user",
+                        "content": (
+                            "Translate this blog post payload and return JSON only.\n\n"
+                            + json.dumps(payload, ensure_ascii=False)
+                        ),
+                    },
+                ],
+            )
+        except Exception as exc:
+            raise TranslationError(
+                f"{self._provider.label} translation request failed: {exc}"
+            ) from exc
 
-        output_text = getattr(response, "output_text", "").strip()
+        output_text = _extract_chat_completion_text(response).strip()
         if not output_text:
-            raise TranslationError("OpenAI returned an empty translation response.")
+            raise TranslationError(
+                f"{self._provider.label} returned an empty translation response."
+            )
 
         return _parse_translation_result(output_text)
+
+
+def _extract_chat_completion_text(response: Any) -> str:
+    """Extract plain text content from OpenAI-compatible chat completion responses."""
+    choices = getattr(response, "choices", None)
+    if not choices:
+        raise TranslationError("Translation response did not contain any choices.")
+
+    message = getattr(choices[0], "message", None)
+    if message is None:
+        raise TranslationError("Translation response did not contain a message.")
+
+    content = getattr(message, "content", None)
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        text_parts: list[str] = []
+        for item in content:
+            if isinstance(item, dict):
+                if item.get("type") == "text" and item.get("text"):
+                    text_parts.append(str(item["text"]))
+                continue
+
+            item_type = getattr(item, "type", None)
+            item_text = getattr(item, "text", None)
+            if item_type == "text" and item_text:
+                text_parts.append(str(item_text))
+
+        if text_parts:
+            return "\n".join(text_parts)
+
+    raise TranslationError("Translation response did not contain text content.")
 
 
 def _extract_json_block(text: str) -> str:
