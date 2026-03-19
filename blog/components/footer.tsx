@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import {
   Github,
   Twitter,
@@ -12,36 +13,36 @@ import NewsletterForm from "./newsletter-form";
 import KofiButton from "./kofi-button";
 import ScrollToTop from "./scroll-to-top";
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations("Footer");
+  const year = new Date().getFullYear();
+
   return (
     <>
       <footer className="glass border-t border-glass-border mt-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {/* About */}
             <div>
               <h3 className="font-display font-bold text-lg mb-3 text-peach">
                 Linkdinger
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                AI-powered tools and thoughts. Every commit lands on GitHub for
-                you to fork &amp; remix. Built with obsession.
+                {t("tagline")}
               </p>
             </div>
 
-            {/* Quick Links */}
             <div>
               <h4 className="font-semibold text-sm uppercase tracking-wider mb-3 text-gray-800 dark:text-gray-300">
-                Navigate
+                {t("navigate")}
               </h4>
               <ul className="space-y-2">
                 {[
-                  { href: "/", label: "Home" },
-                  { href: "/blog", label: "Blog" },
-                  { href: "/products", label: "Products" },
-                  { href: "/consultation", label: "Consultation" },
-                  { href: "/about", label: "About" },
-                  { href: "/search", label: "Search" },
+                  { href: "/", label: t("home") },
+                  { href: "/blog", label: t("blog") },
+                  { href: "/products", label: t("products") },
+                  { href: "/consultation", label: t("consultation") },
+                  { href: "/about", label: t("about") },
+                  { href: "/search", label: t("search") },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link
@@ -55,10 +56,9 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Social & Newsletter */}
             <div>
               <h4 className="font-semibold text-sm uppercase tracking-wider mb-3 text-gray-800 dark:text-gray-300">
-                Connect
+                {t("connect")}
               </h4>
               <div className="flex flex-wrap gap-3 mb-5">
                 <a
@@ -142,18 +142,16 @@ export default function Footer() {
                 </a>
               </div>
 
-              {/* Newsletter CTA */}
               <NewsletterForm />
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div className="mt-10 pt-6 border-t border-glass-border flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-xs text-gray-600 dark:text-gray-500">
-              © {new Date().getFullYear()} Linkdinger. Built with Next.js & ❤️
+              {t("copyright", { year })}
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-500">
-              Dark Glassmorphism · Peach Fuzz #FF6B35
+              {t("aesthetic")}
             </p>
           </div>
         </div>

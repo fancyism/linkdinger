@@ -1,116 +1,131 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Command } from 'cmdk'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Home, FileText } from 'lucide-react'
+import * as React from "react";
+import { Command } from "cmdk";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Home, FileText } from "lucide-react";
 
 interface CommandPaletteProps {
-    open: boolean
-    setOpen: (open: boolean) => void
-    posts?: any[]
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  posts?: any[];
 }
 
-export function CommandPalette({ open, setOpen, posts = [] }: CommandPaletteProps) {
-    const router = useRouter()
+export function CommandPalette({
+  open,
+  setOpen,
+  posts = [],
+}: CommandPaletteProps) {
+  const t = useTranslations("CommandPalette");
+  const router = useRouter();
 
-    React.useEffect(() => {
-        const down = (e: KeyboardEvent) => {
-            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault()
-                setOpen(true)
-            }
-        }
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
 
-        document.addEventListener('keydown', down)
-        return () => document.removeEventListener('keydown', down)
-    }, [setOpen])
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [setOpen]);
 
-    const runCommand = React.useCallback((command: () => void) => {
-        setOpen(false)
-        command()
-    }, [setOpen])
+  const runCommand = React.useCallback(
+    (command: () => void) => {
+      setOpen(false);
+      command();
+    },
+    [setOpen],
+  );
 
-    return (
-        <AnimatePresence>
-            {open && (
-                <Command.Dialog
-                    open={open}
-                    onOpenChange={setOpen}
-                    label="Global Command Menu"
-                    className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] sm:pt-[20vh]"
+  return (
+    <AnimatePresence>
+      {open && (
+        <Command.Dialog
+          open={open}
+          onOpenChange={setOpen}
+          label={t("label")}
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] sm:pt-[20vh]"
+        >
+          {/* Backdrop Blur Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-md"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full max-w-[600px] px-4 relative z-10"
+          >
+            {/* The Actual Command Palette using Liquid Glass Aesthetic */}
+            <div className="overflow-hidden rounded-2xl glass-modal ring-1 ring-white/10 dark:ring-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:bg-slate-900/40 bg-white/40 backdrop-blur-2xl">
+              <div className="flex items-center px-4 border-b border-black/10 dark:border-white/10">
+                <Search className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3 shrink-0" />
+                <Command.Input
+                  placeholder={t("placeholder")}
+                  className="w-full h-14 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500 font-sans text-lg"
+                />
+              </div>
+
+              <Command.List className="max-h-[300px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <Command.Empty className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {t("empty")}
+                </Command.Empty>
+
+                <Command.Group
+                  heading={t("navigation")}
+                  className="px-2 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
-                    {/* Backdrop Blur Overlay */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-md"
-                        onClick={() => setOpen(false)}
-                    />
+                  <Command.Item
+                    onSelect={() => runCommand(() => router.push("/"))}
+                    className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
+                  >
+                    <Home className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
+                    {t("goHome")}
+                  </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => router.push("/blog"))}
+                    className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
+                  >
+                    <FileText className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
+                    {t("goBlog")}
+                  </Command.Item>
+                </Command.Group>
 
-                    {/* Modal Container */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="w-full max-w-[600px] px-4 relative z-10"
-                    >
-                        {/* The Actual Command Palette using Liquid Glass Aesthetic */}
-                        <div className="overflow-hidden rounded-2xl glass-modal ring-1 ring-white/10 dark:ring-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:bg-slate-900/40 bg-white/40 backdrop-blur-2xl">
-
-                            <div className="flex items-center px-4 border-b border-black/10 dark:border-white/10">
-                                <Search className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3 shrink-0" />
-                                <Command.Input
-                                    placeholder="What are you looking for?"
-                                    className="w-full h-14 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500 font-sans text-lg"
-                                />
-                            </div>
-
-                            <Command.List className="max-h-[300px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                <Command.Empty className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    No results found.
-                                </Command.Empty>
-
-                                <Command.Group heading="Navigation" className="px-2 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    <Command.Item
-                                        onSelect={() => runCommand(() => router.push('/'))}
-                                        className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
-                                    >
-                                        <Home className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
-                                        Go to Home
-                                    </Command.Item>
-                                    <Command.Item
-                                        onSelect={() => runCommand(() => router.push('/blog'))}
-                                        className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
-                                    >
-                                        <FileText className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
-                                        Go to Blog
-                                    </Command.Item>
-                                </Command.Group>
-
-                                {posts.length > 0 && (
-                                    <Command.Group heading="Blog Posts" className="px-2 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        {posts.map((post) => (
-                                            <Command.Item
-                                                key={post.slug}
-                                                onSelect={() => runCommand(() => router.push(`/blog/${post.slug}`))}
-                                                className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
-                                            >
-                                                <FileText className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
-                                                <span className="truncate">{post.title}</span>
-                                            </Command.Item>
-                                        ))}
-                                    </Command.Group>
-                                )}
-                            </Command.List>
-
-                        </div>
-                    </motion.div>
-                </Command.Dialog>
-            )}
-        </AnimatePresence>
-    )
+                {posts.length > 0 && (
+                  <Command.Group
+                    heading={t("posts")}
+                    className="px-2 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                  >
+                    {posts.map((post) => (
+                      <Command.Item
+                        key={post.slug}
+                        onSelect={() =>
+                          runCommand(() => router.push(`/blog/${post.slug}`))
+                        }
+                        className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
+                      >
+                        <FileText className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
+                        <span className="truncate">{post.title}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                )}
+              </Command.List>
+            </div>
+          </motion.div>
+        </Command.Dialog>
+      )}
+    </AnimatePresence>
+  );
 }

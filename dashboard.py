@@ -8,22 +8,23 @@ Phase 3: Activity log, content freshness scoring, git history,
          Upstash usage monitor, system diagnostics.
 """
 
+import glob
+import json
+import logging
 import os
 import re
-import json
-import glob
-import threading
-import logging
 import subprocess
+import threading
+from collections import Counter, deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from collections import Counter, deque
 
-import yaml  # type: ignore[import-untyped]
-import requests  # type: ignore[import-untyped]
 import boto3  # type: ignore[import-untyped]
-from flask import Flask, jsonify, Response, request as flask_request  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped]
+import yaml  # type: ignore[import-untyped]
 from dotenv import load_dotenv  # type: ignore[import-untyped]
+from flask import Flask, Response, jsonify  # type: ignore[import-untyped]
+from flask import request as flask_request
 
 load_dotenv()
 
@@ -49,12 +50,14 @@ _activity_log = deque(maxlen=100)
 
 def log_activity(event_type: str, message: str, details: str = ""):
     """Add an event to the activity log."""
-    _activity_log.appendleft({
-        "time": datetime.now().isoformat(),
-        "type": event_type,
-        "message": message,
-        "details": details,
-    })
+    _activity_log.appendleft(
+        {
+            "time": datetime.now().isoformat(),
+            "type": event_type,
+            "message": message,
+            "details": details,
+        }
+    )
 
 
 def set_daemon_state(**kwargs):
@@ -63,6 +66,7 @@ def set_daemon_state(**kwargs):
 
 
 # ─── Data Collectors ────────────────────────────────────────────
+
 
 def get_pipeline_status() -> dict[str, Any]:
     started: Optional[datetime] = _daemon_state.get("started_at")
@@ -93,7 +97,7 @@ def _parse_post_frontmatter(filepath: str) -> dict[str, Any]:
         end = content.find("---", 3)
         if end != -1:
             fm = yaml.safe_load(content[3:end]) or {}  # type: ignore[index]
-            body = content[end + 3:]  # type: ignore[index]
+            body = content[end + 3 :]  # type: ignore[index]
 
     # Word count
     words = len(body.split())
@@ -102,7 +106,7 @@ def _parse_post_frontmatter(filepath: str) -> dict[str, Any]:
     read_min = max(1, round(words / 200))
 
     # Check for images
-    image_urls: list[str] = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', body)
+    image_urls: list[str] = re.findall(r"!\[.*?\]\((https?://[^)]+)\)", body)
     # Also check coverImage
     cover: str = fm.get("coverImage", "")
     if cover and cover.startswith("http"):
@@ -137,7 +141,7 @@ def get_content_audit() -> dict[str, Any]:
     total: int = 0
     healthy: int = 0
 
-    for md_file in sorted(glob.glob(os.path.join(posts_dir, "*.md"))):
+    for md_file in sorted(glob.glob(os.path.join(posts_dir, "**", "*.md"), recursive=True)):
         total += 1
         try:
             meta = _parse_post_frontmatter(md_file)
@@ -180,7 +184,7 @@ def get_content_audit() -> dict[str, Any]:
 
 def get_view_stats() -> dict:
     """Fetch view counts from Upstash Redis.
-    
+
     Uses page_views:* prefix to match the blog's view counter API.
     """
     url = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_URL")
@@ -201,7 +205,10 @@ def get_view_stats() -> dict:
 
         pipeline_body = [["MGET"] + keys]
         resp = requests.post(
-            f"{url}/pipeline", headers=headers, json=pipeline_body, timeout=5,
+            f"{url}/pipeline",
+            headers=headers,
+            json=pipeline_body,
+            timeout=5,
         )
         pipeline_data = resp.json()
         values = pipeline_data[0].get("result", []) if pipeline_data else []
@@ -235,7 +242,10 @@ def get_git_status() -> dict:
     try:
         result = subprocess.run(
             ["git", "status", "--porcelain"],
-            capture_output=True, text=True, timeout=10, cwd=os.getcwd(),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.getcwd(),
         )
         changes = len([l for l in result.stdout.strip().split("\n") if l.strip()])
         return {"pending_changes": changes, "clean": changes == 0}
@@ -255,8 +265,10 @@ def get_r2_stats() -> dict:
 
     try:
         client = boto3.client(
-            "s3", endpoint_url=endpoint,
-            aws_access_key_id=access, aws_secret_access_key=secret,
+            "s3",
+            endpoint_url=endpoint,
+            aws_access_key_id=access,
+            aws_secret_access_key=secret,
         )
         paginator = client.get_paginator("list_objects_v2")
         total_objects: int = 0
@@ -323,7 +335,7 @@ def get_broken_images() -> list:
             with open(md_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            urls = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', content)
+            urls = re.findall(r"!\[.*?\]\((https?://[^)]+)\)", content)
             # Also check coverImage in frontmatter
             if content.startswith("---"):
                 end = content.find("---", 3)
@@ -352,7 +364,10 @@ def get_git_history(limit: int = 20) -> list:
     try:
         result = subprocess.run(
             ["git", "log", f"-{limit}", "--pretty=format:%H|%h|%s|%an|%ar|%ai"],
-            capture_output=True, text=True, timeout=10, cwd=os.getcwd(),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.getcwd(),
         )
         commits = []
         for line in result.stdout.strip().split("\n"):
@@ -360,14 +375,16 @@ def get_git_history(limit: int = 20) -> list:
                 continue
             parts = line.split("|")
             if len(parts) >= 6:
-                commits.append({
-                    "hash": parts[0][:8],  # type: ignore[index]
-                    "short": parts[1],
-                    "message": parts[2],
-                    "author": parts[3],
-                    "ago": parts[4],
-                    "date": parts[5][:10],  # type: ignore[index]
-                })
+                commits.append(
+                    {
+                        "hash": parts[0][:8],  # type: ignore[index]
+                        "short": parts[1],
+                        "message": parts[2],
+                        "author": parts[3],
+                        "ago": parts[4],
+                        "date": parts[5][:10],  # type: ignore[index]
+                    }
+                )
         return commits
     except Exception:
         return []
@@ -394,23 +411,33 @@ def get_content_freshness(posts: list, views_map: dict) -> list:
         age_score = min(50, age_days // 7)
         view_score = 30 if views == 0 else (20 if views < 5 else (10 if views < 20 else 0))
         meta_score = 0
-        if not p.get("has_cover"): meta_score += 5
-        if not p.get("has_tags"): meta_score += 5
-        if not p.get("has_excerpt"): meta_score += 5
-        if not p.get("has_category"): meta_score += 5
+        if not p.get("has_cover"):
+            meta_score += 5
+        if not p.get("has_tags"):
+            meta_score += 5
+        if not p.get("has_excerpt"):
+            meta_score += 5
+        if not p.get("has_category"):
+            meta_score += 5
 
         total = min(100, age_score + view_score + meta_score)
 
-        label = "Fresh" if total < 25 else ("OK" if total < 50 else ("Aging" if total < 75 else "Stale"))
+        label = (
+            "Fresh"
+            if total < 25
+            else ("OK" if total < 50 else ("Aging" if total < 75 else "Stale"))
+        )
 
-        scored.append({
-            "filename": p["filename"],
-            "title": p["title"],
-            "score": total,
-            "label": label,
-            "age_days": age_days,
-            "views": views,
-        })
+        scored.append(
+            {
+                "filename": p["filename"],
+                "title": p["title"],
+                "score": total,
+                "label": label,
+                "age_days": age_days,
+                "views": views,
+            }
+        )
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored
@@ -459,6 +486,7 @@ def get_upstash_usage() -> dict:
 
 # ─── API Routes ─────────────────────────────────────────────────
 
+
 @app.route("/api/status")
 def api_status():
     content = get_content_audit()
@@ -468,17 +496,19 @@ def api_status():
     views_map = {p["slug"]: p["views"] for p in views.get("posts", [])}
     freshness = get_content_freshness(content.get("posts", []), views_map)
 
-    return jsonify({
-        "pipeline": get_pipeline_status(),
-        "content": content,
-        "views": views,
-        "git": get_git_status(),
-        "r2": get_r2_stats(),
-        "heatmap": get_publishing_heatmap(),
-        "freshness": freshness,
-        "upstash": get_upstash_usage(),
-        "timestamp": datetime.now().isoformat(),
-    })
+    return jsonify(
+        {
+            "pipeline": get_pipeline_status(),
+            "content": content,
+            "views": views,
+            "git": get_git_status(),
+            "r2": get_r2_stats(),
+            "heatmap": get_publishing_heatmap(),
+            "freshness": freshness,
+            "upstash": get_upstash_usage(),
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
 
 
 @app.route("/api/broken-images")
@@ -501,6 +531,7 @@ def api_activity_log():
 def action_sync():
     try:
         from content_sync import SyncConfig, sync_all  # type: ignore[import]
+
         cfg = SyncConfig()
         count = sync_all(cfg)
         return jsonify({"success": True, "synced": count})
@@ -1296,6 +1327,7 @@ def dashboard():
 
 def start_dashboard(host="127.0.0.1", port=9999):
     """Start dashboard in a background thread."""
+
     def run():
         log = logging.getLogger("werkzeug")
         log.setLevel(logging.WARNING)

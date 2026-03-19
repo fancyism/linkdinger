@@ -30,3 +30,16 @@ publish:
 
 blog:
   content_dir: "blog/content/posts"
+
+translation:
+  enabled: true
+  provider: "openai"
+  model: "gpt-5-mini"
+  frontmatter_flag: "autoTranslate"
+  require_review: true
+  overwrite_machine_translations: true
+  targets:
+    en:
+      - th
+    th:
+      - en

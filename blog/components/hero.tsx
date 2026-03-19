@@ -1,15 +1,15 @@
-import Link from 'next/link'
-import BrutalTag from './ui/brutal-tag'
+import { Link } from "@/i18n/navigation";
+import BrutalTag from "./ui/brutal-tag";
 
 interface HeroProps {
-  title: string
-  excerpt: string
-  slug: string
-  date: string
-  readTime: string
-  tags?: string[]
-  coverImage?: string
-  badgeText?: string
+  title: string;
+  excerpt: string;
+  slug: string;
+  date: string;
+  readTime: string;
+  tags?: string[];
+  coverImage?: string;
+  badgeText?: string;
 }
 
 export default function Hero({
@@ -23,7 +23,7 @@ export default function Hero({
   badgeText,
 }: HeroProps) {
   // Try to parse date heavily or simply display it raw, but make it striking
-  const dateStr = date || ''
+  const dateStr = date || "";
 
   return (
     <Link href={`/blog/${slug}`} className="block group mb-12">
@@ -97,5 +97,5 @@ export default function Hero({
         )}
       </section>
     </Link>
-  )
+  );
 }

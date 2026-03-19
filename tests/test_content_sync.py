@@ -1,25 +1,27 @@
 """Tests for content_sync module."""
 
-import os
 import json
-import tempfile
+import os
 import shutil
-import pytest  # type: ignore[import-untyped]
+import tempfile
 from unittest.mock import patch
+
+import pytest  # type: ignore[import-untyped]
 
 from content_sync import (  # pyre-ignore[21]
     SyncConfig,
-    sync_file,
-    sync_all,
-    remove_synced,
-    notify,
-    _parse_frontmatter,
-    _has_publish_flag,
-    _rewrite_links,
     _collect_publish_files,
+    _has_publish_flag,
+    _parse_frontmatter,
+    _rewrite_links,
+    notify,
+    remove_synced,
+    sync_all,
+    sync_file,
     validate_file_for_publish,
     validate_publish_files,
 )
+from translation_service import TranslationError
 
 
 @pytest.fixture
@@ -43,9 +45,19 @@ def temp_env():
         "vault": {"path": vault, "assets_dir": "_assets"},
         "publish": {"method": "both", "folder": "publish", "flag": "publish"},
         "blog": {"content_dir": blog_content},
+        "translation": {
+            "enabled": True,
+            "provider": "openai",
+            "model": "gpt-5-mini",
+            "frontmatter_flag": "autoTranslate",
+            "require_review": True,
+            "overwrite_machine_translations": True,
+            "targets": {"en": ["th"], "th": ["en"]},
+        },
     }
     with open(config_path, "w") as f:
         import yaml  # pyre-ignore[21]
+
         yaml.dump(config_data, f)
 
     yield {
@@ -68,6 +80,7 @@ def config(temp_env):
 
 # ── Part A: Core Sync ──────────────────────────────
 
+
 class TestSyncFile:
     def test_sync_copies_file(self, temp_env, config):
         """A1/A2: File in publish/ is copied to blog content."""
@@ -78,7 +91,7 @@ class TestSyncFile:
         result = sync_file(src, config, rewrite_links=False)
 
         assert result is not None
-        dest = os.path.join(temp_env["blog_content"], "my-post.md")
+        dest = os.path.join(temp_env["blog_content"], "en", "my-post.md")
         assert os.path.exists(dest)
         with open(dest) as f:
             assert "Hello world" in f.read()
@@ -108,7 +121,7 @@ class TestSyncFile:
     def test_sync_overwrites_existing(self, temp_env, config):
         """A5: Modified file overwrites target."""
         src = os.path.join(temp_env["publish"], "post.md")
-        dest = os.path.join(temp_env["blog_content"], "post.md")
+        dest = os.path.join(temp_env["blog_content"], "en", "post.md")
 
         with open(src, "w") as f:
             f.write("---\ntitle: Post\ndate: 2026-03-02\n---\n\nVersion 1")
@@ -128,25 +141,231 @@ class TestSyncFile:
         result = sync_file("/nonexistent/post.md", config)
         assert result is None
 
+    def test_sync_auto_translates_opted_in_post(self, temp_env, config):
+        """Opted-in posts generate translated sibling files at publish time."""
+
+        class FakeTranslator:
+            def __init__(self, api_key, model):
+                self.api_key = api_key
+                self.model = model
+
+            def translate_markdown(self, request):
+                assert request.source_locale == "en"
+                assert request.target_locale == "th"
+                return type(
+                    "TranslatedPost",
+                    (),
+                    {
+                        "title": "สวัสดีโลก",
+                        "excerpt": "บทความแปลภาษาไทย",
+                        "body": "# เนื้อหาภาษาไทย",
+                        "category": "เทค",
+                        "tags": ["AI", "ไทย"],
+                        "faq": None,
+                        "how_to": None,
+                    },
+                )()
+
+        src = os.path.join(temp_env["publish"], "autotranslate.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Hello World\n"
+                "date: 2026-03-02\n"
+                "locale: en\n"
+                "excerpt: English source\n"
+                "tags:\n"
+                "  - AI\n"
+                "autoTranslate: true\n"
+                "---\n\n"
+                "# English body"
+            )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False):
+            with patch("content_sync.OpenAITranslator", FakeTranslator):
+                result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+
+        source_dest = os.path.join(temp_env["blog_content"], "en", "autotranslate.md")
+        translated_dest = os.path.join(temp_env["blog_content"], "th", "autotranslate.md")
+        assert os.path.exists(source_dest)
+        assert os.path.exists(translated_dest)
+
+        with open(source_dest, encoding="utf-8") as f:
+            source_content = f.read()
+        with open(translated_dest, encoding="utf-8") as f:
+            translated_content = f.read()
+
+        source_frontmatter = _parse_frontmatter(source_content)
+        translated_frontmatter = _parse_frontmatter(translated_content)
+
+        assert source_frontmatter["locale"] == "en"
+        assert translated_frontmatter["locale"] == "th"
+        assert translated_frontmatter["title"] == "สวัสดีโลก"
+        assert translated_frontmatter["machineTranslated"] is True
+        assert translated_frontmatter["needsReview"] is True
+        assert translated_frontmatter["translatedFromLocale"] == "en"
+        assert translated_frontmatter["_syncSourceId"] == source_frontmatter["_syncSourceId"]
+        assert "# เนื้อหาภาษาไทย" in translated_content
+
+    def test_sync_does_not_overwrite_manual_translation(self, temp_env, config):
+        """Auto-translation must not clobber human-maintained locale files."""
+
+        class FakeTranslator:
+            def __init__(self, api_key, model):
+                self.api_key = api_key
+                self.model = model
+
+            def translate_markdown(self, request):
+                return type(
+                    "TranslatedPost",
+                    (),
+                    {
+                        "title": "แปลอัตโนมัติ",
+                        "excerpt": "ไม่ควรเขียนทับ",
+                        "body": "# ระบบไม่ควรทับไฟล์นี้",
+                        "category": "เทค",
+                        "tags": ["AI"],
+                        "faq": None,
+                        "how_to": None,
+                    },
+                )()
+
+        src = os.path.join(temp_env["publish"], "manual-clash.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Source Post\n"
+                "date: 2026-03-02\n"
+                "locale: en\n"
+                "autoTranslate: true\n"
+                "---\n\n"
+                "# Source body"
+            )
+
+        manual_dest_dir = os.path.join(temp_env["blog_content"], "th")
+        os.makedirs(manual_dest_dir, exist_ok=True)
+        manual_dest = os.path.join(manual_dest_dir, "manual-clash.md")
+        with open(manual_dest, "w", encoding="utf-8") as f:
+            f.write(
+                "---\ntitle: Human Translation\ndate: 2026-03-02\nlocale: th\n---\n\n# Human body"
+            )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False):
+            with patch("content_sync.OpenAITranslator", FakeTranslator):
+                result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        with open(manual_dest, encoding="utf-8") as f:
+            saved = f.read()
+
+        assert "Human Translation" in saved
+        assert "ระบบไม่ควรทับไฟล์นี้" not in saved
+
+    def test_sync_keeps_source_when_translation_fails(self, temp_env, config):
+        """Translation errors should not block the primary source publish."""
+
+        class FailingTranslator:
+            def __init__(self, api_key, model):
+                raise TranslationError("boom")
+
+        src = os.path.join(temp_env["publish"], "translation-fails.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Source Post\n"
+                "date: 2026-03-02\n"
+                "locale: en\n"
+                "autoTranslate: true\n"
+                "---\n\n"
+                "# Source body"
+            )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False):
+            with patch("content_sync.OpenAITranslator", FailingTranslator):
+                result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        assert os.path.exists(os.path.join(temp_env["blog_content"], "en", "translation-fails.md"))
+        assert not os.path.exists(
+            os.path.join(temp_env["blog_content"], "th", "translation-fails.md")
+        )
+
 
 class TestRemoveSynced:
     def test_remove_existing(self, temp_env, config):
         """A4: Delete from publish → delete from blog."""
-        dest = os.path.join(temp_env["blog_content"], "post.md")
-        with open(dest, "w") as f:
-            f.write("content")
+        src = os.path.join(temp_env["publish"], "post.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write("---\ntitle: Post\ndate: 2026-03-02\nlocale: en\n---\n\nBody")
 
-        result = remove_synced(
-            os.path.join(temp_env["publish"], "post.md"), config
-        )
+        sync_file(src, config, rewrite_links=False)
+        dest = os.path.join(temp_env["blog_content"], "en", "post.md")
+
+        result = remove_synced(src, config)
         assert result is True
         assert not os.path.exists(dest)
 
+    def test_remove_existing_also_cleans_generated_translations(self, temp_env, config):
+        """Deleting a source removes every managed locale artifact for that source."""
+
+        class FakeTranslator:
+            def __init__(self, api_key, model):
+                self.api_key = api_key
+                self.model = model
+
+            def translate_markdown(self, request):
+                return type(
+                    "TranslatedPost",
+                    (),
+                    {
+                        "title": "โพสต์แปลแล้ว",
+                        "excerpt": "บทความแปล",
+                        "body": "# เวอร์ชันภาษาไทย",
+                        "category": "เทค",
+                        "tags": ["AI"],
+                        "faq": None,
+                        "how_to": None,
+                    },
+                )()
+
+        src = os.path.join(temp_env["publish"], "remove-with-translation.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Source Post\n"
+                "date: 2026-03-02\n"
+                "locale: en\n"
+                "autoTranslate: true\n"
+                "---\n\n"
+                "# Source body"
+            )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False):
+            with patch("content_sync.OpenAITranslator", FakeTranslator):
+                sync_file(src, config, rewrite_links=False)
+
+        assert os.path.exists(
+            os.path.join(temp_env["blog_content"], "en", "remove-with-translation.md")
+        )
+        assert os.path.exists(
+            os.path.join(temp_env["blog_content"], "th", "remove-with-translation.md")
+        )
+
+        result = remove_synced(src, config)
+
+        assert result is True
+        assert not os.path.exists(
+            os.path.join(temp_env["blog_content"], "en", "remove-with-translation.md")
+        )
+        assert not os.path.exists(
+            os.path.join(temp_env["blog_content"], "th", "remove-with-translation.md")
+        )
+
     def test_remove_nonexistent(self, temp_env, config):
         """Delete file not in blog → returns False."""
-        result = remove_synced(
-            os.path.join(temp_env["publish"], "nope.md"), config
-        )
+        result = remove_synced(os.path.join(temp_env["publish"], "nope.md"), config)
         assert result is False
 
 
@@ -156,6 +375,7 @@ class TestSyncAll:
         # Override to folder mode
         config_path = temp_env["config_path"]
         import yaml  # pyre-ignore[21]
+
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
         cfg["publish"]["method"] = "folder"
@@ -171,13 +391,15 @@ class TestSyncAll:
 
         count = sync_all(config)
         assert count == 2
-        assert os.path.exists(os.path.join(temp_env["blog_content"], "a.md"))
-        assert os.path.exists(os.path.join(temp_env["blog_content"], "b.md"))
+        assert os.path.exists(os.path.join(temp_env["blog_content"], "en", "a.md"))
+        assert os.path.exists(os.path.join(temp_env["blog_content"], "en", "b.md"))
 
     def test_sync_all_cleans_orphans(self, temp_env, config):
         """Orphaned files in blog are removed."""
         # Pre-create an orphan in blog
-        orphan = os.path.join(temp_env["blog_content"], "old-post.md")
+        orphan_dir = os.path.join(temp_env["blog_content"], "en")
+        os.makedirs(orphan_dir, exist_ok=True)
+        orphan = os.path.join(orphan_dir, "old-post.md")
         with open(orphan, "w") as f:
             f.write("old")
 
@@ -185,8 +407,21 @@ class TestSyncAll:
         sync_all(config)
         assert not os.path.exists(orphan)
 
+    def test_sync_routes_post_to_locale_subdirectory(self, temp_env, config):
+        """Locale frontmatter writes content into the matching locale folder."""
+        src = os.path.join(temp_env["publish"], "thai-post.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write("---\ntitle: Thai Post\ndate: 2026-03-02\nlocale: th\n---\n\nSawasdee")
+
+        result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        assert result.endswith(os.path.join("th", "thai-post.md"))
+        assert os.path.exists(os.path.join(temp_env["blog_content"], "th", "thai-post.md"))
+
 
 # ── Part A: Frontmatter Flag Detection ─────────────
+
 
 class TestFrontmatter:
     def test_parse_valid(self):
@@ -244,6 +479,7 @@ class TestCollectPublishFiles:
 
 # ── Part B: Image Link Rewriting ───────────────────
 
+
 class TestImageRewriting:
     def test_obsidian_image_with_log(self):
         """B1: ![[image.png]] → ![image](R2_URL)."""
@@ -295,6 +531,7 @@ class TestImageRewriting:
 
 # ── Part A: Notify (Event-driven) ──────────────────
 
+
 class TestNotify:
     def test_notify_syncs_publish_folder_file(self, temp_env, config):
         src = os.path.join(temp_env["publish"], "event-post.md")
@@ -302,15 +539,16 @@ class TestNotify:
             f.write("---\ntitle: Event post\ndate: 2026-03-02\n---\n\n# Event post")
 
         notify(src, config, deleted=False)
-        dest = os.path.join(temp_env["blog_content"], "event-post.md")
+        dest = os.path.join(temp_env["blog_content"], "en", "event-post.md")
         assert os.path.exists(dest)
 
     def test_notify_deletes(self, temp_env, config):
-        dest = os.path.join(temp_env["blog_content"], "gone.md")
-        with open(dest, "w") as f:
-            f.write("old content")
-
         src = os.path.join(temp_env["publish"], "gone.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write("---\ntitle: Gone\ndate: 2026-03-02\nlocale: en\n---\n\nOld content")
+
+        sync_file(src, config, rewrite_links=False)
+        dest = os.path.join(temp_env["blog_content"], "en", "gone.md")
         notify(src, config, deleted=True)
         assert not os.path.exists(dest)
 
@@ -318,12 +556,13 @@ class TestNotify:
         """File without publish flag → remove from blog."""
         src = os.path.join(temp_env["notes"], "private.md")
         with open(src, "w") as f:
-            f.write("---\npublish: false\n---\nPrivate")
+            f.write("---\ntitle: Private\ndate: 2026-03-02\npublish: true\n---\nPrivate")
 
-        # Pre-create in blog
-        dest = os.path.join(temp_env["blog_content"], "private.md")
-        with open(dest, "w") as f:
-            f.write("old")
+        sync_file(src, config, rewrite_links=False)
+        with open(src, "w") as f:
+            f.write("---\ntitle: Private\ndate: 2026-03-02\npublish: false\n---\nPrivate")
+
+        dest = os.path.join(temp_env["blog_content"], "en", "private.md")
 
         notify(src, config, deleted=False)
         assert not os.path.exists(dest)
@@ -345,20 +584,14 @@ class TestValidation:
     def test_validate_file_broken_obsidian_image(self, temp_env, config):
         src = os.path.join(temp_env["publish"], "broken-image.md")
         with open(src, "w") as f:
-            f.write(
-                "---\n"
-                "title: Broken image\n"
-                "date: 2026-03-02\n"
-                "---\n\n"
-                "Image: ![[missing.png]]\n"
-            )
+            f.write("---\ntitle: Broken image\ndate: 2026-03-02\n---\n\nImage: ![[missing.png]]\n")
 
         issues = validate_file_for_publish(src, config)
         assert "image not found in upload log: missing.png" in issues
 
         result = sync_file(src, config)
         assert result is None
-        dest = os.path.join(temp_env["blog_content"], "broken-image.md")
+        dest = os.path.join(temp_env["blog_content"], "en", "broken-image.md")
         assert not os.path.exists(dest)
 
     def test_validate_publish_files_duplicate_slug(self, temp_env, config):
@@ -382,4 +615,4 @@ class TestValidation:
 
         count = sync_all(config)
         assert count == 0
-        assert not os.path.exists(os.path.join(temp_env["blog_content"], "dup.md"))
+        assert not os.path.exists(os.path.join(temp_env["blog_content"], "en", "dup.md"))

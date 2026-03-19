@@ -3,7 +3,8 @@ import path from "path";
 import matter from "gray-matter";
 import GithubSlugger from "github-slugger";
 
-const postsDirectory = path.join(process.cwd(), "content/posts");
+const postsRootDirectory = path.join(process.cwd(), "content/posts");
+export const defaultContentLocale = "en";
 
 export interface FaqItem {
   question: string;
@@ -24,6 +25,10 @@ export interface Post {
   publish?: boolean;
   faq?: FaqItem[];
   howTo?: { name: string; text: string }[];
+  locale?: string;
+  translationKey?: string;
+  canonicalLocale?: string;
+  sourcePath?: string;
 }
 
 export interface TocItem {
@@ -36,6 +41,89 @@ export function isMarkdownPostFile(filename: string): boolean {
   return !filename.startsWith(".") && /\.md$/i.test(filename);
 }
 
+function directoryHasMarkdownPosts(directory: string): boolean {
+  return (
+    fs.existsSync(directory) &&
+    fs
+      .readdirSync(directory, { withFileTypes: true })
+      .some((entry) => entry.isFile() && isMarkdownPostFile(entry.name))
+  );
+}
+
+function getLocaleDirectory(locale: string): string {
+  return path.join(postsRootDirectory, locale);
+}
+
+function getAvailableLocaleDirectories(): string[] {
+  if (!fs.existsSync(postsRootDirectory)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(postsRootDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .filter((entry) => !entry.name.startsWith("."))
+    .filter((entry) => directoryHasMarkdownPosts(path.join(postsRootDirectory, entry.name)))
+    .map((entry) => entry.name)
+    .sort();
+}
+
+function resolvePostsDirectory(locale?: string): string {
+  if (locale) {
+    const localizedDirectory = getLocaleDirectory(locale);
+    if (directoryHasMarkdownPosts(localizedDirectory)) {
+      return localizedDirectory;
+    }
+  }
+
+  if (directoryHasMarkdownPosts(postsRootDirectory)) {
+    return postsRootDirectory;
+  }
+
+  const defaultDirectory = getLocaleDirectory(defaultContentLocale);
+  if (directoryHasMarkdownPosts(defaultDirectory)) {
+    return defaultDirectory;
+  }
+
+  const availableLocale = getAvailableLocaleDirectories()[0];
+  if (availableLocale) {
+    return getLocaleDirectory(availableLocale);
+  }
+
+  return postsRootDirectory;
+}
+
+function inferLocaleFromPath(
+  filePath: string,
+  fallbackLocale?: string,
+): string | undefined {
+  const relativePath = path.relative(postsRootDirectory, filePath);
+  if (!relativePath || relativePath.startsWith("..")) {
+    return fallbackLocale;
+  }
+
+  const [localeSegment] = relativePath.split(path.sep);
+  if (localeSegment && localeSegment !== path.basename(filePath)) {
+    return localeSegment;
+  }
+
+  return fallbackLocale;
+}
+
+function normalizeDate(
+  value: string | Date | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().split("T")[0];
+  }
+
+  return value;
+}
+
 function calculateReadTime(content: string): string {
   const wordsPerMinute = 200;
   const words = content.split(/\s+/).length;
@@ -43,40 +131,34 @@ function calculateReadTime(content: string): string {
   return `${minutes} min`;
 }
 
-export function getPostSlugs(): string[] {
-  if (!fs.existsSync(postsDirectory)) {
+function getDirectoryPostPaths(directory: string): string[] {
+  if (!fs.existsSync(directory)) {
     return [];
   }
+
   return fs
-    .readdirSync(postsDirectory, { withFileTypes: true })
+    .readdirSync(directory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && isMarkdownPostFile(entry.name))
-    .map((entry) => entry.name);
+    .map((entry) => path.join(directory, entry.name));
 }
 
-export function getPostBySlug(slug: string): Post | null {
-  const decodedSlug = decodeURIComponent(slug);
-  const realSlug = decodedSlug.replace(/\.md$/, "");
-  const fullPath = path.join(postsDirectory, `${realSlug}.md`);
-
-  if (!fs.existsSync(fullPath)) {
-    return null;
-  }
-
-  const fileContents = fs.readFileSync(fullPath, "utf8");
+function readPostFile(filePath: string, localeHint?: string): Post {
+  const fileContents = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContents);
+  const slug = decodeURIComponent(
+    String(data.slug || path.basename(filePath, path.extname(filePath))),
+  ).replace(/\.md$/, "");
+  const locale = String(
+    data.locale || inferLocaleFromPath(filePath, localeHint) || localeHint || defaultContentLocale,
+  );
+  const translationKey = String(data.translationKey || slug);
 
   return {
-    slug: realSlug,
+    slug,
     title: data.title || "Untitled",
-    date:
-      data.date instanceof Date
-        ? data.date.toISOString().split("T")[0]
-        : data.date || "",
-    dateModified:
-      data.dateModified instanceof Date
-        ? data.dateModified.toISOString().split("T")[0]
-        : data.dateModified || undefined,
-    excerpt: data.excerpt || content.slice(0, 150) + "...",
+    date: normalizeDate(data.date) || "",
+    dateModified: normalizeDate(data.dateModified),
+    excerpt: data.excerpt || `${content.slice(0, 150)}...`,
     content,
     category: data.category || "General",
     tags: data.tags || [],
@@ -85,66 +167,119 @@ export function getPostBySlug(slug: string): Post | null {
     publish: data.publish ?? true,
     faq: Array.isArray(data.faq) ? data.faq : undefined,
     howTo: Array.isArray(data.howTo) ? data.howTo : undefined,
+    locale,
+    translationKey,
+    canonicalLocale: data.canonicalLocale || locale,
+    sourcePath: filePath,
   };
 }
 
-export function getAllPosts(): Post[] {
-  const slugs = getPostSlugs();
-  const posts = slugs
-    .map((slug) => getPostBySlug(slug))
-    .filter((post): post is Post => post !== null && post.publish !== false)
-    .sort((a, b) => (a.date > b.date ? -1 : 1));
-
-  return posts;
+function getPostsFromDirectory(directory: string, localeHint?: string): Post[] {
+  return getDirectoryPostPaths(directory).map((filePath) =>
+    readPostFile(filePath, localeHint),
+  );
 }
 
-export function getFeaturedPost(): Post | null {
-  const posts = getAllPosts();
-  // Return first post with cover image, or just the latest
-  return posts.find((p) => p.coverImage) || posts[0] || null;
+function sortPosts(posts: Post[]): Post[] {
+  return posts.sort((a, b) => (a.date > b.date ? -1 : 1));
 }
 
-export function getRelatedPosts(slug: string, limit = 3): Post[] {
-  const current = getPostBySlug(slug);
+function getPostsInScope(locale?: string): Post[] {
+  const directory = resolvePostsDirectory(locale);
+  const localeHint =
+    directory === postsRootDirectory ? locale || defaultContentLocale : path.basename(directory);
+
+  return getPostsFromDirectory(directory, localeHint).filter(
+    (post) => post.publish !== false,
+  );
+}
+
+function dedupePosts(posts: Post[]): Post[] {
+  const byKey = new Map<string, Post>();
+
+  posts.forEach((post) => {
+    byKey.set(`${post.locale || defaultContentLocale}:${post.slug}`, post);
+  });
+
+  return Array.from(byKey.values());
+}
+
+function getAllPostsAcrossLocales(): Post[] {
+  const localeDirectories = getAvailableLocaleDirectories();
+  const localizedPosts = localeDirectories.flatMap((locale) => getAllPosts(locale));
+  const rootPosts = directoryHasMarkdownPosts(postsRootDirectory)
+    ? getPostsFromDirectory(postsRootDirectory, defaultContentLocale).filter(
+        (post) => post.publish !== false,
+      )
+    : [];
+
+  return dedupePosts([...localizedPosts, ...rootPosts]);
+}
+
+export function getPostSlugs(locale?: string): string[] {
+  return getAllPosts(locale).map((post) => post.slug);
+}
+
+export function getPostBySlug(slug: string, locale?: string): Post | null {
+  const realSlug = decodeURIComponent(slug).replace(/\.md$/, "");
+  const scopedPosts = getPostsInScope(locale);
+
+  return scopedPosts.find((post) => post.slug === realSlug) || null;
+}
+
+export function getAllPosts(locale?: string): Post[] {
+  return sortPosts(getPostsInScope(locale));
+}
+
+export function getFeaturedPost(locale?: string): Post | null {
+  const posts = getAllPosts(locale);
+  return posts.find((post) => post.coverImage) || posts[0] || null;
+}
+
+export function getRelatedPosts(
+  slug: string,
+  limit = 3,
+  locale?: string,
+): Post[] {
+  const current = getPostBySlug(slug, locale);
   if (!current) return [];
 
-  // Use current.slug (always decoded) to avoid mismatch when slug param is URL-encoded
-  const all = getAllPosts().filter((p) => p.slug !== current.slug);
-
-  // Score by shared tags
-  const scored = all.map((p) => ({
-    post: p,
-    score: (p.tags || []).filter((t) => (current.tags || []).includes(t))
+  const all = getAllPosts(locale).filter((post) => post.slug !== current.slug);
+  const scored = all.map((post) => ({
+    post,
+    score: (post.tags || []).filter((tag) => (current.tags || []).includes(tag))
       .length,
   }));
 
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, limit).map((s) => s.post);
+  return scored.slice(0, limit).map((entry) => entry.post);
 }
 
-export function getAllTags(): string[] {
-  const posts = getAllPosts();
+export function getAllTags(locale?: string): string[] {
   const tagSet = new Set<string>();
-  posts.forEach((p) => p.tags?.forEach((t) => tagSet.add(t)));
+  getAllPosts(locale).forEach((post) => post.tags?.forEach((tag) => tagSet.add(tag)));
   return Array.from(tagSet).sort();
 }
 
-export function getAllCategories(): string[] {
-  const posts = getAllPosts();
+export function getAllCategories(locale?: string): string[] {
   const categorySet = new Set<string>();
-  posts.forEach((p) => {
-    if (p.category) categorySet.add(p.category);
+  getAllPosts(locale).forEach((post) => {
+    if (post.category) {
+      categorySet.add(post.category);
+    }
   });
+
   return Array.from(categorySet).sort();
 }
 
-export function getPostsByTag(tag: string): Post[] {
-  return getAllPosts().filter((post) => post.tags?.includes(tag));
+export function getPostsByTag(tag: string, locale?: string): Post[] {
+  return getAllPosts(locale).filter((post) => post.tags?.includes(tag));
 }
 
-export function searchPosts(query: string): Post[] {
+export function searchPosts(query: string, locale?: string): Post[] {
   const lowerQuery = query.toLowerCase();
-  return getAllPosts().filter(
+
+  return getAllPosts(locale).filter(
     (post) =>
       post.title.toLowerCase().includes(lowerQuery) ||
       post.excerpt.toLowerCase().includes(lowerQuery) ||
@@ -174,21 +309,85 @@ export function extractHeadings(content: string): TocItem[] {
   return headings;
 }
 
-export function getAdjacentPosts(slug: string): {
+export function getAdjacentPosts(
+  slug: string,
+  locale?: string,
+): {
   prev: Post | null;
   next: Post | null;
 } {
-  const current = getPostBySlug(slug);
+  const current = getPostBySlug(slug, locale);
   if (!current) return { prev: null, next: null };
 
-  const categoryPosts = getAllPosts().filter(
-    (p) => p.category === current.category,
+  const categoryPosts = getAllPosts(locale).filter(
+    (post) => post.category === current.category,
   );
-  // Use current.slug (always decoded) — raw slug param may be URL-encoded (e.g. Thai chars)
-  const index = categoryPosts.findIndex((p) => p.slug === current.slug);
+  const index = categoryPosts.findIndex((post) => post.slug === current.slug);
 
   return {
     prev: index < categoryPosts.length - 1 ? categoryPosts[index + 1] : null,
     next: index > 0 ? categoryPosts[index - 1] : null,
   };
+}
+
+export function getLocalizedPostPath(post: Post): string {
+  const locale = post.locale || defaultContentLocale;
+  return `/${locale}/blog/${encodeURIComponent(post.slug)}/`;
+}
+
+export function getPostTranslations(post: Post): Post[] {
+  const translationKey = post.translationKey || post.slug;
+
+  return sortPosts(
+    getAllPostsAcrossLocales().filter(
+      (candidate) => (candidate.translationKey || candidate.slug) === translationKey,
+    ),
+  );
+}
+
+export function getPostLanguageAlternates(
+  slug: string,
+  locale?: string,
+): Record<string, string> {
+  const post = getPostBySlug(slug, locale);
+  if (!post) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    getPostTranslations(post).map((translation) => [
+      translation.locale || defaultContentLocale,
+      getLocalizedPostPath(translation),
+    ]),
+  );
+}
+
+export function getPostXDefaultAlternate(
+  slug: string,
+  locale?: string,
+): string | undefined {
+  const post = getPostBySlug(slug, locale);
+  if (!post) {
+    return undefined;
+  }
+
+  const translations = getPostTranslations(post);
+  const canonicalLocale =
+    post.canonicalLocale ||
+    translations.find((translation) => translation.canonicalLocale)?.canonicalLocale ||
+    defaultContentLocale;
+  const canonicalTranslation =
+    translations.find(
+      (translation) =>
+        (translation.locale || defaultContentLocale) === canonicalLocale,
+    ) ||
+    translations.find(
+      (translation) =>
+        (translation.locale || defaultContentLocale) === defaultContentLocale,
+    ) ||
+    translations[0];
+
+  return canonicalTranslation
+    ? getLocalizedPostPath(canonicalTranslation)
+    : undefined;
 }

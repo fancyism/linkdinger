@@ -1,4 +1,4 @@
-"""
+﻿"""
 Content Sync: Syncs markdown files from Obsidian vault to blog.
 
 Part of the Linkdinger CMS pipeline.
@@ -9,19 +9,32 @@ Publish modes (from config.yaml):
   - both:   combine folder + flag modes
 """
 
-import os
-import re
+import hashlib
 import json
 import logging
+import os
+import re
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
 import yaml  # type: ignore[import-untyped]
+from dotenv import load_dotenv  # type: ignore[import-untyped]
+
+from translation_service import (
+    OpenAITranslator,
+    TranslationError,
+    TranslationRequest,
+)
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 REQUIRED_FRONTMATTER_FIELDS = ("title", "date")
 PUBLISH_AT_FIELD = "publishAt"
+DEFAULT_CONTENT_LOCALE = "en"
+INTERNAL_SYNC_SOURCE_ID_FIELD = "_syncSourceId"
+TRANSLATION_FLAG_DEFAULT = "autoTranslate"
 
 
 class SyncConfig:
@@ -42,7 +55,7 @@ class SyncConfig:
             schedule_sec = 60
         self.schedule_check_sec = max(5, schedule_sec)
 
-        # Blog output — resolve relative to project root
+        # Blog output â€” resolve relative to project root
         blog_cfg = cfg.get("blog", {})
         self.content_dir = blog_cfg.get("content_dir", "blog/content/posts")
 
@@ -51,9 +64,30 @@ class SyncConfig:
 
         # Upload log for image link rewriting (Part B)
         assets_dir = cfg.get("vault", {}).get("assets_dir", "_assets")
-        self.upload_log_path = os.path.join(
-            self.vault_path, assets_dir, ".upload_log.json"
+        self.upload_log_path = os.path.join(self.vault_path, assets_dir, ".upload_log.json")
+
+        translation_cfg = cfg.get("translation", {})
+        self.translation_enabled = bool(translation_cfg.get("enabled", False))
+        self.translation_provider = str(translation_cfg.get("provider", "openai")).lower()
+        model_from_env = os.getenv("OPENAI_TRANSLATION_MODEL")
+        self.translation_model = str(translation_cfg.get("model") or model_from_env or "gpt-5-mini")
+        self.translation_frontmatter_flag = str(
+            translation_cfg.get("frontmatter_flag", TRANSLATION_FLAG_DEFAULT)
         )
+        self.translation_require_review = bool(translation_cfg.get("require_review", True))
+        self.translation_overwrite_machine = bool(
+            translation_cfg.get("overwrite_machine_translations", True)
+        )
+        raw_targets = translation_cfg.get("targets", {})
+        self.translation_targets = {
+            _normalize_locale_value(locale): [
+                _normalize_locale_value(target)
+                for target in targets
+                if _normalize_locale_value(target)
+            ]
+            for locale, targets in raw_targets.items()
+            if isinstance(targets, list)
+        }
 
     @property
     def abs_content_dir(self) -> str:
@@ -76,6 +110,91 @@ def _parse_frontmatter(content: str) -> dict[str, Any]:
         return result if result is not None else {}
     except yaml.YAMLError:
         return {}
+
+
+def _split_frontmatter_content(content: str) -> tuple[dict[str, Any], str]:
+    """Split markdown into frontmatter dict and body text."""
+    if not content.startswith("---"):
+        return {}, content
+
+    end = content.find("---", 3)
+    if end == -1:
+        return {}, content
+
+    frontmatter = _parse_frontmatter(content)
+    body = content[end + 3 :].lstrip("\r\n")
+    return frontmatter, body
+
+
+def _render_markdown(frontmatter: dict[str, Any], body: str) -> str:
+    """Serialize frontmatter + body back into a markdown document."""
+    frontmatter_block = yaml.safe_dump(
+        frontmatter,
+        allow_unicode=True,
+        sort_keys=False,
+    ).strip()
+
+    body_block = body.lstrip("\r\n")
+    if body_block:
+        return f"---\n{frontmatter_block}\n---\n\n{body_block}\n"
+    return f"---\n{frontmatter_block}\n---\n"
+
+
+def _normalize_source_relative_path(source_path: str, config: SyncConfig) -> str:
+    """Build a stable vault-relative path for sync bookkeeping."""
+    try:
+        relative_path = os.path.relpath(source_path, config.vault_path)
+    except ValueError:
+        relative_path = source_path
+    return relative_path.replace("\\", "/")
+
+
+def _build_source_identifier(source_path: str, config: SyncConfig) -> str:
+    """Hash the source-relative path so synced artifacts can be tracked safely."""
+    relative_path = _normalize_source_relative_path(source_path, config)
+    return hashlib.sha1(relative_path.encode("utf-8")).hexdigest()[:16]
+
+
+def _default_translation_key(source_path: str) -> str:
+    """Derive a stable translation key from the source filename."""
+    stem = os.path.splitext(os.path.basename(source_path))[0].strip().lower()
+    normalized = re.sub(r"[^\w]+", "-", stem, flags=re.UNICODE).strip("-")
+    return normalized or stem or "post"
+
+
+def _resolve_target_locales(
+    frontmatter: dict[str, Any],
+    config: SyncConfig,
+    source_locale: str,
+) -> list[str]:
+    """Determine which locales should be generated from a source post."""
+    if not config.translation_enabled:
+        return []
+
+    raw_flag = frontmatter.get(config.translation_frontmatter_flag)
+    if raw_flag in (None, False, "", []):
+        return []
+
+    if raw_flag is True:
+        raw_targets: list[object] = config.translation_targets.get(source_locale, [])
+    elif isinstance(raw_flag, str):
+        lowered = raw_flag.strip().lower()
+        if lowered in {"true", "yes", "on"}:
+            raw_targets = config.translation_targets.get(source_locale, [])
+        else:
+            raw_targets = [raw_flag]
+    elif isinstance(raw_flag, list):
+        raw_targets = raw_flag
+    else:
+        return []
+
+    targets = []
+    for target in raw_targets:
+        locale = _normalize_locale_value(target)
+        if locale and locale != source_locale and locale not in targets:
+            targets.append(locale)
+
+    return targets
 
 
 def _has_publish_flag(filepath: str, flag_key: str = "publish") -> bool:
@@ -214,7 +333,214 @@ def _extract_obsidian_image_basenames(content: str) -> list[str]:
 def _slug_key_from_path(filepath: str) -> str:
     """Normalize post slug key from markdown filename."""
     basename = os.path.basename(filepath)
-    return os.path.splitext(basename)[0].lower()
+    frontmatter = _read_frontmatter_from_file(filepath)
+    locale = str(frontmatter.get("locale") or DEFAULT_CONTENT_LOCALE).lower()
+    return f"{locale}:{os.path.splitext(basename)[0].lower()}"
+
+
+def _normalize_locale_value(value: object) -> str:
+    """Normalize locale values from frontmatter."""
+    if isinstance(value, str) and value.strip():
+        return value.strip().lower()
+    return DEFAULT_CONTENT_LOCALE
+
+
+def _resolve_output_relative_path(source_path: str) -> str:
+    """Resolve the locale-aware relative output path for a markdown file."""
+    frontmatter = _read_frontmatter_from_file(source_path)
+    locale = _normalize_locale_value(frontmatter.get("locale"))
+    return os.path.join(locale, os.path.basename(source_path))
+
+
+def _resolve_output_path(source_path: str, config: SyncConfig) -> str:
+    """Resolve the absolute locale-aware output path for a markdown file."""
+    return os.path.join(
+        config.abs_content_dir,
+        _resolve_output_relative_path(source_path),
+    )
+
+
+def _resolve_output_path_for_locale(
+    filename: str,
+    locale: str,
+    config: SyncConfig,
+) -> str:
+    """Resolve a locale-aware output path using an explicit filename + locale."""
+    return os.path.join(config.abs_content_dir, locale, filename)
+
+
+def _get_managed_output_paths(
+    source_path: str,
+    config: SyncConfig,
+) -> list[str]:
+    """Find synced markdown outputs that belong to a specific source file."""
+    source_id = _build_source_identifier(source_path, config)
+    managed_paths: list[str] = []
+
+    if not os.path.isdir(config.abs_content_dir):
+        return managed_paths
+
+    for root, _, filenames in os.walk(config.abs_content_dir):
+        for filename in filenames:
+            if not filename.endswith(".md"):
+                continue
+            candidate_path = os.path.join(root, filename)
+            try:
+                with open(candidate_path, "r", encoding="utf-8") as handle:
+                    candidate_frontmatter = _parse_frontmatter(handle.read(2048))
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            if candidate_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD) == source_id:
+                managed_paths.append(candidate_path)
+
+    return managed_paths
+
+
+def _build_synced_frontmatter(
+    frontmatter: dict[str, Any],
+    source_path: str,
+    config: SyncConfig,
+) -> dict[str, Any]:
+    """Attach sync metadata and normalize locale pairing fields."""
+    normalized = dict(frontmatter)
+    locale = _normalize_locale_value(normalized.get("locale"))
+    normalized["locale"] = locale
+    normalized["translationKey"] = str(
+        normalized.get("translationKey") or _default_translation_key(source_path)
+    )
+    normalized["canonicalLocale"] = str(normalized.get("canonicalLocale") or locale).lower()
+    normalized[INTERNAL_SYNC_SOURCE_ID_FIELD] = _build_source_identifier(source_path, config)
+    return normalized
+
+
+def _create_translator(config: SyncConfig) -> OpenAITranslator:
+    """Create the configured translation client."""
+    if config.translation_provider != "openai":
+        raise TranslationError(f"Unsupported translation provider: {config.translation_provider}")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise TranslationError("OPENAI_API_KEY is not set.")
+
+    return OpenAITranslator(api_key=api_key, model=config.translation_model)
+
+
+def _build_translation_request(
+    frontmatter: dict[str, Any],
+    body: str,
+    source_locale: str,
+    target_locale: str,
+) -> TranslationRequest:
+    """Prepare the structured translation payload from normalized markdown."""
+    return TranslationRequest(
+        source_locale=source_locale,
+        target_locale=target_locale,
+        title=str(frontmatter.get("title") or "").strip(),
+        excerpt=str(frontmatter.get("excerpt") or "").strip(),
+        category=str(frontmatter.get("category")).strip() if frontmatter.get("category") else None,
+        tags=[str(tag).strip() for tag in frontmatter.get("tags", []) if str(tag).strip()],
+        body=body,
+        faq=frontmatter.get("faq") if isinstance(frontmatter.get("faq"), list) else None,
+        how_to=frontmatter.get("howTo") if isinstance(frontmatter.get("howTo"), list) else None,
+    )
+
+
+def _should_write_translation(
+    dest_path: str,
+    source_id: str,
+    config: SyncConfig,
+) -> bool:
+    """Protect human-edited locale files from being overwritten by automation."""
+    if not os.path.exists(dest_path):
+        return True
+
+    try:
+        with open(dest_path, "r", encoding="utf-8") as handle:
+            existing_frontmatter = _parse_frontmatter(handle.read(2048))
+    except (OSError, UnicodeDecodeError):
+        return False
+
+    existing_source_id = existing_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD)
+    if existing_source_id == source_id:
+        if not existing_frontmatter.get("machineTranslated", False):
+            return False
+        return config.translation_overwrite_machine
+
+    return False
+
+
+def _write_translated_post(
+    source_path: str,
+    source_frontmatter: dict[str, Any],
+    source_body: str,
+    config: SyncConfig,
+    target_locale: str,
+) -> str | None:
+    """Translate a post and write the generated locale sibling to disk."""
+    translator = _create_translator(config)
+    translation_request = _build_translation_request(
+        frontmatter=source_frontmatter,
+        body=source_body,
+        source_locale=_normalize_locale_value(source_frontmatter.get("locale")),
+        target_locale=target_locale,
+    )
+    translated = translator.translate_markdown(translation_request)
+
+    translated_frontmatter = dict(source_frontmatter)
+    translated_frontmatter["locale"] = target_locale
+    translated_frontmatter["title"] = translated.title
+    translated_frontmatter["excerpt"] = translated.excerpt
+    translated_frontmatter["canonicalLocale"] = str(
+        source_frontmatter.get("canonicalLocale")
+        or _normalize_locale_value(source_frontmatter.get("locale"))
+    ).lower()
+    translated_frontmatter["machineTranslated"] = True
+    translated_frontmatter["needsReview"] = config.translation_require_review
+    translated_frontmatter["translatedFromLocale"] = _normalize_locale_value(
+        source_frontmatter.get("locale")
+    )
+    translated_frontmatter[config.translation_frontmatter_flag] = False
+
+    if translated.category:
+        translated_frontmatter["category"] = translated.category
+    elif "category" in translated_frontmatter:
+        translated_frontmatter.pop("category", None)
+
+    translated_frontmatter["tags"] = translated.tags or []
+
+    if translated.faq is not None:
+        translated_frontmatter["faq"] = translated.faq
+    elif "faq" in translated_frontmatter:
+        translated_frontmatter.pop("faq", None)
+
+    if translated.how_to is not None:
+        translated_frontmatter["howTo"] = translated.how_to
+    elif "howTo" in translated_frontmatter:
+        translated_frontmatter.pop("howTo", None)
+
+    dest_path = _resolve_output_path_for_locale(
+        filename=os.path.basename(source_path),
+        locale=target_locale,
+        config=config,
+    )
+    source_id = str(source_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD))
+    if not _should_write_translation(dest_path, source_id, config):
+        logger.warning(
+            "Skipping auto-translation overwrite for %s -> %s",
+            os.path.basename(source_path),
+            dest_path,
+        )
+        return None
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    translated_content = _render_markdown(translated_frontmatter, translated.body)
+    with open(dest_path, "w", encoding="utf-8") as handle:
+        handle.write(translated_content)
+
+    logger.info("Translated: %s -> %s", os.path.basename(source_path), dest_path)
+    print(f"Translated: {os.path.basename(source_path)} -> {target_locale}")
+    return dest_path
 
 
 def validate_file_for_publish(
@@ -300,10 +626,7 @@ def has_due_scheduled_posts(config: SyncConfig, now: datetime | None = None) -> 
     _, _, due_scheduled = _partition_files_by_publish_time(valid_files, now=now)
 
     for source_path in due_scheduled:
-        dest_path = os.path.join(
-            config.abs_content_dir,
-            os.path.basename(source_path),
-        )
+        dest_path = _resolve_output_path(source_path, config)
         if not os.path.exists(dest_path):
             return True
 
@@ -315,7 +638,7 @@ def _log_validation_errors(errors: dict[str, list[str]]):
     for source_path, issues in errors.items():
         filename = os.path.basename(source_path)
         logger.error(f"Validation failed: {filename}")
-        print(f"❌ Validation failed: {filename}")
+        print(f"âŒ Validation failed: {filename}")
         for issue in issues:
             logger.error(f"  - {issue}")
             print(f"   - {issue}")
@@ -325,16 +648,16 @@ def _rewrite_links(content: str, upload_log: dict) -> str:
     """Transform Obsidian image syntax and wiki-links to standard markdown.
 
     Rewrites:
-      ![[image.png]]        → ![image](R2_URL)
-      ![[image.png|600]]    → ![image](R2_URL)
-      [[Page Name]]         → [Page Name](/blog/page%20name)
-      [[Page Name|Alias]]   → [Alias](/blog/page%20name)
+      ![[image.png]]        â†’ ![image](R2_URL)
+      ![[image.png|600]]    â†’ ![image](R2_URL)
+      [[Page Name]]         â†’ [Page Name](/blog/page%20name)
+      [[Page Name|Alias]]   â†’ [Alias](/blog/page%20name)
 
     Preserves:
-      ![alt](url)           → unchanged (standard markdown)
+      ![alt](url)           â†’ unchanged (standard markdown)
     """
     import urllib.parse
-    
+
     # Rewrite ![[image.ext]] and ![[image.ext|size]]
     def replace_obsidian_image(match):
         full = match.group(1)
@@ -349,7 +672,7 @@ def _rewrite_links(content: str, upload_log: dict) -> str:
             alt = os.path.splitext(basename)[0]
             return f"![{alt}]({url})"
 
-        # Not found — leave as standard markdown with warning
+        # Not found â€” leave as standard markdown with warning
         logger.warning(f"Image not in upload log: {basename}")
         alt = os.path.splitext(basename)[0]
         return f"![{alt}]({filename})"
@@ -363,43 +686,43 @@ def _rewrite_links(content: str, upload_log: dict) -> str:
             filename, alias = inner.split("|", 1)
         else:
             filename, alias = inner, inner
-            
+
         # URL encode the stripped filename for the next.js link
         # Our blog routing expects the raw filename (e.g. My%20Page) as the slug
         url_path = urllib.parse.quote(filename.strip())
         return f"[{alias.strip()}](/blog/{url_path})"
 
     content = re.sub(r"\[\[(.+?)\]\]", replace_wiki_link, content)
-    
+
     # Process YAML frontmatter coverImage replacements
     if content.startswith("---"):
         end_idx = content.find("---", 3)
         if end_idx != -1:
-            frontmatter = content[:end_idx+3]  # type: ignore[index]
-            body_content = content[end_idx+3:]  # type: ignore[index]
-            
+            frontmatter = content[: end_idx + 3]  # type: ignore[index]
+            body_content = content[end_idx + 3 :]  # type: ignore[index]
+
             # Find coverImage: "[[filename]]" or just "filename"
             def replace_cover_image(match):
                 prefix = match.group(1)
                 img_val = match.group(2)
                 suffix = match.group(3)
-                
+
                 # Strip [[ ]] if present
                 clean_img_val = img_val
                 if clean_img_val.startswith("[[") and clean_img_val.endswith("]]"):
                     clean_img_val = clean_img_val[2:-2]
-                    
+
                 basename = os.path.basename(clean_img_val)
                 if basename in upload_log:
                     url = upload_log[basename]
                     return f"{prefix}{url}{suffix}"
                 return match.group(0)
-                
+
             new_frontmatter = re.sub(
                 r'(coverImage:\s*["\']?)((?:\[\[)?.*?([^"\']+\.(?:png|jpe?g|webp|gif))(?:\]\])?)(["\']?)',
                 replace_cover_image,
                 frontmatter,
-                flags=re.IGNORECASE
+                flags=re.IGNORECASE,
             )
             content = new_frontmatter + body_content
 
@@ -446,7 +769,7 @@ def sync_file(
 
     # Determine output filename
     filename = os.path.basename(source_path)
-    dest_path = os.path.join(config.abs_content_dir, filename)
+    dest_path = _resolve_output_path(source_path, config)
 
     # Ensure target directory exists
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -460,19 +783,64 @@ def sync_file(
         upload_log = _load_upload_log(config.upload_log_path)
         content = _rewrite_links(content, upload_log)
 
+    frontmatter, body = _split_frontmatter_content(content)
+    synced_frontmatter = _build_synced_frontmatter(frontmatter, source_path, config)
+    content = _render_markdown(synced_frontmatter, body)
+
     # Write to blog
     with open(dest_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    logger.info(f"Synced: {filename} → {dest_path}")
-    print(f"📝 Synced: {filename}")
+    logger.info(f"Synced: {filename} -> {dest_path}")
+    print(f"Synced: {filename}")
 
     # Log to dashboard activity log
     try:
         from dashboard import log_activity  # type: ignore[import-untyped]
-        log_activity("cms", f"Synced {filename}", "→ blog/content/posts")
+
+        log_activity(
+            "cms",
+            f"Synced {filename}",
+            f"-> blog/content/posts/{_resolve_output_relative_path(source_path)}",
+        )
     except ImportError:
         pass
+
+    target_locales = _resolve_target_locales(
+        synced_frontmatter,
+        config,
+        _normalize_locale_value(synced_frontmatter.get("locale")),
+    )
+    for target_locale in target_locales:
+        try:
+            translated_path = _write_translated_post(
+                source_path=source_path,
+                source_frontmatter=synced_frontmatter,
+                source_body=body,
+                config=config,
+                target_locale=target_locale,
+            )
+        except TranslationError as exc:
+            logger.warning(
+                "Auto-translation skipped for %s -> %s: %s",
+                filename,
+                target_locale,
+                exc,
+            )
+            print(f"Translation skipped for {filename} -> {target_locale}: {exc}")
+            break
+
+        if translated_path:
+            try:
+                from dashboard import log_activity  # type: ignore[import-untyped]
+
+                log_activity(
+                    "cms",
+                    f"Translated {filename}",
+                    f"-> blog/content/posts/{target_locale}/{filename}",
+                )
+            except ImportError:
+                pass
 
     return dest_path
 
@@ -487,16 +855,17 @@ def remove_synced(source_path: str, config: SyncConfig) -> bool:
     Returns:
         True if file was removed, False if not found
     """
+    managed_paths = _get_managed_output_paths(source_path, config)
+    if not managed_paths:
+        return False
+
     filename = os.path.basename(source_path)
-    dest_path = os.path.join(config.abs_content_dir, filename)
-
-    if os.path.exists(dest_path):
+    for dest_path in managed_paths:
         os.remove(dest_path)
-        logger.info(f"Removed: {filename} from blog")
-        print(f"🗑️  Removed: {filename}")
-        return True
+        logger.info(f"Removed: {dest_path} from blog")
 
-    return False
+    print(f"ðŸ—‘ï¸  Removed: {filename}")
+    return True
 
 
 def _collect_publish_files(config: SyncConfig) -> list[str]:
@@ -530,6 +899,34 @@ def _collect_publish_files(config: SyncConfig) -> list[str]:
     return sorted(files)
 
 
+def _get_expected_output_paths_for_source(
+    source_path: str,
+    config: SyncConfig,
+) -> set[str]:
+    """Compute every managed output path that should exist for a source file."""
+    expected_paths = {os.path.normpath(_resolve_output_path(source_path, config))}
+    frontmatter = _read_frontmatter_from_file(source_path)
+    normalized_frontmatter = _build_synced_frontmatter(frontmatter, source_path, config)
+    source_locale = _normalize_locale_value(normalized_frontmatter.get("locale"))
+
+    for target_locale in _resolve_target_locales(
+        normalized_frontmatter,
+        config,
+        source_locale,
+    ):
+        expected_paths.add(
+            os.path.normpath(
+                _resolve_output_path_for_locale(
+                    filename=os.path.basename(source_path),
+                    locale=target_locale,
+                    config=config,
+                )
+            )
+        )
+
+    return expected_paths
+
+
 def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
     """Full sync: scan vault and sync all publishable files.
 
@@ -540,16 +937,11 @@ def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
     valid_files, errors = validate_publish_files(files, config)
     if errors:
         _log_validation_errors(errors)
-        print(f"\n⚠️  Validation skipped {len(errors)} file(s)")
-    due_files, scheduled_future, _ = _partition_files_by_publish_time(
-        valid_files, now=now
-    )
+        print(f"\nâš ï¸  Validation skipped {len(errors)} file(s)")
+    due_files, scheduled_future, _ = _partition_files_by_publish_time(valid_files, now=now)
     if scheduled_future:
         next_publish_at = min(scheduled_future.values()).isoformat()
-        logger.info(
-            f"Scheduled posts pending: {len(scheduled_future)} "
-            f"(next at {next_publish_at})"
-        )
+        logger.info(f"Scheduled posts pending: {len(scheduled_future)} (next at {next_publish_at})")
 
     count = 0
 
@@ -560,16 +952,22 @@ def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
 
     # Clean up orphaned files in blog that are no longer in vault
     if os.path.isdir(config.abs_content_dir):
-        source_basenames = {os.path.basename(f) for f in due_files}
-        for entry in os.scandir(config.abs_content_dir):
-            if entry.is_file() and entry.name.endswith(".md"):
-                if entry.name not in source_basenames:
-                    os.remove(entry.path)
-                    logger.info(f"Cleaned orphan: {entry.name}")
-                    print(f"🧹 Cleaned orphan: {entry.name}")
+        expected_paths: set[str] = set()
+        for source_path in due_files:
+            expected_paths.update(_get_expected_output_paths_for_source(source_path, config))
+
+        for root, _, filenames in os.walk(config.abs_content_dir):
+            for filename in filenames:
+                if not filename.endswith(".md"):
+                    continue
+                file_path = os.path.normpath(os.path.join(root, filename))
+                if file_path not in expected_paths:
+                    os.remove(file_path)
+                    logger.info(f"Cleaned orphan: {file_path}")
+                    print(f"Cleaned orphan: {filename}")
 
     logger.info(f"Sync complete: {count} files")
-    print(f"\n✅ Sync complete: {count} file(s)")
+    print(f"\nâœ… Sync complete: {count} file(s)")
     return count
 
 
@@ -626,13 +1024,13 @@ if __name__ == "__main__":
     try:
         cfg = SyncConfig()
     except Exception as e:
-        print(f"❌ Config error: {e}")
+        print(f"âŒ Config error: {e}")
         sys.exit(1)
 
-    print(f"📂 Vault: {cfg.vault_path}")
-    print(f"📁 Publish folder: {cfg.publish_path}")
-    print(f"📄 Blog content: {cfg.abs_content_dir}")
-    print(f"🔧 Method: {cfg.publish_method}")
+    print(f"ðŸ“‚ Vault: {cfg.vault_path}")
+    print(f"ðŸ“ Publish folder: {cfg.publish_path}")
+    print(f"ðŸ“„ Blog content: {cfg.abs_content_dir}")
+    print(f"ðŸ”§ Method: {cfg.publish_method}")
     print()
 
     count = sync_all(cfg)

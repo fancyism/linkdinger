@@ -1,102 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:3000/</loc>
+    <loc>http://localhost:3000/en/</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/" />
     <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/</loc>
+    <loc>http://localhost:3000/en/blog/</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/" />
     <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/" />
   </url>
   <url>
-    <loc>http://localhost:3000/about/</loc>
+    <loc>http://localhost:3000/en/about/</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/about/" />
     <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/about/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/about/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/about/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/ai-agents-future/</loc>
+    <loc>http://localhost:3000/en/search/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/search/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/search/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/search/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/en/products/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/products/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/products/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/products/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/en/consultation/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/consultation/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/consultation/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/consultation/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/blog/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/about/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/about/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/about/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/about/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/search/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/search/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/search/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/search/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/products/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/products/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/products/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/products/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/consultation/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/consultation/" />
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/consultation/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/consultation/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/en/blog/ai-agents-future/</loc>
     <lastmod>2026-02-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/ai-agents-future/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/ai-agents-future/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/ai-agents-future/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/ai-agents-future/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/Context%20Engineer/</loc>
-    <lastmod>2026-03-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/Context%20Engineer/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/Context%20Engineer/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/Context%20Engineer/" />
-  </url>
-  <url>
-    <loc>http://localhost:3000/blog/hello-world/</loc>
+    <loc>http://localhost:3000/en/blog/hello-world/</loc>
     <lastmod>2026-02-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/hello-world/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/hello-world/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/hello-world/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/hello-world/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/neubrutalism-ui/</loc>
+    <loc>http://localhost:3000/en/blog/neubrutalism-ui/</loc>
     <lastmod>2026-02-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/neubrutalism-ui/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/neubrutalism-ui/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/neubrutalism-ui/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/neubrutalism-ui/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/nextjs-server-components/</loc>
+    <loc>http://localhost:3000/en/blog/nextjs-server-components/</loc>
     <lastmod>2026-02-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/nextjs-server-components/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/nextjs-server-components/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/nextjs-server-components/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/nextjs-server-components/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/obsidian-as-cms/</loc>
+    <loc>http://localhost:3000/en/blog/obsidian-as-cms/</loc>
     <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/obsidian-as-cms/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/obsidian-as-cms/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/obsidian-as-cms/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/obsidian-as-cms/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/the-art-of-vibe-coding/</loc>
+    <loc>http://localhost:3000/en/blog/the-art-of-vibe-coding/</loc>
     <lastmod>2026-02-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/the-art-of-vibe-coding/" />
-    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/the-art-of-vibe-coding/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/the-art-of-vibe-coding/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/en/blog/the-art-of-vibe-coding/" />
   </url>
   <url>
-    <loc>http://localhost:3000/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</loc>
+    <loc>http://localhost:3000/th/blog/Context%20Engineer/</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/Context%20Engineer/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/th/blog/Context%20Engineer/" />
+  </url>
+  <url>
+    <loc>http://localhost:3000/th/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/</loc>
     <lastmod>2026-02-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/" />
     <xhtml:link rel="alternate" hreflang="th" href="http://localhost:3000/th/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://localhost:3000/th/blog/%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%20Dark%20Glassmorphism%20%E0%B9%83%E0%B8%99%20Next.js/" />
   </url>
 </urlset>

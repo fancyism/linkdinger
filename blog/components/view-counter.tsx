@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Eye } from 'lucide-react'
 
 export default function ViewCounter({
@@ -12,6 +13,7 @@ export default function ViewCounter({
     trackView?: boolean
     staticViews?: number
 }) {
+    const t = useTranslations('ViewCounter')
     const [views, setViews] = useState<number | null>(staticViews ?? null)
     const hasFetched = useRef(false)
 
@@ -22,7 +24,6 @@ export default function ViewCounter({
     }, [staticViews])
 
     useEffect(() => {
-        // Prevent strict mode double invoke and avoid fetching if static views exist
         if (staticViews !== undefined && !trackView) return
         if (hasFetched.current) return
         hasFetched.current = true
@@ -32,7 +33,6 @@ export default function ViewCounter({
                 let currentViews = 0
 
                 if (trackView) {
-                    // Increment views
                     const res = await fetch(`/api/views/${slug}`, {
                         method: 'POST',
                     })
@@ -41,7 +41,6 @@ export default function ViewCounter({
                         currentViews = data.views ?? 0
                     }
                 } else {
-                    // Get views
                     const res = await fetch(`/api/views/${slug}`, {
                         method: 'GET',
                     })
@@ -61,12 +60,12 @@ export default function ViewCounter({
         fetchViews()
     }, [slug, trackView, staticViews])
 
-    if (views === null) return null // Hide while loading to prevent layout shift
+    if (views === null) return null
 
     return (
         <span className="flex items-center gap-1.5 align-middle">
             <Eye size={14} className="opacity-70" />
-            {views.toLocaleString()} {views === 1 ? 'view' : 'views'}
+            {t('views', { count: views })}
         </span>
     )
 }
