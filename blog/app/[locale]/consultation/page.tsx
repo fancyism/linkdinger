@@ -1,24 +1,31 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Calendar, Clock, Video, Zap, ExternalLink } from "lucide-react";
+
+type PageProps = {
+  params: Promise<{ locale: string }>;
+};
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "ConsultationPage" });
 
   return {
-    title: "Consultation",
-    description:
-      "Book a 1-on-1 session to level up your AI workflow or Next.js architecture.",
+    title: t("title"),
+    description: t("metaDescription"),
     alternates: {
       canonical: `/${locale}/consultation/`,
     },
   };
 }
 
-export default function ConsultationPage() {
+export default async function ConsultationPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "ConsultationPage" });
+
   return (
     <section className="py-16 px-4 sm:px-6 relative overflow-hidden min-h-screen">
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-peach/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
@@ -29,11 +36,11 @@ export default function ConsultationPage() {
             <Calendar size={32} />
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black mb-6">
-            1-on-1 <span className="text-peach">Consultation</span>
+            {t("heroTitlePrefix")}{" "}
+            <span className="text-peach">{t("heroTitleHighlight")}</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 font-light leading-relaxed">
-            Stuck on an AI implementation? Need architectural advice for your
-            Next.js app? Let's pair program and solve it together.
+            {t("heroDescription")}
           </p>
         </div>
 
@@ -44,7 +51,7 @@ export default function ConsultationPage() {
               <Zap size={120} />
             </div>
             <h3 className="text-2xl font-display font-bold mb-6 relative z-10">
-              How it works
+              {t("howItWorksTitle")}
             </h3>
             <ul className="space-y-6 relative z-10">
               <li className="flex gap-4">
@@ -53,11 +60,10 @@ export default function ConsultationPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">
-                    Book a slot
+                    {t("step1Title")}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Choose a time that works for you via Calendly. Payments are
-                    securely handled via Stripe.
+                    {t("step1Body")}
                   </p>
                 </div>
               </li>
@@ -67,11 +73,10 @@ export default function ConsultationPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">
-                    Share your context
+                    {t("step2Title")}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Answer a few quick questions about what you want to achieve
-                    so I can prepare.
+                    {t("step2Body")}
                   </p>
                 </div>
               </li>
@@ -81,11 +86,10 @@ export default function ConsultationPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">
-                    Vibe-coding time
+                    {t("step3Title")}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We jump on Google Meet, screen share, and crack the problem
-                    together.
+                    {t("step3Body")}
                   </p>
                 </div>
               </li>
@@ -96,30 +100,28 @@ export default function ConsultationPage() {
           <div className="glass-card rounded-3xl p-8 border border-peach/30 relative flex flex-col justify-between overflow-hidden shadow-[0_0_50px_rgba(255,107,53,0.1)]">
             <div>
               <div className="inline-block bg-peach/20 text-peach px-3 py-1 rounded-full text-xs font-display font-bold uppercase tracking-widest mb-6">
-                Most Popular
+                {t("pricingBadge")}
               </div>
               <h3 className="text-3xl font-display font-bold mb-2">
-                Strategy & Pairing
+                {t("pricingTitle")}
               </h3>
               <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-4xl sm:text-5xl font-mono font-bold">
                   $150
                 </span>
-                <span className="text-gray-500">/ hour</span>
+                <span className="text-gray-500">{t("pricingPeriod")}</span>
               </div>
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-                  <Clock size={18} className="text-peach" /> 60-minute focused
-                  session
+                  <Clock size={18} className="text-peach" />{" "}
+                  {t("featureSession")}
                 </li>
                 <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-                  <Video size={18} className="text-peach" /> Recorded Google
-                  Meet
+                  <Video size={18} className="text-peach" /> {t("featureMeet")}
                 </li>
                 <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-                  <Zap size={18} className="text-peach" /> Actionable
-                  post-session notes
+                  <Zap size={18} className="text-peach" /> {t("featureNotes")}
                 </li>
               </ul>
             </div>
@@ -128,10 +130,10 @@ export default function ConsultationPage() {
             <a
               href="#"
               className="w-full block text-center bg-[#FF6B35] text-white hover:bg-[#FF8050] px-6 py-4 rounded-xl font-display font-bold uppercase tracking-wider text-sm transition-all group shadow-lg shadow-peach/20 hover:shadow-peach/40"
-              aria-label="Book via Calendly"
+              aria-label={t("bookAriaLabel")}
             >
               <span className="flex items-center justify-center gap-2">
-                Book Your Session{" "}
+                {t("bookCta")}{" "}
                 <ExternalLink
                   size={16}
                   className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"

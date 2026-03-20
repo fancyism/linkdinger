@@ -119,6 +119,56 @@ const messages = {
       "อยู่ในโหมด vibe-coding เต็มตัว ลองของใหม่บนเว็บและวิ่งไล่ไอเดียสด ๆ อยู่เสมอ",
     jobTitle: "วิศวกรซอฟต์แวร์และคนคลั่งเครื่องมือ AI",
   },
+  ProductsPage: {
+    title: "สินค้าดิจิทัล",
+    metaDescription:
+      "เครื่องมือ AI, prompt templates และ resource แบบพรีเมียมสำหรับสาย vibe-coder",
+    heroTitlePrefix: "สินค้า",
+    heroTitleHighlight: "ดิจิทัล",
+    heroDescription:
+      "ยกระดับ workflow ของคุณด้วยเทมเพลต คู่มือ และเครื่องมือที่ออกแบบมาสำหรับนักพัฒนาสาย AI-native โดยเฉพาะ",
+    badgeBestseller: "ขายดี",
+    badgeNew: "ใหม่",
+    freePrice: "ฟรี",
+    downloadNow: "ดาวน์โหลดเลย",
+    getAccess: "รับสิทธิ์",
+    product1Title: "คัมภีร์เขียน Prompt สำหรับ AI Coding",
+    product1Description:
+      "คู่มือ 50 หน้า พร้อมเทมเพลต copy-paste 20 แบบสำหรับ Claude 3.5 Sonnet และ GPT-4o ช่วยให้คุณ vibe-code ได้เหมือน senior engineer",
+    product2Title: "Next.js Glassmorphism UI Kit",
+    product2Description:
+      "ชุดคอมโพเนนต์ React และ Tailwind เดียวกับที่ใช้สร้างบล็อกนี้จริง พร้อมแอนิเมชันและคอมโพเนนต์พรีเมียมมากกว่า 10 ชิ้น",
+    product3Title: "คู่มือเซ็ตอัป Cursor + Windsurf",
+    product3Description:
+      "รวมไฟล์ตั้งค่าที่ผมใช้จริง กฎที่ปรับเอง และ workflow hacks สำหรับใช้ AI IDE สองตัวให้คุ้มที่สุด",
+  },
+  ConsultationPage: {
+    title: "ปรึกษา",
+    metaDescription:
+      "จอง session แบบ 1-on-1 เพื่อยกระดับ AI workflow หรือวางสถาปัตยกรรม Next.js ของคุณ",
+    heroTitlePrefix: "ปรึกษา",
+    heroTitleHighlight: "1-on-1",
+    heroDescription:
+      "ติดปัญหาเรื่อง AI implementation หรืออยากได้มุมมองด้านสถาปัตยกรรมสำหรับแอป Next.js ของคุณ? มานั่ง pair program แล้วแก้ไปด้วยกัน",
+    howItWorksTitle: "ขั้นตอนการทำงาน",
+    step1Title: "จองเวลา",
+    step1Body:
+      "เลือกช่วงเวลาที่สะดวกผ่าน Calendly และชำระเงินอย่างปลอดภัยผ่าน Stripe",
+    step2Title: "ส่ง context",
+    step2Body:
+      "ตอบคำถามสั้น ๆ ว่าคุณอยากไปให้ถึงเป้าหมายอะไร เพื่อให้ผมเตรียมตัวได้ตรงจุด",
+    step3Title: "ลงมือแก้ไปด้วยกัน",
+    step3Body:
+      "เราจะขึ้น Google Meet แชร์หน้าจอ และไล่ปัญหาไปด้วยกันแบบเห็นภาพจริง",
+    pricingBadge: "ยอดนิยม",
+    pricingTitle: "วางกลยุทธ์ + Pairing",
+    pricingPeriod: "/ ชั่วโมง",
+    featureSession: "session โฟกัส 60 นาที",
+    featureMeet: "บันทึกวิดีโอ Google Meet",
+    featureNotes: "สรุป actionable หลังจบ session",
+    bookCta: "จอง session",
+    bookAriaLabel: "จองผ่าน Calendly",
+  },
   PostPage: {
     notFound: "ไม่พบโพสต์",
     breadcrumbHome: "หน้าแรก",

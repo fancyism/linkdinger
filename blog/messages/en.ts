@@ -120,6 +120,56 @@ const messages = {
       "Deep in vibe-coding mode, tinkering with shiny web tech and chasing fresh ideas.",
     jobTitle: "Software Engineer & AI Enthusiast",
   },
+  ProductsPage: {
+    title: "Digital Products",
+    metaDescription:
+      "Premium AI tools, prompt templates, and resources for vibe-coders.",
+    heroTitlePrefix: "Digital",
+    heroTitleHighlight: "Products",
+    heroDescription:
+      "Level up your workflow with premium templates, guides, and tools built specifically for AI-native developers.",
+    badgeBestseller: "Bestseller",
+    badgeNew: "New",
+    freePrice: "Free",
+    downloadNow: "Download now",
+    getAccess: "Get access",
+    product1Title: "Mastering AI Coding Prompts",
+    product1Description:
+      "A 50-page guide plus 20 copy-paste templates for Claude 3.5 Sonnet and GPT-4o. Learn to vibe-code like a senior engineer.",
+    product2Title: "Next.js Glassmorphism UI Kit",
+    product2Description:
+      "The exact React and Tailwind components used to build this blog. More than 10 premium animated components ready for your next project.",
+    product3Title: "Cursor + Windsurf Setup Guide",
+    product3Description:
+      "My complete configuration files, custom rules, and workflow hacks for dual-wielding the best AI IDEs.",
+  },
+  ConsultationPage: {
+    title: "Consultation",
+    metaDescription:
+      "Book a 1-on-1 session to level up your AI workflow or Next.js architecture.",
+    heroTitlePrefix: "1-on-1",
+    heroTitleHighlight: "Consultation",
+    heroDescription:
+      "Stuck on an AI implementation? Need architectural advice for your Next.js app? Let's pair program and solve it together.",
+    howItWorksTitle: "How it works",
+    step1Title: "Book a slot",
+    step1Body:
+      "Choose a time that works for you via Calendly. Payments are securely handled via Stripe.",
+    step2Title: "Share your context",
+    step2Body:
+      "Answer a few quick questions about what you want to achieve so I can prepare.",
+    step3Title: "Vibe-coding time",
+    step3Body:
+      "We jump on Google Meet, screen share, and crack the problem together.",
+    pricingBadge: "Most Popular",
+    pricingTitle: "Strategy & Pairing",
+    pricingPeriod: "/ hour",
+    featureSession: "60-minute focused session",
+    featureMeet: "Recorded Google Meet",
+    featureNotes: "Actionable post-session notes",
+    bookCta: "Book your session",
+    bookAriaLabel: "Book via Calendly",
+  },
   PostPage: {
     notFound: "Post not found",
     breadcrumbHome: "Home",
