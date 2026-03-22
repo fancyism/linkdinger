@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -74,6 +75,10 @@ class TranslationError(RuntimeError):
 
 def get_provider_config(provider_name: str) -> ProviderConfig:
     """Resolve a provider identifier into its non-secret connection defaults."""
+    if not isinstance(provider_name, str):
+        raise TranslationError(
+            f"Provider name must be a string, got {type(provider_name).__name__}."
+        )
     normalized = provider_name.strip().lower()
     provider = PROVIDER_CONFIGS.get(normalized)
     if provider is None:
@@ -90,14 +95,18 @@ class OpenAITranslator:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-5-mini",
+        model: str = "gpt-4o-mini",
         provider_name: str = "openai",
         base_url: str | None = None,
         timeout: float = 120.0,
+        max_retries: int = 3,
+        retry_delay: float = 1.0,
         client: Any | None = None,
     ):
         self._provider = get_provider_config(provider_name)
         self._model = model
+        self._max_retries = max_retries
+        self._retry_delay = retry_delay
 
         if client is not None:
             self._client = client
@@ -132,44 +141,54 @@ class OpenAITranslator:
             "body": request.body,
         }
 
-        try:
-            response = self._client.chat.completions.create(
-                model=self._model,
-                temperature=0.2,
-                response_format={"type": "json_object"},
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a professional bilingual technical editor. "
-                            "Translate markdown blog posts while preserving markdown structure, "
-                            "headings, lists, tables, code blocks, inline code, URLs, image URLs, "
-                            "and frontmatter semantics. Preserve technical terminology when needed. "
-                            "Return valid JSON only with keys: title, excerpt, category, tags, faq, "
-                            "how_to, body."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            "Translate this blog post payload and return JSON only.\n\n"
-                            + json.dumps(payload, ensure_ascii=False)
-                        ),
-                    },
-                ],
-            )
-        except Exception as exc:
-            raise TranslationError(
-                f"{self._provider.label} translation request failed: {exc}"
-            ) from exc
+        last_error: Exception | None = None
+        for attempt in range(self._max_retries):
+            try:
+                response = self._client.chat.completions.create(
+                    model=self._model,
+                    temperature=0.2,
+                    response_format={"type": "json_object"},
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a professional bilingual technical editor. "
+                                "Translate markdown blog posts while preserving markdown structure, "
+                                "headings, lists, tables, code blocks, inline code, URLs, image URLs, "
+                                "and frontmatter semantics. Preserve technical terminology when needed. "
+                                "Return valid JSON only with keys: title, excerpt, category, tags, faq, "
+                                "how_to, body."
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                "Translate this blog post payload and return JSON only.\n\n"
+                                + json.dumps(payload, ensure_ascii=False)
+                            ),
+                        },
+                    ],
+                )
 
-        output_text = _extract_chat_completion_text(response).strip()
-        if not output_text:
-            raise TranslationError(
-                f"{self._provider.label} returned an empty translation response."
-            )
+                output_text = _extract_chat_completion_text(response).strip()
+                if not output_text:
+                    raise TranslationError(
+                        f"{self._provider.label} returned an empty translation response."
+                    )
 
-        return _parse_translation_result(output_text)
+                return _parse_translation_result(output_text)
+
+            except TranslationError:
+                raise
+            except Exception as exc:
+                last_error = exc
+                if attempt < self._max_retries - 1:
+                    time.sleep(self._retry_delay * (attempt + 1))
+                    continue
+
+        raise TranslationError(
+            f"{self._provider.label} translation request failed after {self._max_retries} retries: {last_error}"
+        ) from last_error
 
 
 def _extract_chat_completion_text(response: Any) -> str:

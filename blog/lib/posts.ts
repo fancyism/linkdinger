@@ -142,10 +142,24 @@ function getDirectoryPostPaths(directory: string): string[] {
     .map((entry) => path.join(directory, entry.name));
 }
 
-function readPostFile(filePath: string, localeHint?: string): Post {
-  const fileContents = fs.readFileSync(filePath, "utf8");
+function safeDecodeURIComponent(str: string): string {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+}
+
+function readPostFile(filePath: string, localeHint?: string): Post | null {
+  let fileContents: string;
+  try {
+    fileContents = fs.readFileSync(filePath, "utf8");
+  } catch (e) {
+    console.error(`Failed to read post file ${filePath}:`, e);
+    return null;
+  }
   const { data, content } = matter(fileContents);
-  const slug = decodeURIComponent(
+  const slug = safeDecodeURIComponent(
     String(data.slug || path.basename(filePath, path.extname(filePath))),
   ).replace(/\.md$/, "");
   const locale = String(
@@ -178,9 +192,9 @@ function readPostFile(filePath: string, localeHint?: string): Post {
 }
 
 function getPostsFromDirectory(directory: string, localeHint?: string): Post[] {
-  return getDirectoryPostPaths(directory).map((filePath) =>
-    readPostFile(filePath, localeHint),
-  );
+  return getDirectoryPostPaths(directory)
+    .map((filePath) => readPostFile(filePath, localeHint))
+    .filter((post): post is Post => post !== null);
 }
 
 function sortPosts(posts: Post[]): Post[] {
@@ -223,12 +237,25 @@ function getAllPostsAcrossLocales(): Post[] {
   return dedupePosts([...localizedPosts, ...rootPosts]);
 }
 
+function groupPostsByTranslationKey(posts: Post[]): Map<string, Post[]> {
+  const postsByTranslationKey = new Map<string, Post[]>();
+
+  posts.forEach((post) => {
+    const translationKey = post.translationKey || post.slug;
+    const existingPosts = postsByTranslationKey.get(translationKey) || [];
+    existingPosts.push(post);
+    postsByTranslationKey.set(translationKey, existingPosts);
+  });
+
+  return postsByTranslationKey;
+}
+
 export function getPostSlugs(locale?: string): string[] {
   return getAllPosts(locale).map((post) => post.slug);
 }
 
 export function getPostBySlug(slug: string, locale?: string): Post | null {
-  const realSlug = decodeURIComponent(slug).replace(/\.md$/, "");
+  const realSlug = safeDecodeURIComponent(slug).replace(/\.md$/, "");
   const scopedPosts = getPostsInScope(locale);
 
   return scopedPosts.find((post) => post.slug === realSlug) || null;
@@ -346,13 +373,11 @@ export function getLocalizedPostPath(post: Post): string {
 
 export function getPostTranslations(post: Post): Post[] {
   const translationKey = post.translationKey || post.slug;
-
-  return sortPosts(
-    getAllPostsAcrossLocales().filter(
-      (candidate) =>
-        (candidate.translationKey || candidate.slug) === translationKey,
-    ),
+  const postsByTranslationKey = groupPostsByTranslationKey(
+    getAllPostsAcrossLocales(),
   );
+
+  return sortPosts(postsByTranslationKey.get(translationKey) || []);
 }
 
 export function getPostLanguageAlternates(
@@ -372,18 +397,11 @@ export function getPostLanguageAlternates(
   );
 }
 
-export function getPostLocaleSwitchMap(): Record<string, string> {
-  const posts = getAllPostsAcrossLocales();
-  const postsByTranslationKey = new Map<string, Post[]>();
-
-  posts.forEach((post) => {
-    const key = post.translationKey || post.slug;
-    const existing = postsByTranslationKey.get(key) || [];
-    existing.push(post);
-    postsByTranslationKey.set(key, existing);
-  });
-
+export function buildPostLocaleSwitchMap(
+  posts: Post[],
+): Record<string, string> {
   const switchMap: Record<string, string> = {};
+  const postsByTranslationKey = groupPostsByTranslationKey(posts);
 
   postsByTranslationKey.forEach((translations) => {
     translations.forEach((source) => {
@@ -403,6 +421,10 @@ export function getPostLocaleSwitchMap(): Record<string, string> {
   });
 
   return switchMap;
+}
+
+export function getPostLocaleSwitchMap(): Record<string, string> {
+  return buildPostLocaleSwitchMap(getAllPostsAcrossLocales());
 }
 
 export function getPostXDefaultAlternate(

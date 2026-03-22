@@ -1,4 +1,4 @@
-﻿"""
+"""
 Content Sync: Syncs markdown files from Obsidian vault to blog.
 
 Part of the Linkdinger CMS pipeline.
@@ -90,7 +90,7 @@ class SyncConfig:
         self.translation_enabled = bool(translation_cfg.get("enabled", False))
         self.translation_provider = str(translation_cfg.get("provider", "openai")).lower()
         model_from_env = os.getenv("TRANSLATION_MODEL") or os.getenv("OPENAI_TRANSLATION_MODEL")
-        self.translation_model = str(translation_cfg.get("model") or model_from_env or "gpt-5-mini")
+        self.translation_model = str(translation_cfg.get("model") or model_from_env or "gpt-4o-mini")
         self.translation_api_key_env = str(translation_cfg.get("api_key_env", "")).strip() or None
         raw_api_base_url = str(translation_cfg.get("api_base_url", "")).strip()
         self.translation_api_base_url = raw_api_base_url or None
