@@ -1,44 +1,74 @@
-import { Post } from './posts'
+import { Post } from "./posts";
+import {
+  attachViewCounts,
+  buildViewCountKeysPath,
+  parseViewCount,
+} from "./view-counts";
 
 export interface PopularPost extends Post {
-    _views: number
+  _views: number;
 }
 
-export async function getPopularPosts(posts: Post[], limit: number = 4): Promise<PopularPost[]> {
-    const url = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL
-    const token = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+function getUpstashViewConfig(): { url?: string; token?: string } {
+  return {
+    url:
+      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL ||
+      process.env.UPSTASH_REDIS_REST_URL,
+    token:
+      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN ||
+      process.env.UPSTASH_REDIS_REST_TOKEN,
+  };
+}
 
-    const mapFallback = (): PopularPost[] => posts.slice(0, limit).map(p => ({ ...p, _views: 0 }))
+function sortPostsByViews<T extends { _views: number }>(posts: T[]): T[] {
+  return [...posts].sort((a, b) => b._views - a._views);
+}
 
-    if (!url || !token || posts.length === 0) return mapFallback()
+export async function getViewCountsBySlug(
+  slugs: string[],
+): Promise<Record<string, number>> {
+  const { url, token } = getUpstashViewConfig();
 
-    try {
-        const keys = posts.map(p => `page_views:${p.slug}`)
-        const res = await fetch(`${url}/mget/${keys.join('/')}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            next: { revalidate: 3600 } // Cache for 1 hour
-        })
+  if (!url || !token || slugs.length === 0) {
+    return {};
+  }
 
-        if (res.ok) {
-            const data = await res.json()
-            const counts = data.result
+  try {
+    const response = await fetch(
+      `${url}/mget/${buildViewCountKeysPath(slugs)}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        next: { revalidate: 3600 },
+      },
+    );
 
-            const postsWithViews: PopularPost[] = posts.map((post, index) => {
-                return {
-                    ...post,
-                    _views: counts[index] ? parseInt(counts[index], 10) : 0
-                }
-            })
-
-            // Sort by views descending
-            const sorted = postsWithViews.sort((a, b) => (b._views || 0) - (a._views || 0))
-
-            return sorted.slice(0, limit)
-        }
-    } catch (e) {
-        console.error('Failed to fetch view counts for popular posts', e)
+    if (!response.ok) {
+      return {};
     }
 
-    // Fallback if fetch fails
-    return mapFallback()
+    const data = await response.json();
+    const counts = Array.isArray(data.result) ? data.result : [];
+
+    return Object.fromEntries(
+      slugs.map((slug, index) => [slug, parseViewCount(counts[index])]),
+    );
+  } catch (error) {
+    console.error("Failed to fetch view counts", error);
+    return {};
+  }
+}
+
+export async function getPostsWithViews(posts: Post[]): Promise<PopularPost[]> {
+  const viewCountsBySlug = await getViewCountsBySlug(
+    posts.map((post) => post.slug),
+  );
+  return attachViewCounts(posts, viewCountsBySlug);
+}
+
+export async function getPopularPosts(
+  posts: Post[],
+  limit: number = 4,
+): Promise<PopularPost[]> {
+  const postsWithViews = await getPostsWithViews(posts);
+  return sortPostsByViews(postsWithViews).slice(0, limit);
 }

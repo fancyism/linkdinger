@@ -21,18 +21,6 @@ export function CommandPalette({
   const t = useTranslations("CommandPalette");
   const router = useRouter();
 
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen(true);
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, [setOpen]);
-
   const runCommand = React.useCallback(
     (command: () => void) => {
       setOpen(false);

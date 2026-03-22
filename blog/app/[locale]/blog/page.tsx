@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getAllPosts, getAllCategories, getAllTags } from "@/lib/posts";
+import { getPostsWithViews } from "@/lib/views";
 import BlogClient from "./blog-client";
 import TagCloud from "@/components/tag-cloud";
 
@@ -30,12 +31,13 @@ export default async function BlogPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "BlogPage" });
   const posts = getAllPosts(locale);
+  const postsWithViews = await getPostsWithViews(posts);
   const categories = getAllCategories(locale);
   const allTags = getAllTags(locale);
 
   const tagCounts = allTags.map((tag) => ({
     name: tag,
-    count: posts.filter((post) => post.tags?.includes(tag)).length,
+    count: postsWithViews.filter((post) => post.tags?.includes(tag)).length,
   }));
 
   return (
@@ -51,7 +53,7 @@ export default async function BlogPage({
         <TagCloud tags={tagCounts} />
 
         <Suspense fallback={<div className="skeleton h-64 w-full" />}>
-          <BlogClient posts={posts} categories={categories} />
+          <BlogClient posts={postsWithViews} categories={categories} />
         </Suspense>
       </div>
     </section>

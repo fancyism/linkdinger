@@ -12,8 +12,11 @@ import assert from "node:assert/strict";
 import test, { describe } from "node:test";
 
 import {
+  buildPostLocaleSwitchMap,
   getAllPosts,
   getPostBySlug,
+  getPostLanguageAlternates,
+  getPostXDefaultAlternate,
   getPostSlugs,
   searchPosts,
   getAllTags,
@@ -361,5 +364,52 @@ More text
       headings[1].id,
       "Duplicate headings should have unique IDs",
     );
+  });
+});
+
+// —— localized routes ————————————————————————————————————————————————————————————————
+
+describe("localized blog routes", () => {
+  test("getPostLanguageAlternates returns localized canonical URLs for translated posts", () => {
+    const translatedPost = getAllPosts("en").find((post) => {
+      const alternates = getPostLanguageAlternates(post.slug, "en");
+      return Object.keys(alternates).length > 1;
+    });
+
+    assert.ok(translatedPost, "Expected at least one translated post fixture");
+
+    const alternates = getPostLanguageAlternates(translatedPost.slug, "en");
+    assert.ok(alternates.en);
+    assert.ok(alternates.th);
+    assert.match(alternates.en, /^\/en\/blog\/.+\/$/);
+    assert.match(alternates.th, /^\/th\/blog\/.+\/$/);
+  });
+
+  test("buildPostLocaleSwitchMap creates bidirectional locale links", () => {
+    const posts = [...getAllPosts("en"), ...getAllPosts("th")];
+    const translatedPost = getAllPosts("en").find((post) => {
+      const alternates = getPostLanguageAlternates(post.slug, "en");
+      return Boolean(alternates.th);
+    });
+
+    assert.ok(translatedPost, "Expected at least one translated post fixture");
+
+    const alternates = getPostLanguageAlternates(translatedPost.slug, "en");
+    const switchMap = buildPostLocaleSwitchMap(posts);
+
+    assert.equal(switchMap[`en:${translatedPost.slug}`], alternates.th);
+  });
+
+  test("getPostXDefaultAlternate resolves the canonical locale URL", () => {
+    const translatedPost = getAllPosts("en").find((post) => {
+      const alternates = getPostLanguageAlternates(post.slug, "en");
+      return Object.keys(alternates).length > 1;
+    });
+
+    assert.ok(translatedPost, "Expected at least one translated post fixture");
+
+    const xDefault = getPostXDefaultAlternate(translatedPost.slug, "en");
+    assert.ok(xDefault);
+    assert.match(xDefault!, /^\/(en|th)\/blog\/.+\/$/);
   });
 });

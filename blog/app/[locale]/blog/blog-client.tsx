@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
@@ -18,6 +18,7 @@ interface BlogClientProps {
     tags?: string[];
     readTime?: string;
     coverImage?: string;
+    _views?: number;
   }>;
   categories: string[];
 }
@@ -26,65 +27,34 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
   const t = useTranslations("BlogClient");
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category");
-
-  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [sortBy, setSortBy] = useState<"date" | "views">("date");
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const fetchAllViews = async () => {
-      const url = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL;
-      const token = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN;
-      if (!url || !token || posts.length === 0) return;
-
-      try {
-        const keys = posts.map((post) => `page_views:${post.slug}`);
-        const response = await fetch(`${url}/mget/${keys.join("/")}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-        const counts = data.result;
-        const nextCounts: Record<string, number> = {};
-
-        posts.forEach((post, index) => {
-          nextCounts[post.slug] = counts[index] ? parseInt(counts[index], 10) : 0;
-        });
-
-        setViewCounts(nextCounts);
-      } catch (error) {
-        console.error("Failed to fetch all view counts", error);
-      }
-    };
-
-    fetchAllViews();
-  }, [posts]);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const normalizedSearchQuery = deferredSearchQuery.trim().toLowerCase();
 
   const filteredByCategory = activeCategory
     ? posts.filter((post) => post.category === activeCategory)
     : posts;
 
-  const filtered = searchQuery
+  const filtered = normalizedSearchQuery
     ? filteredByCategory.filter(
         (post) =>
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.title.toLowerCase().includes(normalizedSearchQuery) ||
+          post.excerpt.toLowerCase().includes(normalizedSearchQuery) ||
           post.tags?.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+            tag.toLowerCase().includes(normalizedSearchQuery),
           ),
       )
     : filteredByCategory;
 
   const popularSlugs = [...posts]
-    .sort((a, b) => (viewCounts[b.slug] || 0) - (viewCounts[a.slug] || 0))
+    .sort((a, b) => (b._views || 0) - (a._views || 0))
     .slice(0, 3)
     .map((post) => post.slug);
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === "views") {
-      return (viewCounts[b.slug] || 0) - (viewCounts[a.slug] || 0);
+      return (b._views || 0) - (a._views || 0);
     }
 
     return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -133,7 +103,9 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
               </BrutalTag>
             </Link>
             {categories.map((category) => {
-              const count = posts.filter((post) => post.category === category).length;
+              const count = posts.filter(
+                (post) => post.category === category,
+              ).length;
               return (
                 <Link
                   key={category}
@@ -176,7 +148,9 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
           </div>
 
           <div className="flex items-center gap-4 text-xs font-display tracking-widest uppercase justify-end">
-            <span className="text-gray-500 hidden lg:inline">{t("sortBy")}</span>
+            <span className="text-gray-500 hidden lg:inline">
+              {t("sortBy")}
+            </span>
             <button
               onClick={() => setSortBy("date")}
               className={`transition-colors ${sortBy === "date" ? "text-peach font-bold" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
@@ -207,7 +181,7 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
               readTime={post.readTime}
               coverImage={post.coverImage}
               imageAspect={getAspectForBlog(index)}
-              staticViews={viewCounts[post.slug]}
+              staticViews={post._views}
               isPopular={popularSlugs.includes(post.slug)}
             />
           ))}

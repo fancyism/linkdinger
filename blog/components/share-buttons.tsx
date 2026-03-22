@@ -11,6 +11,11 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
+import {
+  buildShareLinks,
+  DEFAULT_SHARE_SITE_URL,
+  getInitialShareUrl,
+} from "@/lib/share";
 
 interface ShareButtonsProps {
   title: string;
@@ -27,8 +32,10 @@ export default function ShareButtons({
   const t = useTranslations("ShareButtons");
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://linkdinger.com";
-  const [shareUrl, setShareUrl] = useState(url || siteUrl);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SHARE_SITE_URL;
+  const [shareUrl, setShareUrl] = useState(() =>
+    getInitialShareUrl(url, siteUrl),
+  );
 
   useEffect(() => {
     setCanShare(typeof navigator !== "undefined" && "share" in navigator);
@@ -45,11 +52,13 @@ export default function ShareButtons({
     }
   }, [url]);
 
-  const fullUrl = shareUrl.startsWith("http")
-    ? shareUrl
-    : `${siteUrl}${shareUrl}`;
-
-  const shareText = excerpt ? `${title}\n\n${excerpt}` : title;
+  const { fullUrl, tweetUrl, linkedinUrl, facebookUrl, lineUrl } =
+    buildShareLinks({
+      title,
+      excerpt,
+      url: shareUrl,
+      siteUrl,
+    });
 
   const handleShare = async () => {
     try {
@@ -78,11 +87,6 @@ export default function ShareButtons({
       }
     }
   };
-
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`;
-  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`;
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`;
-  const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(shareText)}`;
 
   return (
     <div className="flex flex-wrap items-center gap-2">

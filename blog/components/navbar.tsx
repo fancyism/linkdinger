@@ -3,10 +3,19 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { Menu, X, Search, Github, Sun, Moon } from "lucide-react";
-import { CommandPalette } from "./command-palette";
+import { resolveLocaleSwitchTarget } from "@/lib/locale-switch";
+
+const CommandPalette = dynamic(
+  () => import("./command-palette").then((module) => module.CommandPalette),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
 
 interface NavbarPost {
   slug: string;
@@ -28,13 +37,12 @@ export default function Navbar({
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [lastScroll, setLastScroll] = useState(0);
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const lastScrollRef = useRef(0);
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const params = useParams<{ slug?: string | string[] }>();
   const searchParams = useSearchParams();
-
   const [isMac, setIsMac] = useState(true);
 
   useEffect(() => {
@@ -48,12 +56,39 @@ export default function Navbar({
     const onScroll = () => {
       const current = window.scrollY;
       setScrolled(current > 20);
-      setVisible(current < lastScroll || current < 100);
-      setLastScroll(current);
+      setVisible(current < lastScrollRef.current || current < 100);
+      lastScrollRef.current = current;
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [lastScroll]);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== "k" ||
+        (!event.metaKey && !event.ctrlKey)
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      setIsCommandOpen(true);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const navLinks = [
     { href: "/", label: t("home") },
@@ -62,32 +97,15 @@ export default function Navbar({
     { href: "/consultation", label: t("consultation") },
     { href: "/about", label: t("about") },
   ];
-  const alternateLocale = locale === "en" ? "th" : "en";
-  const normalizedPathname = (pathname || "/").replace(/\/$/, "") || "/";
-  const querySuffix = searchParams.toString()
-    ? `?${searchParams.toString()}`
-    : "";
-  const pathnameLooksLikePost =
-    normalizedPathname.includes("/blog/") &&
-    !normalizedPathname.includes("/blog/tag/");
-  const slugParam = params.slug;
-  const currentPostSlug = pathnameLooksLikePost
-    ? decodeURIComponent(
-        Array.isArray(slugParam) ? slugParam.join("/") : slugParam || "",
-      )
-    : null;
-  const alternatePostHref = currentPostSlug
-    ? postLocaleAlternates[`${locale}:${currentPostSlug}`]
-    : undefined;
-  const localeSwitchHref = alternatePostHref
-    ? `${alternatePostHref}${querySuffix}`
-    : pathnameLooksLikePost
-      ? `/${alternateLocale}/blog/${querySuffix}`
-      : `${pathname || "/"}${querySuffix}`;
-  const localeSwitchLocale =
-    alternatePostHref || pathnameLooksLikePost ? undefined : alternateLocale;
+  const localeSwitchTarget = resolveLocaleSwitchTarget({
+    locale,
+    pathname,
+    search: searchParams.toString(),
+    slugParam: params.slug,
+    postLocaleAlternates,
+  });
+  const { alternateLocale } = localeSwitchTarget;
   const localeLabel = alternateLocale === "en" ? t("english") : t("thai");
-  const useRawLocaleHref = pathnameLooksLikePost;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -171,9 +189,9 @@ export default function Navbar({
                 )}
               </button>
             )}
-            {useRawLocaleHref ? (
+            {localeSwitchTarget.useRawHref ? (
               <a
-                href={localeSwitchHref}
+                href={localeSwitchTarget.href}
                 className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
                 aria-label={t("language")}
               >
@@ -181,8 +199,8 @@ export default function Navbar({
               </a>
             ) : (
               <Link
-                href={localeSwitchHref}
-                locale={localeSwitchLocale}
+                href={localeSwitchTarget.href}
+                locale={localeSwitchTarget.linkLocale}
                 className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
                 aria-label={t("language")}
               >
@@ -208,9 +226,9 @@ export default function Navbar({
                 )}
               </button>
             )}
-            {useRawLocaleHref ? (
+            {localeSwitchTarget.useRawHref ? (
               <a
-                href={localeSwitchHref}
+                href={localeSwitchTarget.href}
                 className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
                 aria-label={t("language")}
               >
@@ -218,8 +236,8 @@ export default function Navbar({
               </a>
             ) : (
               <Link
-                href={localeSwitchHref}
-                locale={localeSwitchLocale}
+                href={localeSwitchTarget.href}
+                locale={localeSwitchTarget.linkLocale}
                 className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
                 aria-label={t("language")}
               >
@@ -257,9 +275,9 @@ export default function Navbar({
                 {link.label}
               </Link>
             ))}
-            {useRawLocaleHref ? (
+            {localeSwitchTarget.useRawHref ? (
               <a
-                href={localeSwitchHref}
+                href={localeSwitchTarget.href}
                 onClick={() => setIsOpen(false)}
                 className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
@@ -267,8 +285,8 @@ export default function Navbar({
               </a>
             ) : (
               <Link
-                href={localeSwitchHref}
-                locale={localeSwitchLocale}
+                href={localeSwitchTarget.href}
+                locale={localeSwitchTarget.linkLocale}
                 onClick={() => setIsOpen(false)}
                 className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
@@ -289,11 +307,13 @@ export default function Navbar({
         </div>
       </div>
 
-      <CommandPalette
-        open={isCommandOpen}
-        setOpen={setIsCommandOpen}
-        posts={posts}
-      />
+      {isCommandOpen ? (
+        <CommandPalette
+          open={isCommandOpen}
+          setOpen={setIsCommandOpen}
+          posts={posts}
+        />
+      ) : null}
     </nav>
   );
 }
