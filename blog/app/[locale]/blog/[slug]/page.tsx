@@ -70,6 +70,7 @@ export default async function PostPage({
   const adjacent = getAdjacentPosts(slug, locale);
   const headings = extractHeadings(post.content);
   const html = await markdownToHtml(post.content);
+  const canonicalPostUrl = `${siteUrl}/${locale}/blog/${encodeURIComponent(post.slug)}/`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -182,6 +183,7 @@ export default async function PostPage({
         headings={headings}
         related={related}
         adjacent={adjacent}
+        shareUrl={canonicalPostUrl}
       />
     </>
   );

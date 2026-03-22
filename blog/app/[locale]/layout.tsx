@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { routing } from "@/i18n/routing";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts, getPostLocaleSwitchMap } from "@/lib/posts";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -29,7 +29,8 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const messages = await getMessages();
-  const posts = getAllPosts(locale);
+  const posts = getAllPosts(locale).map(({ slug, title }) => ({ slug, title }));
+  const postLocaleAlternates = getPostLocaleSwitchMap();
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -69,7 +70,7 @@ export default async function LocaleLayout({
         }}
       />
       <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar posts={posts} />
+        <Navbar posts={posts} postLocaleAlternates={postLocaleAlternates} />
         <main className="flex-1">{children}</main>
         <Footer />
       </div>

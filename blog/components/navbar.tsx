@@ -2,13 +2,26 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Menu, X, Search, Github, Sun, Moon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
 
-export default function Navbar({ posts = [] }: { posts?: any[] }) {
+interface NavbarPost {
+  slug: string;
+  title: string;
+}
+
+interface NavbarProps {
+  posts?: NavbarPost[];
+  postLocaleAlternates?: Record<string, string>;
+}
+
+export default function Navbar({
+  posts = [],
+  postLocaleAlternates = {},
+}: NavbarProps) {
   const t = useTranslations("Navbar");
   const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +32,7 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const params = useParams<{ slug?: string | string[] }>();
   const searchParams = useSearchParams();
 
   const [isMac, setIsMac] = useState(true);
@@ -49,10 +63,31 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
     { href: "/about", label: t("about") },
   ];
   const alternateLocale = locale === "en" ? "th" : "en";
-  const localeSwitchHref = `${pathname || "/"}${
-    searchParams.toString() ? `?${searchParams.toString()}` : ""
-  }`;
+  const normalizedPathname = (pathname || "/").replace(/\/$/, "") || "/";
+  const querySuffix = searchParams.toString()
+    ? `?${searchParams.toString()}`
+    : "";
+  const pathnameLooksLikePost =
+    normalizedPathname.includes("/blog/") &&
+    !normalizedPathname.includes("/blog/tag/");
+  const slugParam = params.slug;
+  const currentPostSlug = pathnameLooksLikePost
+    ? decodeURIComponent(
+        Array.isArray(slugParam) ? slugParam.join("/") : slugParam || "",
+      )
+    : null;
+  const alternatePostHref = currentPostSlug
+    ? postLocaleAlternates[`${locale}:${currentPostSlug}`]
+    : undefined;
+  const localeSwitchHref = alternatePostHref
+    ? `${alternatePostHref}${querySuffix}`
+    : pathnameLooksLikePost
+      ? `/${alternateLocale}/blog/${querySuffix}`
+      : `${pathname || "/"}${querySuffix}`;
+  const localeSwitchLocale =
+    alternatePostHref || pathnameLooksLikePost ? undefined : alternateLocale;
   const localeLabel = alternateLocale === "en" ? t("english") : t("thai");
+  const useRawLocaleHref = pathnameLooksLikePost;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -136,14 +171,24 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 )}
               </button>
             )}
-            <Link
-              href={localeSwitchHref}
-              locale={alternateLocale}
-              className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
-              aria-label={t("language")}
-            >
-              {localeLabel}
-            </Link>
+            {useRawLocaleHref ? (
+              <a
+                href={localeSwitchHref}
+                className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
+                aria-label={t("language")}
+              >
+                {localeLabel}
+              </a>
+            ) : (
+              <Link
+                href={localeSwitchHref}
+                locale={localeSwitchLocale}
+                className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
+                aria-label={t("language")}
+              >
+                {localeLabel}
+              </Link>
+            )}
           </div>
 
           {/* Mobile: Theme Toggle + Language + Hamburger */}
@@ -163,14 +208,24 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 )}
               </button>
             )}
-            <Link
-              href={localeSwitchHref}
-              locale={alternateLocale}
-              className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
-              aria-label={t("language")}
-            >
-              {localeLabel}
-            </Link>
+            {useRawLocaleHref ? (
+              <a
+                href={localeSwitchHref}
+                className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
+                aria-label={t("language")}
+              >
+                {localeLabel}
+              </a>
+            ) : (
+              <Link
+                href={localeSwitchHref}
+                locale={localeSwitchLocale}
+                className="rounded-lg px-2.5 py-1.5 text-xs font-display font-bold uppercase tracking-widest text-gray-600 transition-all hover:bg-black/5 hover:text-peach dark:text-gray-400 dark:hover:bg-white/5"
+                aria-label={t("language")}
+              >
+                {localeLabel}
+              </Link>
+            )}
             <button
               className="p-2 rounded-lg text-gray-600 dark:text-gray-300"
               onClick={() => setIsOpen(!isOpen)}
@@ -202,14 +257,24 @@ export default function Navbar({ posts = [] }: { posts?: any[] }) {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href={localeSwitchHref}
-              locale={alternateLocale}
-              onClick={() => setIsOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            >
-              {t("language")}: {localeLabel}
-            </Link>
+            {useRawLocaleHref ? (
+              <a
+                href={localeSwitchHref}
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              >
+                {t("language")}: {localeLabel}
+              </a>
+            ) : (
+              <Link
+                href={localeSwitchHref}
+                locale={localeSwitchLocale}
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              >
+                {t("language")}: {localeLabel}
+              </Link>
+            )}
             <button
               onClick={() => {
                 setIsOpen(false);

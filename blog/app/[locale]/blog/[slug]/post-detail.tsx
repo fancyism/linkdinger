@@ -20,6 +20,7 @@ interface PostDetailProps {
   headings: TocItem[];
   related: Post[];
   adjacent: { prev: Post | null; next: Post | null };
+  shareUrl: string;
 }
 
 function formatPostDate(date: string, locale: string): string {
@@ -33,6 +34,7 @@ function formatPostDate(date: string, locale: string): string {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(parsedDate);
 }
 
@@ -51,6 +53,7 @@ export default function PostDetail({
   headings,
   related,
   adjacent,
+  shareUrl,
 }: PostDetailProps) {
   const t = useTranslations("PostDetail");
   const locale = useLocale();
@@ -164,7 +167,11 @@ export default function PostDetail({
             <span className="text-sm font-medium tracking-wide text-gray-500">
               {t("shareLabel")}
             </span>
-            <ShareButtons title={post.title} excerpt={post.excerpt} />
+            <ShareButtons
+              title={post.title}
+              excerpt={post.excerpt}
+              url={shareUrl}
+            />
           </div>
         </div>
 

@@ -63,7 +63,9 @@ function getAvailableLocaleDirectories(): string[] {
     .readdirSync(postsRootDirectory, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .filter((entry) => !entry.name.startsWith("."))
-    .filter((entry) => directoryHasMarkdownPosts(path.join(postsRootDirectory, entry.name)))
+    .filter((entry) =>
+      directoryHasMarkdownPosts(path.join(postsRootDirectory, entry.name)),
+    )
     .map((entry) => entry.name)
     .sort();
 }
@@ -110,9 +112,7 @@ function inferLocaleFromPath(
   return fallbackLocale;
 }
 
-function normalizeDate(
-  value: string | Date | undefined,
-): string | undefined {
+function normalizeDate(value: string | Date | undefined): string | undefined {
   if (!value) {
     return undefined;
   }
@@ -149,7 +149,10 @@ function readPostFile(filePath: string, localeHint?: string): Post {
     String(data.slug || path.basename(filePath, path.extname(filePath))),
   ).replace(/\.md$/, "");
   const locale = String(
-    data.locale || inferLocaleFromPath(filePath, localeHint) || localeHint || defaultContentLocale,
+    data.locale ||
+      inferLocaleFromPath(filePath, localeHint) ||
+      localeHint ||
+      defaultContentLocale,
   );
   const translationKey = String(data.translationKey || slug);
 
@@ -187,7 +190,9 @@ function sortPosts(posts: Post[]): Post[] {
 function getPostsInScope(locale?: string): Post[] {
   const directory = resolvePostsDirectory(locale);
   const localeHint =
-    directory === postsRootDirectory ? locale || defaultContentLocale : path.basename(directory);
+    directory === postsRootDirectory
+      ? locale || defaultContentLocale
+      : path.basename(directory);
 
   return getPostsFromDirectory(directory, localeHint).filter(
     (post) => post.publish !== false,
@@ -206,7 +211,9 @@ function dedupePosts(posts: Post[]): Post[] {
 
 function getAllPostsAcrossLocales(): Post[] {
   const localeDirectories = getAvailableLocaleDirectories();
-  const localizedPosts = localeDirectories.flatMap((locale) => getAllPosts(locale));
+  const localizedPosts = localeDirectories.flatMap((locale) =>
+    getAllPosts(locale),
+  );
   const rootPosts = directoryHasMarkdownPosts(postsRootDirectory)
     ? getPostsFromDirectory(postsRootDirectory, defaultContentLocale).filter(
         (post) => post.publish !== false,
@@ -257,7 +264,9 @@ export function getRelatedPosts(
 
 export function getAllTags(locale?: string): string[] {
   const tagSet = new Set<string>();
-  getAllPosts(locale).forEach((post) => post.tags?.forEach((tag) => tagSet.add(tag)));
+  getAllPosts(locale).forEach((post) =>
+    post.tags?.forEach((tag) => tagSet.add(tag)),
+  );
   return Array.from(tagSet).sort();
 }
 
@@ -340,7 +349,8 @@ export function getPostTranslations(post: Post): Post[] {
 
   return sortPosts(
     getAllPostsAcrossLocales().filter(
-      (candidate) => (candidate.translationKey || candidate.slug) === translationKey,
+      (candidate) =>
+        (candidate.translationKey || candidate.slug) === translationKey,
     ),
   );
 }
@@ -362,6 +372,39 @@ export function getPostLanguageAlternates(
   );
 }
 
+export function getPostLocaleSwitchMap(): Record<string, string> {
+  const posts = getAllPostsAcrossLocales();
+  const postsByTranslationKey = new Map<string, Post[]>();
+
+  posts.forEach((post) => {
+    const key = post.translationKey || post.slug;
+    const existing = postsByTranslationKey.get(key) || [];
+    existing.push(post);
+    postsByTranslationKey.set(key, existing);
+  });
+
+  const switchMap: Record<string, string> = {};
+
+  postsByTranslationKey.forEach((translations) => {
+    translations.forEach((source) => {
+      const sourceLocale = source.locale || defaultContentLocale;
+
+      translations.forEach((target) => {
+        const targetLocale = target.locale || defaultContentLocale;
+
+        if (sourceLocale === targetLocale) {
+          return;
+        }
+
+        switchMap[`${sourceLocale}:${source.slug}`] =
+          getLocalizedPostPath(target);
+      });
+    });
+  });
+
+  return switchMap;
+}
+
 export function getPostXDefaultAlternate(
   slug: string,
   locale?: string,
@@ -374,7 +417,8 @@ export function getPostXDefaultAlternate(
   const translations = getPostTranslations(post);
   const canonicalLocale =
     post.canonicalLocale ||
-    translations.find((translation) => translation.canonicalLocale)?.canonicalLocale ||
+    translations.find((translation) => translation.canonicalLocale)
+      ?.canonicalLocale ||
     defaultContentLocale;
   const canonicalTranslation =
     translations.find(
