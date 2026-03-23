@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -36,16 +37,11 @@ export function CommandPalette({
           open={open}
           onOpenChange={setOpen}
           label={t("label")}
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] sm:pt-[20vh]"
+          className="w-full"
+          overlayClassName="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md"
+          contentClassName="fixed inset-0 z-[101] flex items-start justify-center px-4 pt-[15vh] sm:pt-[20vh]"
         >
-          {/* Backdrop Blur Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-md"
-            onClick={() => setOpen(false)}
-          />
+          <Dialog.Title className="sr-only">{t("label")}</Dialog.Title>
 
           {/* Modal Container */}
           <motion.div
@@ -53,13 +49,14 @@ export function CommandPalette({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-full max-w-[600px] px-4 relative z-10"
+            className="relative z-10 w-full max-w-[600px]"
           >
             {/* The Actual Command Palette using Liquid Glass Aesthetic */}
             <div className="overflow-hidden rounded-2xl glass-modal ring-1 ring-white/10 dark:ring-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:bg-slate-900/40 bg-white/40 backdrop-blur-2xl">
               <div className="flex items-center px-4 border-b border-black/10 dark:border-white/10">
                 <Search className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3 shrink-0" />
                 <Command.Input
+                  autoFocus
                   placeholder={t("placeholder")}
                   className="w-full h-14 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500 font-sans text-lg"
                 />
