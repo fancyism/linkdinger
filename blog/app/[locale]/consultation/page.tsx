@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Calendar, Clock, Video, Zap, ExternalLink } from "lucide-react";
+import TrackedExternalLink from "@/components/tracked-external-link";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -25,6 +26,7 @@ export default async function ConsultationPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "ConsultationPage" });
+  const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL || "#";
 
   return (
     <section className="py-16 px-4 sm:px-6 relative overflow-hidden min-h-screen">
@@ -127,10 +129,22 @@ export default async function ConsultationPage({ params }: PageProps) {
             </div>
 
             {/* Calendly button placeholder */}
-            <a
-              href="#"
+            <TrackedExternalLink
+              href={calendlyUrl}
+              event="consultation_click"
+              tracking={{
+                locale,
+                ctaId: "consultation_book",
+                placement: "consultation_page",
+              }}
               className="w-full block text-center bg-[#FF6B35] text-white hover:bg-[#FF8050] px-6 py-4 rounded-xl font-display font-bold uppercase tracking-wider text-sm transition-all group shadow-lg shadow-peach/20 hover:shadow-peach/40"
               aria-label={t("bookAriaLabel")}
+              target={calendlyUrl.startsWith("http") ? "_blank" : undefined}
+              rel={
+                calendlyUrl.startsWith("http")
+                  ? "noopener noreferrer"
+                  : undefined
+              }
             >
               <span className="flex items-center justify-center gap-2">
                 {t("bookCta")}{" "}
@@ -139,7 +153,7 @@ export default async function ConsultationPage({ params }: PageProps) {
                   className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
                 />
               </span>
-            </a>
+            </TrackedExternalLink>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { encodeViewCountKey, parseViewCount } from "@/lib/view-counts";
+import { fetchUpstashJson, getUpstashRestConfig } from "@/lib/upstash";
 
 export const dynamic = "force-dynamic";
 
@@ -13,31 +14,23 @@ export async function GET(
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
     }
 
-    const url =
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL ||
-      process.env.UPSTASH_REDIS_REST_URL;
-    const token =
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN ||
-      process.env.UPSTASH_REDIS_REST_TOKEN;
+    const { url, token } = getUpstashRestConfig();
 
     if (!url || !token) {
       console.warn("Upstash Redis credentials are not configured.");
       return NextResponse.json({ views: 0 }, { status: 200 });
     }
 
-    const res = await fetch(`${url}/get/${encodeViewCountKey(slug)}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      next: { revalidate: 0 },
-    });
+    const data = await fetchUpstashJson<{ result: unknown }>(
+      `/get/${encodeViewCountKey(slug)}`,
+      { revalidate: 0 },
+    );
 
-    if (!res.ok) {
-      console.error("Failed to get views from Upstash", await res.text());
+    if (!data) {
+      console.error("Failed to get views from Upstash");
       return NextResponse.json({ views: 0 }, { status: 200 });
     }
 
-    const data = await res.json();
     const currentViews = parseViewCount(data.result);
 
     return NextResponse.json({ views: currentViews }, { status: 200 });
@@ -57,31 +50,23 @@ export async function POST(
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
     }
 
-    const url =
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL ||
-      process.env.UPSTASH_REDIS_REST_URL;
-    const token =
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN ||
-      process.env.UPSTASH_REDIS_REST_TOKEN;
+    const { url, token } = getUpstashRestConfig();
 
     if (!url || !token) {
       console.warn("Upstash Redis credentials are not configured.");
       return NextResponse.json({ views: 0 }, { status: 200 });
     }
 
-    const res = await fetch(`${url}/incr/${encodeViewCountKey(slug)}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      method: "POST",
-    });
+    const data = await fetchUpstashJson<{ result: unknown }>(
+      `/incr/${encodeViewCountKey(slug)}`,
+      { method: "POST" },
+    );
 
-    if (!res.ok) {
-      console.error("Failed to increment views in Upstash", await res.text());
+    if (!data) {
+      console.error("Failed to increment views in Upstash");
       return NextResponse.json({ views: 0 }, { status: 200 });
     }
 
-    const data = await res.json();
     const currentViews = parseViewCount(data.result);
 
     return NextResponse.json({ views: currentViews }, { status: 200 });

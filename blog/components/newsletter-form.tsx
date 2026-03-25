@@ -2,8 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
-export default function NewsletterForm() {
+export default function NewsletterForm({
+  placement = "newsletter_form",
+}: {
+  placement?: string;
+}) {
   const t = useTranslations("Newsletter");
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -18,6 +23,11 @@ export default function NewsletterForm() {
       target="popupwindow"
       onSubmit={() => {
         setStatus("submitting");
+        trackAnalyticsEvent({
+          event: "email_opt_in",
+          ctaId: placement,
+          placement,
+        });
         window.open(
           `https://buttondown.com/${buttondownUsername}`,
           "popupwindow",

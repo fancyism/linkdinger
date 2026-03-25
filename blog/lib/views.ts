@@ -4,20 +4,14 @@ import {
   buildViewCountKeysPath,
   parseViewCount,
 } from "./view-counts";
+import { fetchUpstashJson, getUpstashRestConfig } from "./upstash";
 
 export interface PopularPost extends Post {
   _views: number;
 }
 
 function getUpstashViewConfig(): { url?: string; token?: string } {
-  return {
-    url:
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL ||
-      process.env.UPSTASH_REDIS_REST_URL,
-    token:
-      process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN ||
-      process.env.UPSTASH_REDIS_REST_TOKEN,
-  };
+  return getUpstashRestConfig();
 }
 
 function sortPostsByViews<T extends { _views: number }>(posts: T[]): T[] {
@@ -34,19 +28,15 @@ export async function getViewCountsBySlug(
   }
 
   try {
-    const response = await fetch(
-      `${url}/mget/${buildViewCountKeysPath(slugs)}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        next: { revalidate: 3600 },
-      },
+    const data = await fetchUpstashJson<{ result: unknown[] }>(
+      `/mget/${buildViewCountKeysPath(slugs)}`,
+      { revalidate: 3600 },
     );
 
-    if (!response.ok) {
+    if (!data) {
       return {};
     }
 
-    const data = await response.json();
     const counts = Array.isArray(data.result) ? data.result : [];
 
     return Object.fromEntries(

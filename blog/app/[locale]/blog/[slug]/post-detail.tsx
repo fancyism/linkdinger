@@ -13,6 +13,7 @@ import type { Post, TocItem } from "@/lib/posts";
 import ViewCounter from "@/components/view-counter";
 import GiscusComments from "@/components/giscus-comments";
 import SeriesNav from "@/components/series-nav";
+import ArticleAttribution from "@/components/article-attribution";
 
 interface PostDetailProps {
   post: Post;
@@ -64,6 +65,12 @@ export default function PostDetail({
 
   return (
     <>
+      <ArticleAttribution
+        slug={post.slug}
+        locale={locale}
+        category={post.category}
+        title={post.title}
+      />
       <ReadingProgress />
 
       <section className="relative overflow-hidden border-b border-white/10 px-4 pt-14 pb-10 sm:px-6 lg:pt-20 lg:pb-14 dark:border-white/10">
