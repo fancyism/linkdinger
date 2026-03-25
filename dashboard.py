@@ -8,28 +8,41 @@ Phase 3: Activity log, content freshness scoring, git history,
          Upstash usage monitor, system diagnostics.
 """
 
+import glob
+import json
+import logging
 import os
 import re
-import json
-import glob
-import threading
-import logging
 import subprocess
+import threading
+from collections import Counter, deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from collections import Counter, deque
+from urllib.parse import quote
 
-import yaml  # type: ignore[import-untyped]
-import requests  # type: ignore[import-untyped]
 import boto3  # type: ignore[import-untyped]
-from flask import Flask, jsonify, Response, request as flask_request  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped]
+import yaml  # type: ignore[import-untyped]
 from dotenv import load_dotenv  # type: ignore[import-untyped]
+from flask import Flask, Response, jsonify  # type: ignore[import-untyped]
+from flask import request as flask_request
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+ANALYTICS_METRICS = (
+    "cta_clicks",
+    "affiliate_clicks",
+    "email_opt_ins",
+    "consultation_clicks",
+    "consultation_submits",
+    "consultation_bookings",
+    "estimated_revenue_cents",
+    "realized_revenue_cents",
+)
 
 # ─── Shared State (set by linkdinger.py) ────────────────────────
 from typing import Any, Optional
@@ -49,12 +62,14 @@ _activity_log = deque(maxlen=100)
 
 def log_activity(event_type: str, message: str, details: str = ""):
     """Add an event to the activity log."""
-    _activity_log.appendleft({
-        "time": datetime.now().isoformat(),
-        "type": event_type,
-        "message": message,
-        "details": details,
-    })
+    _activity_log.appendleft(
+        {
+            "time": datetime.now().isoformat(),
+            "type": event_type,
+            "message": message,
+            "details": details,
+        }
+    )
 
 
 def set_daemon_state(**kwargs):
@@ -63,6 +78,7 @@ def set_daemon_state(**kwargs):
 
 
 # ─── Data Collectors ────────────────────────────────────────────
+
 
 def get_pipeline_status() -> dict[str, Any]:
     started: Optional[datetime] = _daemon_state.get("started_at")
@@ -93,7 +109,7 @@ def _parse_post_frontmatter(filepath: str) -> dict[str, Any]:
         end = content.find("---", 3)
         if end != -1:
             fm = yaml.safe_load(content[3:end]) or {}  # type: ignore[index]
-            body = content[end + 3:]  # type: ignore[index]
+            body = content[end + 3 :]  # type: ignore[index]
 
     # Word count
     words = len(body.split())
@@ -102,14 +118,17 @@ def _parse_post_frontmatter(filepath: str) -> dict[str, Any]:
     read_min = max(1, round(words / 200))
 
     # Check for images
-    image_urls: list[str] = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', body)
+    image_urls: list[str] = re.findall(r"!\[.*?\]\((https?://[^)]+)\)", body)
     # Also check coverImage
     cover: str = fm.get("coverImage", "")
     if cover and cover.startswith("http"):
         image_urls.insert(0, cover)
 
+    slug = str(fm.get("slug", os.path.splitext(os.path.basename(filepath))[0])).replace(".md", "")
+
     return {
         "filename": os.path.basename(filepath),
+        "slug": slug,
         "title": fm.get("title", os.path.basename(filepath).replace(".md", "")),
         "date": str(fm.get("date", ""))[:10],  # type: ignore[index]
         "category": fm.get("category", ""),
@@ -137,7 +156,7 @@ def get_content_audit() -> dict[str, Any]:
     total: int = 0
     healthy: int = 0
 
-    for md_file in sorted(glob.glob(os.path.join(posts_dir, "*.md"))):
+    for md_file in sorted(glob.glob(os.path.join(posts_dir, "**", "*.md"), recursive=True)):
         total += 1
         try:
             meta = _parse_post_frontmatter(md_file)
@@ -180,7 +199,7 @@ def get_content_audit() -> dict[str, Any]:
 
 def get_view_stats() -> dict:
     """Fetch view counts from Upstash Redis.
-    
+
     Uses page_views:* prefix to match the blog's view counter API.
     """
     url = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_URL")
@@ -201,7 +220,10 @@ def get_view_stats() -> dict:
 
         pipeline_body = [["MGET"] + keys]
         resp = requests.post(
-            f"{url}/pipeline", headers=headers, json=pipeline_body, timeout=5,
+            f"{url}/pipeline",
+            headers=headers,
+            json=pipeline_body,
+            timeout=5,
         )
         pipeline_data = resp.json()
         values = pipeline_data[0].get("result", []) if pipeline_data else []
@@ -230,12 +252,254 @@ def get_view_stats() -> dict:
         return {"total_views": 0, "posts": [], "error": str(e)}
 
 
+def _parse_counter(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _get_analytics_key(scope: str, metric: str, segment: str | None = None) -> str:
+    if scope == "site":
+        return f"analytics:site:{metric}"
+
+    if not segment:
+        raise ValueError(f"segment is required for analytics scope {scope}")
+
+    return f"analytics:{scope}:{quote(segment, safe='')}:{metric}"
+
+
+def _fetch_upstash_mget(keys: list[str]) -> list[Any]:
+    url = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_URL")
+    token = os.getenv("NEXT_PUBLIC_UPSTASH_REDIS_REST_TOKEN")
+
+    if not url or not token or not keys:
+        return []
+
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(
+        f"{url}/pipeline",
+        headers=headers,
+        json=[["MGET"] + keys],
+        timeout=5,
+    )
+    data = response.json()
+    if not data:
+        return []
+
+    return data[0].get("result", [])
+
+
+def get_article_analytics(posts: list[dict[str, Any]], views_map: dict[str, int]) -> dict:
+    if not posts:
+        return {
+            "totals": {
+                "views": 0,
+                "cta_clicks": 0,
+                "affiliate_clicks": 0,
+                "email_opt_ins": 0,
+                "consultation_clicks": 0,
+                "consultation_submits": 0,
+                "consultation_bookings": 0,
+                "estimated_revenue_cents": 0,
+                "realized_revenue_cents": 0,
+                "cta_ctr": 0,
+                "email_opt_in_rate": 0,
+                "consultation_rate": 0,
+                "monetized_articles": 0,
+            },
+            "top_articles": [],
+            "categories": [],
+        }
+
+    article_keys: list[str] = []
+    for post in posts:
+        slug = str(post.get("slug") or post.get("filename", "")).replace(".md", "")
+        if not slug:
+            continue
+        for metric in ANALYTICS_METRICS:
+            article_keys.append(_get_analytics_key("article", metric, slug))
+
+    article_values = _fetch_upstash_mget(article_keys)
+    article_counts = {
+        key: _parse_counter(value) for key, value in zip(article_keys, article_values)
+    }
+
+    totals = {
+        "views": 0,
+        "cta_clicks": 0,
+        "affiliate_clicks": 0,
+        "email_opt_ins": 0,
+        "consultation_clicks": 0,
+        "consultation_submits": 0,
+        "consultation_bookings": 0,
+        "estimated_revenue_cents": 0,
+        "realized_revenue_cents": 0,
+        "cta_ctr": 0,
+        "email_opt_in_rate": 0,
+        "consultation_rate": 0,
+        "monetized_articles": 0,
+    }
+    category_totals: dict[str, dict[str, Any]] = {}
+    articles: list[dict[str, Any]] = []
+
+    for post in posts:
+        slug = str(post.get("slug") or post.get("filename", "")).replace(".md", "")
+        if not slug:
+            continue
+
+        category = str(post.get("category") or "General")
+        metrics = {
+            metric: article_counts.get(_get_analytics_key("article", metric, slug), 0)
+            for metric in ANALYTICS_METRICS
+        }
+        views = views_map.get(slug, 0)
+        consultation_events = (
+            metrics["consultation_bookings"]
+            or metrics["consultation_submits"]
+            or metrics["consultation_clicks"]
+        )
+        tracked_article = any(
+            (
+                metrics["cta_clicks"],
+                metrics["affiliate_clicks"],
+                metrics["email_opt_ins"],
+                metrics["consultation_clicks"],
+                metrics["consultation_submits"],
+                metrics["consultation_bookings"],
+                metrics["estimated_revenue_cents"],
+                metrics["realized_revenue_cents"],
+            )
+        )
+
+        article = {
+            "slug": slug,
+            "title": post.get("title", slug),
+            "category": category,
+            "views": views,
+            "cta_clicks": metrics["cta_clicks"],
+            "affiliate_clicks": metrics["affiliate_clicks"],
+            "email_opt_ins": metrics["email_opt_ins"],
+            "consultation_clicks": metrics["consultation_clicks"],
+            "consultation_submits": metrics["consultation_submits"],
+            "consultation_bookings": metrics["consultation_bookings"],
+            "estimated_revenue_cents": metrics["estimated_revenue_cents"],
+            "realized_revenue_cents": metrics["realized_revenue_cents"],
+            "cta_ctr": round((metrics["cta_clicks"] / views) * 100, 2) if views else 0,
+            "email_opt_in_rate": round((metrics["email_opt_ins"] / views) * 100, 2) if views else 0,
+            "consultation_rate": round((consultation_events / views) * 100, 2) if views else 0,
+        }
+        articles.append(article)
+
+        totals["views"] += views
+        totals["cta_clicks"] += metrics["cta_clicks"]
+        totals["affiliate_clicks"] += metrics["affiliate_clicks"]
+        totals["email_opt_ins"] += metrics["email_opt_ins"]
+        totals["consultation_clicks"] += metrics["consultation_clicks"]
+        totals["consultation_submits"] += metrics["consultation_submits"]
+        totals["consultation_bookings"] += metrics["consultation_bookings"]
+        totals["estimated_revenue_cents"] += metrics["estimated_revenue_cents"]
+        totals["realized_revenue_cents"] += metrics["realized_revenue_cents"]
+        totals["monetized_articles"] += 1 if tracked_article else 0
+
+        category_entry = category_totals.setdefault(
+            category,
+            {
+                "category": category,
+                "views": 0,
+                "cta_clicks": 0,
+                "affiliate_clicks": 0,
+                "email_opt_ins": 0,
+                "consultation_clicks": 0,
+                "consultation_submits": 0,
+                "consultation_bookings": 0,
+                "estimated_revenue_cents": 0,
+                "realized_revenue_cents": 0,
+                "cta_ctr": 0,
+                "email_opt_in_rate": 0,
+                "consultation_rate": 0,
+            },
+        )
+        category_entry["views"] += views
+        category_entry["cta_clicks"] += metrics["cta_clicks"]
+        category_entry["affiliate_clicks"] += metrics["affiliate_clicks"]
+        category_entry["email_opt_ins"] += metrics["email_opt_ins"]
+        category_entry["consultation_clicks"] += metrics["consultation_clicks"]
+        category_entry["consultation_submits"] += metrics["consultation_submits"]
+        category_entry["consultation_bookings"] += metrics["consultation_bookings"]
+        category_entry["estimated_revenue_cents"] += metrics["estimated_revenue_cents"]
+        category_entry["realized_revenue_cents"] += metrics["realized_revenue_cents"]
+
+    if totals["views"]:
+        totals["cta_ctr"] = round((totals["cta_clicks"] / totals["views"]) * 100, 2)
+        totals["email_opt_in_rate"] = round((totals["email_opt_ins"] / totals["views"]) * 100, 2)
+        consultation_events = (
+            totals["consultation_bookings"]
+            or totals["consultation_submits"]
+            or totals["consultation_clicks"]
+        )
+        totals["consultation_rate"] = round((consultation_events / totals["views"]) * 100, 2)
+
+    categories = []
+    for category_entry in category_totals.values():
+        category_views = category_entry["views"]
+        consultation_events = (
+            category_entry["consultation_bookings"]
+            or category_entry["consultation_submits"]
+            or category_entry["consultation_clicks"]
+        )
+        category_entry["cta_ctr"] = (
+            round((category_entry["cta_clicks"] / category_views) * 100, 2) if category_views else 0
+        )
+        category_entry["email_opt_in_rate"] = (
+            round((category_entry["email_opt_ins"] / category_views) * 100, 2)
+            if category_views
+            else 0
+        )
+        category_entry["consultation_rate"] = (
+            round((consultation_events / category_views) * 100, 2) if category_views else 0
+        )
+        categories.append(category_entry)
+
+    top_articles = sorted(
+        articles,
+        key=lambda article: (
+            article["realized_revenue_cents"],
+            article["estimated_revenue_cents"],
+            article["consultation_bookings"],
+            article["affiliate_clicks"],
+            article["cta_clicks"],
+            article["views"],
+        ),
+        reverse=True,
+    )[:12]
+    categories.sort(
+        key=lambda category: (
+            category["realized_revenue_cents"],
+            category["estimated_revenue_cents"],
+            category["consultation_bookings"],
+            category["cta_clicks"],
+            category["views"],
+        ),
+        reverse=True,
+    )
+
+    return {
+        "totals": totals,
+        "top_articles": top_articles,
+        "categories": categories[:12],
+    }
+
+
 def get_git_status() -> dict:
     """Get current git status."""
     try:
         result = subprocess.run(
             ["git", "status", "--porcelain"],
-            capture_output=True, text=True, timeout=10, cwd=os.getcwd(),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.getcwd(),
         )
         changes = len([l for l in result.stdout.strip().split("\n") if l.strip()])
         return {"pending_changes": changes, "clean": changes == 0}
@@ -255,8 +519,10 @@ def get_r2_stats() -> dict:
 
     try:
         client = boto3.client(
-            "s3", endpoint_url=endpoint,
-            aws_access_key_id=access, aws_secret_access_key=secret,
+            "s3",
+            endpoint_url=endpoint,
+            aws_access_key_id=access,
+            aws_secret_access_key=secret,
         )
         paginator = client.get_paginator("list_objects_v2")
         total_objects: int = 0
@@ -323,7 +589,7 @@ def get_broken_images() -> list:
             with open(md_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            urls = re.findall(r'!\[.*?\]\((https?://[^)]+)\)', content)
+            urls = re.findall(r"!\[.*?\]\((https?://[^)]+)\)", content)
             # Also check coverImage in frontmatter
             if content.startswith("---"):
                 end = content.find("---", 3)
@@ -352,7 +618,10 @@ def get_git_history(limit: int = 20) -> list:
     try:
         result = subprocess.run(
             ["git", "log", f"-{limit}", "--pretty=format:%H|%h|%s|%an|%ar|%ai"],
-            capture_output=True, text=True, timeout=10, cwd=os.getcwd(),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.getcwd(),
         )
         commits = []
         for line in result.stdout.strip().split("\n"):
@@ -360,14 +629,16 @@ def get_git_history(limit: int = 20) -> list:
                 continue
             parts = line.split("|")
             if len(parts) >= 6:
-                commits.append({
-                    "hash": parts[0][:8],  # type: ignore[index]
-                    "short": parts[1],
-                    "message": parts[2],
-                    "author": parts[3],
-                    "ago": parts[4],
-                    "date": parts[5][:10],  # type: ignore[index]
-                })
+                commits.append(
+                    {
+                        "hash": parts[0][:8],  # type: ignore[index]
+                        "short": parts[1],
+                        "message": parts[2],
+                        "author": parts[3],
+                        "ago": parts[4],
+                        "date": parts[5][:10],  # type: ignore[index]
+                    }
+                )
         return commits
     except Exception:
         return []
@@ -394,23 +665,33 @@ def get_content_freshness(posts: list, views_map: dict) -> list:
         age_score = min(50, age_days // 7)
         view_score = 30 if views == 0 else (20 if views < 5 else (10 if views < 20 else 0))
         meta_score = 0
-        if not p.get("has_cover"): meta_score += 5
-        if not p.get("has_tags"): meta_score += 5
-        if not p.get("has_excerpt"): meta_score += 5
-        if not p.get("has_category"): meta_score += 5
+        if not p.get("has_cover"):
+            meta_score += 5
+        if not p.get("has_tags"):
+            meta_score += 5
+        if not p.get("has_excerpt"):
+            meta_score += 5
+        if not p.get("has_category"):
+            meta_score += 5
 
         total = min(100, age_score + view_score + meta_score)
 
-        label = "Fresh" if total < 25 else ("OK" if total < 50 else ("Aging" if total < 75 else "Stale"))
+        label = (
+            "Fresh"
+            if total < 25
+            else ("OK" if total < 50 else ("Aging" if total < 75 else "Stale"))
+        )
 
-        scored.append({
-            "filename": p["filename"],
-            "title": p["title"],
-            "score": total,
-            "label": label,
-            "age_days": age_days,
-            "views": views,
-        })
+        scored.append(
+            {
+                "filename": p["filename"],
+                "title": p["title"],
+                "score": total,
+                "label": label,
+                "age_days": age_days,
+                "views": views,
+            }
+        )
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored
@@ -459,6 +740,7 @@ def get_upstash_usage() -> dict:
 
 # ─── API Routes ─────────────────────────────────────────────────
 
+
 @app.route("/api/status")
 def api_status():
     content = get_content_audit()
@@ -467,18 +749,22 @@ def api_status():
     # Build views lookup for freshness
     views_map = {p["slug"]: p["views"] for p in views.get("posts", [])}
     freshness = get_content_freshness(content.get("posts", []), views_map)
+    analytics = get_article_analytics(content.get("posts", []), views_map)
 
-    return jsonify({
-        "pipeline": get_pipeline_status(),
-        "content": content,
-        "views": views,
-        "git": get_git_status(),
-        "r2": get_r2_stats(),
-        "heatmap": get_publishing_heatmap(),
-        "freshness": freshness,
-        "upstash": get_upstash_usage(),
-        "timestamp": datetime.now().isoformat(),
-    })
+    return jsonify(
+        {
+            "pipeline": get_pipeline_status(),
+            "content": content,
+            "views": views,
+            "analytics": analytics,
+            "git": get_git_status(),
+            "r2": get_r2_stats(),
+            "heatmap": get_publishing_heatmap(),
+            "freshness": freshness,
+            "upstash": get_upstash_usage(),
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
 
 
 @app.route("/api/broken-images")
@@ -501,6 +787,7 @@ def api_activity_log():
 def action_sync():
     try:
         from content_sync import SyncConfig, sync_all  # type: ignore[import]
+
         cfg = SyncConfig()
         count = sync_all(cfg)
         return jsonify({"success": True, "synced": count})
@@ -908,6 +1195,46 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
         <button class="btn" onclick="scanImages()">🔍 Scan Images</button>
       </div>
     </div>
+
+    <div class="glass full-width">
+      <div class="section-header">
+        <h2>Article Analytics</h2>
+        <span class="badge-sm" style="color:var(--text-muted)" id="analytics-count-badge">0 tracked posts</span>
+      </div>
+      <div class="grid-5" style="margin-bottom:16px">
+        <div class="stat-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div class="value" id="stat-cta-ctr">0%</div>
+          <div class="label">CTA CTR</div>
+        </div>
+        <div class="stat-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div class="value" id="stat-email-rate">0%</div>
+          <div class="label">Email Rate</div>
+        </div>
+        <div class="stat-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div class="value" id="stat-consults">0</div>
+          <div class="label">Booked Consults</div>
+        </div>
+        <div class="stat-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div class="value" id="stat-analytics-revenue">$0.00</div>
+          <div class="label">Est. Revenue</div>
+        </div>
+        <div class="stat-card" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div class="value" id="stat-realized-revenue">$0.00</div>
+          <div class="label">Realized Revenue</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Article</th><th>Category</th><th>Views</th><th>CTA CTR</th>
+              <th>Affiliate</th><th>Email</th><th>Booked</th><th>Est. Revenue</th><th>Realized</th>
+            </tr>
+          </thead>
+          <tbody id="analytics-rows"><tr><td colspan="9" class="empty-state">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════ TAB 2: CONTENT ═══════ -->
@@ -1087,6 +1414,7 @@ function render(d) {
   // Build views lookup
   const viewsMap = {};
   v.posts.forEach(p => viewsMap[p.slug] = p.views);
+  const formatMoney = (cents) => `$${((Number(cents) || 0) / 100).toFixed(2)}`;
 
   // R2
   const r = d.r2;
@@ -1124,7 +1452,7 @@ function render(d) {
   // Post Inventory
   const posts = (c.posts||[]).sort((a,b) => b.date.localeCompare(a.date));
   document.getElementById('post-rows').innerHTML = posts.map(p => {
-    const slug = p.filename.replace('.md','');
+    const slug = p.slug || p.filename.replace('.md','');
     const pv = viewsMap[slug] || 0;
     // Find freshness for this post
     const fr = (d.freshness||[]).find(f => f.filename === p.filename);
@@ -1162,6 +1490,34 @@ function render(d) {
       <span class="slug" style="min-width:140px">${i.file}</span>
       <div>${i.problems.map(p=>'<span class="tag-sm issue-tag">'+p+'</span>').join(' ')}</div>
     </div>`).join('');
+  }
+
+  // Article Analytics
+  const analytics = d.analytics || {};
+  const analyticsTotals = analytics.totals || {};
+  document.getElementById('stat-cta-ctr').textContent = `${(analyticsTotals.cta_ctr || 0).toFixed(2)}%`;
+  document.getElementById('stat-email-rate').textContent = `${(analyticsTotals.email_opt_in_rate || 0).toFixed(2)}%`;
+  document.getElementById('stat-consults').textContent = (analyticsTotals.consultation_bookings || 0).toLocaleString();
+  document.getElementById('stat-analytics-revenue').textContent = formatMoney(analyticsTotals.estimated_revenue_cents || 0);
+  document.getElementById('stat-realized-revenue').textContent = formatMoney(analyticsTotals.realized_revenue_cents || 0);
+  document.getElementById('analytics-count-badge').textContent = `${analyticsTotals.monetized_articles || 0} tracked posts`;
+
+  const analyticsRows = document.getElementById('analytics-rows');
+  const topAnalyticsArticles = analytics.top_articles || [];
+  if (!topAnalyticsArticles.length) {
+    analyticsRows.innerHTML = '<tr><td colspan="9" class="empty-state">No monetization events yet</td></tr>';
+  } else {
+    analyticsRows.innerHTML = topAnalyticsArticles.map(article => `<tr>
+      <td style="max-width:220px"><span style="font-size:12px;font-weight:500">${article.title}</span><div class="slug" style="font-size:10px;margin-top:2px">${article.slug}</div></td>
+      <td><span class="tag-sm">${article.category || 'â€”'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px">${(article.views || 0).toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${(article.cta_ctr || 0).toFixed(2)}%</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${(article.affiliate_clicks || 0).toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${(article.email_opt_ins || 0).toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${(article.consultation_bookings || 0).toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${formatMoney(article.estimated_revenue_cents || 0)}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${formatMoney(article.realized_revenue_cents || 0)}</td>
+    </tr>`).join('');
   }
 
   // Git
@@ -1296,6 +1652,7 @@ def dashboard():
 
 def start_dashboard(host="127.0.0.1", port=9999):
     """Start dashboard in a background thread."""
+
     def run():
         log = logging.getLogger("werkzeug")
         log.setLevel(logging.WARNING)

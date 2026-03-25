@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Post } from "@/lib/posts";
 
@@ -12,30 +13,33 @@ interface SeriesNavProps {
 }
 
 export default function SeriesNav({ adjacent }: SeriesNavProps) {
-  if (!adjacent.prev && !adjacent.next) return null;
+  const t = useTranslations("SeriesNav");
+
+  if (!adjacent.prev && !adjacent.next) {
+    return null;
+  }
 
   return (
-    <div className="border-t border-white/5 py-6 my-6 relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 glass text-[0.6rem] font-display tracking-widest text-[#FF6B35] uppercase rounded-full whitespace-nowrap">
-        Keep Reading
+    <div className="relative my-6 border-t border-white/5 py-6">
+      <div className="glass absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full px-3 text-[0.6rem] font-display uppercase tracking-widest whitespace-nowrap text-[#FF6B35]">
+        {t("keepReading")}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-        {/* Previous (Older) Post */}
+      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           {adjacent.prev ? (
             <Link
               href={`/blog/${encodeURIComponent(adjacent.prev.slug)}`}
-              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all"
+              className="glass-card group flex w-full flex-col gap-1.5 rounded-xl p-4 transition-all hover:border-[#FF6B35]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 active:scale-[0.98]"
             >
-              <span className="text-[0.65rem] font-display text-gray-500 uppercase flex items-center gap-1 group-hover:text-[#FF6B35] transition-colors">
+              <span className="flex items-center gap-1 text-[0.65rem] font-display uppercase text-gray-500 transition-colors group-hover:text-[#FF6B35]">
                 <ArrowLeft
                   size={11}
-                  className="group-hover:-translate-x-0.5 transition-transform"
+                  className="transition-transform group-hover:-translate-x-0.5"
                 />
-                Previous
+                {t("previous")}
               </span>
-              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white transition-colors">
+              <span className="line-clamp-2 text-sm leading-snug text-gray-700 transition-colors group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
                 {adjacent.prev.title}
               </span>
             </Link>
@@ -44,21 +48,20 @@ export default function SeriesNav({ adjacent }: SeriesNavProps) {
           )}
         </div>
 
-        {/* Next (Newer) Post */}
         <div>
           {adjacent.next ? (
             <Link
               href={`/blog/${encodeURIComponent(adjacent.next.slug)}`}
-              className="group flex flex-col gap-1.5 p-4 w-full rounded-xl glass-card hover:border-[#FF6B35]/30 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 transition-all items-end text-right"
+              className="glass-card group flex w-full flex-col items-end gap-1.5 rounded-xl p-4 text-right transition-all hover:border-[#FF6B35]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/50 active:scale-[0.98]"
             >
-              <span className="text-[0.65rem] font-display text-gray-500 uppercase flex items-center gap-1 group-hover:text-[#FF6B35] transition-colors">
-                Next
+              <span className="flex items-center gap-1 text-[0.65rem] font-display uppercase text-gray-500 transition-colors group-hover:text-[#FF6B35]">
+                {t("next")}
                 <ArrowRight
                   size={11}
-                  className="group-hover:translate-x-0.5 transition-transform"
+                  className="transition-transform group-hover:translate-x-0.5"
                 />
               </span>
-              <span className="font-medium text-sm leading-snug line-clamp-2 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white transition-colors">
+              <span className="line-clamp-2 text-sm leading-snug text-gray-700 transition-colors group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
                 {adjacent.next.title}
               </span>
             </Link>

@@ -1,0 +1,221 @@
+const messages = {
+  HomePage: {
+    latestEntry: "Latest entry",
+    welcomePrefix: "Welcome to",
+    welcomeDescription:
+      "AI-powered tools and thoughts. Start writing in Obsidian to see your posts here.",
+    categoriesLabel: "Categories:",
+    trendingTitle: "Trending Now",
+    trendingSubtitle: "Top Charts",
+  },
+  PaginatedHomePage: {
+    newsletterTitle: "Stay in the loop",
+    newsletterBody:
+      "Get notified when I publish something new. No spam, unsubscribe anytime.",
+  },
+  Navbar: {
+    home: "Home",
+    blog: "Blog",
+    products: "Products",
+    consultation: "Consultation",
+    about: "About",
+    search: "Search",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    toggleTheme: "Toggle theme",
+    switchToLight: "Switch to light theme",
+    switchToDark: "Switch to dark theme",
+    language: "Language",
+    english: "EN",
+    thai: "TH",
+  },
+  Footer: {
+    tagline:
+      "AI-powered tools and thoughts. Every commit lands on GitHub for you to fork and remix. Built with obsession.",
+    navigate: "Navigate",
+    connect: "Connect",
+    home: "Home",
+    blog: "Blog",
+    products: "Products",
+    consultation: "Consultation",
+    about: "About",
+    search: "Search",
+    copyright: "Copyright {year} Linkdinger. Built with Next.js.",
+    aesthetic: "Dark Glassmorphism / Peach Fuzz #FF6B35",
+  },
+  Newsletter: {
+    emailPlaceholder: "your@email.com",
+    emailLabel: "Email for newsletter",
+    subscribe: "Subscribe",
+    subscribed: "Subscribed!",
+  },
+  CommandPalette: {
+    label: "Global Command Menu",
+    placeholder: "What are you looking for?",
+    empty: "No results found.",
+    navigation: "Navigation",
+    goHome: "Go to Home",
+    goBlog: "Go to Blog",
+    posts: "Blog Posts",
+  },
+  SearchPage: {
+    title: "Search",
+    description: "Find posts by title, content, or tag",
+    metaDescription: "Search through all blog posts",
+  },
+  SearchClient: {
+    placeholder: "Search posts by title, content, or tag...",
+    ariaLabel: "Search posts",
+    results: '{count, plural, one {# result} other {# results}} for "{query}"',
+    noResultsTitle: 'No results for "{query}"',
+    noResultsHint: "Try different keywords or check the spelling.",
+    idleTitle: "Start typing to search through all posts.",
+  },
+  BlogPage: {
+    title: "Blog",
+    description:
+      "{count, plural, one {# post} other {# posts}} - Thoughts, tutorials, and explorations",
+    metaDescription: "Thoughts, tutorials, and explorations",
+  },
+  BlogClient: {
+    all: "All",
+    searchPlaceholder: "Search posts...",
+    clearSearch: "Clear search",
+    sortBy: "Sort by:",
+    latest: "Latest",
+    popular: "Popular",
+    noPosts: "No posts yet.",
+    noPostsInCategory: 'No posts in category "{category}"',
+    viewAllPosts: "View all posts",
+    noPostsHint: "Add markdown files to content/posts/ to get started.",
+  },
+  TagCloud: {
+    title: "Popular Tags",
+    showLess: "Show less",
+    viewAll: "View all {count} tags",
+    more: "+{count} more",
+  },
+  Pagination: {
+    previous: "Previous",
+    next: "Next",
+    summary: "Page {current} of {total}",
+  },
+  AboutPage: {
+    title: "About",
+    metaDescription:
+      "Deep in vibe-coding mode, tinkering with shiny web tech and chasing fresh ideas.",
+    introTitle: "Hi, I'm Affan",
+    location: "Bangkok / The Internet",
+    introLead:
+      "Deep in vibe-coding mode, tinkering with shiny web tech and chasing fresh ideas.",
+    introBody:
+      "After years of building standard software, the modern web feels like a canvas for magical experiences. I build what excites me and release it all as open source, learning in public and documenting the journey.",
+    githubActivity: "GitHub Activity",
+    followGithub: "Follow @fancyism",
+    newsletterTitle: "Stay in the loop",
+    newsletterBody:
+      "New posts, shipping stories, and nerdy links straight to your inbox.",
+    newsletterMeta: "Twice a month, pure signal, zero fluff.",
+    personDescription:
+      "Deep in vibe-coding mode, tinkering with shiny web tech and chasing fresh ideas.",
+    jobTitle: "Software Engineer & AI Enthusiast",
+  },
+  ProductsPage: {
+    title: "Digital Products",
+    metaDescription:
+      "Premium AI tools, prompt templates, and resources for vibe-coders.",
+    heroTitlePrefix: "Digital",
+    heroTitleHighlight: "Products",
+    heroDescription:
+      "Level up your workflow with premium templates, guides, and tools built specifically for AI-native developers.",
+    badgeBestseller: "Bestseller",
+    badgeNew: "New",
+    freePrice: "Free",
+    downloadNow: "Download now",
+    getAccess: "Get access",
+    product1Title: "Mastering AI Coding Prompts",
+    product1Description:
+      "A 50-page guide plus 20 copy-paste templates for Claude 3.5 Sonnet and GPT-4o. Learn to vibe-code like a senior engineer.",
+    product2Title: "Next.js Glassmorphism UI Kit",
+    product2Description:
+      "The exact React and Tailwind components used to build this blog. More than 10 premium animated components ready for your next project.",
+    product3Title: "Cursor + Windsurf Setup Guide",
+    product3Description:
+      "My complete configuration files, custom rules, and workflow hacks for dual-wielding the best AI IDEs.",
+  },
+  ConsultationPage: {
+    title: "Consultation",
+    metaDescription:
+      "Book a 1-on-1 session to level up your AI workflow or Next.js architecture.",
+    heroTitlePrefix: "1-on-1",
+    heroTitleHighlight: "Consultation",
+    heroDescription:
+      "Stuck on an AI implementation? Need architectural advice for your Next.js app? Let's pair program and solve it together.",
+    howItWorksTitle: "How it works",
+    step1Title: "Book a slot",
+    step1Body:
+      "Choose a time that works for you via Calendly. Payments are securely handled via Stripe.",
+    step2Title: "Share your context",
+    step2Body:
+      "Answer a few quick questions about what you want to achieve so I can prepare.",
+    step3Title: "Vibe-coding time",
+    step3Body:
+      "We jump on Google Meet, screen share, and crack the problem together.",
+    pricingBadge: "Most Popular",
+    pricingTitle: "Strategy & Pairing",
+    pricingPeriod: "/ hour",
+    featureSession: "60-minute focused session",
+    featureMeet: "Recorded Google Meet",
+    featureNotes: "Actionable post-session notes",
+    bookCta: "Book your session",
+    bookAriaLabel: "Book via Calendly",
+  },
+  PostPage: {
+    notFound: "Post not found",
+    breadcrumbHome: "Home",
+    breadcrumbBlog: "Blog",
+  },
+  PostDetail: {
+    backToIndex: "Back to index",
+    readTime: "{minutes} min read",
+    readSuffix: "read",
+    less: "less",
+    shareLabel: "Share this post",
+    relatedPosts: "Related posts",
+    moreTags: "+{count}",
+  },
+  SeriesNav: {
+    keepReading: "Keep Reading",
+    previous: "Previous",
+    next: "Next",
+  },
+  ShareButtons: {
+    share: "Share",
+    copy: "Copy",
+    copyLink: "Copy link",
+    shared: "Shared!",
+    shareOnTwitter: "Share on X",
+    shareOnLinkedIn: "Share on LinkedIn",
+    shareOnFacebook: "Share on Facebook",
+    shareOnLine: "Share on Line",
+    tweet: "Post",
+    networkShare: "Share",
+    facebook: "Facebook",
+    line: "Line",
+  },
+  TableOfContents: {
+    ariaLabel: "Table of contents",
+    title: "On this page",
+  },
+  ViewCounter: {
+    views: "{count, plural, one {# view} other {# views}}",
+  },
+  TagPage: {
+    title: 'Posts tagged "{tag}"',
+    description: "All blog posts tagged with {tag}",
+    backToBlog: "Back to blog",
+    count: "{count, plural, one {# post} other {# posts}}",
+  },
+} as const;
+
+export default messages;

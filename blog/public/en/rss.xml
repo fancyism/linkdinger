@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linkdinger - AI Tools &amp; Thoughts</title>
+    <link>http://localhost:3000/en/</link>
+    <description>AI-powered tools and thoughts. Every commit lands on GitHub for you to fork and remix.</description>
+    <language>en</language>
+    <lastBuildDate>Wed, 25 Mar 2026 11:38:19 GMT</lastBuildDate>
+    <atom:link href="http://localhost:3000/en/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>From Vibe Coder to Context Engineer: A Guide to Becoming a Full-Fledged AI Controller</title>
+      <link>http://localhost:3000/en/blog/context-engineer/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/context-engineer/</guid>
+      <description>It&apos;s not just about typing long prompts, but the art of context management. How Context Engineers leverage data to drive technology and strategically plan AI sales.</description>
+      <pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>Experimenting with Dark Glassmorphism in Next.js</title>
+      <link>http://localhost:3000/en/blog/dark-glassmorphism-nextjs/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/dark-glassmorphism-nextjs/</guid>
+      <description>Let&apos;s explore how the translucent UI design trend transforms into a mysterious and premium look when adapted to Dark Mode, complete with code examples to experiment with.</description>
+      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Design</category>
+    </item>
+    <item>
+      <title>Building a Smart Blog with Dark Glassmorphism</title>
+      <link>http://localhost:3000/en/blog/hello-world/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/hello-world/</guid>
+      <description>How I built a dual-theme blog with Obsidian CMS integration, Cloudflare R2 image pipeline, and award-winning design patterns.</description>
+      <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>The Rise of Autonomous AI Agents</title>
+      <link>http://localhost:3000/en/blog/ai-agents-future/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/ai-agents-future/</guid>
+      <description>How AI agents are moving from simple chatbots to autonomous systems that can code, design, and orchestrate complex workflows.</description>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>Why Neubrutalism is Taking Over the Web</title>
+      <link>http://localhost:3000/en/blog/neubrutalism-ui/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/neubrutalism-ui/</guid>
+      <description>Exploring the anti-design movement characterized by high-contrast colors, harsh shadows, and unapologetic typography.</description>
+      <pubDate>Tue, 24 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Design</category>
+    </item>
+    <item>
+      <title>Mastering Next.js Server Components</title>
+      <link>http://localhost:3000/en/blog/nextjs-server-components/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/nextjs-server-components/</guid>
+      <description>A deep dive into how React Server Components change the way we architect web applications for maximum performance.</description>
+      <pubDate>Sun, 22 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Tech</category>
+    </item>
+    <item>
+      <title>Replacing conventional CMS with Obsidian</title>
+      <link>http://localhost:3000/en/blog/obsidian-as-cms/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/obsidian-as-cms/</guid>
+      <description>Why I stopped dealing with cluttered database-driven CMS platforms and moved my entire publishing workflow to local markdown files.</description>
+      <pubDate>Sun, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Productivity</category>
+    </item>
+    <item>
+      <title>The Art of Vibe Coding</title>
+      <link>http://localhost:3000/en/blog/the-art-of-vibe-coding/</link>
+      <guid isPermaLink="true">http://localhost:3000/en/blog/the-art-of-vibe-coding/</guid>
+      <description>Coding is no longer just about logic and algorithms. It&apos;s about flow state, aesthetics, and building systems that feel alive.</description>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <category>Thoughts</category>
+    </item>
+  </channel>
+</rss>

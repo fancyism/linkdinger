@@ -30,3 +30,18 @@ publish:
 
 blog:
   content_dir: "blog/content/posts"
+
+translation:
+  enabled: true
+  provider: "gemini"
+  model: "gemini-2.5-flash"
+  api_key_env: "GEMINI_API_KEY"
+  api_base_url: ""
+  frontmatter_flag: "autoTranslate"
+  require_review: true
+  overwrite_machine_translations: true
+  targets:
+    en:
+      - th
+    th:
+      - en

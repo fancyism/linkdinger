@@ -70,7 +70,12 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` with your R2 credentials:
+Use the root `.env.example` as the single source of truth for all backend and blog variables.
+
+- Put your backend daemon values in the root `.env`
+- When developing the Next.js app locally, copy the **Blog** section from the root template into `blog/.env.local`
+
+Start by filling in the essentials:
 
 ```env
 R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
@@ -78,6 +83,9 @@ R2_ACCESS_KEY=your_access_key
 R2_SECRET_KEY=your_secret_key
 R2_BUCKET=obsidian-media
 R2_PUBLIC_URL=https://pub-<ID>.r2.dev
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+UPSTASH_REDIS_REST_URL=https://<your-upstash-instance>.upstash.io
+UPSTASH_REDIS_REST_TOKEN=<your-upstash-token>
 ```
 
 ### 3. Configure Vault Path
@@ -147,6 +155,8 @@ cd blog
 npm install
 npm run dev
 ```
+
+For local blog development, create `blog/.env.local` from the **Blog** sections in the root `.env.example`.
 
 Open [http://localhost:3000](http://localhost:3000)
 
@@ -225,6 +235,16 @@ linkdinger/
     ├── lib/               # Utilities
     └── public/            # Static assets
 ```
+
+### Repository Layout
+
+| Area | Responsibility |
+|------|----------------|
+| Root Python modules | Obsidian watcher, content sync, git automation, dashboard |
+| `tests/` | Python regression coverage for the daemon and sync workflow |
+| `blog/` | Next.js frontend, analytics routes, content rendering, and UI components |
+| `docs/` | Design principles, UX references, and implementation guidance |
+| Root `.env.example` | Canonical environment-variable template for the whole repo |
 
 ## Tech Stack
 

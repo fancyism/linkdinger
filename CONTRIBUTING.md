@@ -53,9 +53,11 @@ Feature suggestions are welcome! Please:
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your credentials
+# Edit the root .env with your backend credentials
 python linkdinger.py --status
 ```
+
+The root `.env.example` is the canonical template for the repository. When you need blog-specific variables locally, copy the **Blog** sections from the root template into `blog/.env.local`.
 
 ### Frontend (Blog)
 
@@ -90,7 +92,9 @@ linkdinger/
 ├── obsidian_watcher.py    # Image processing
 ├── auto_git.py            # Git synchronization
 ├── content_sync.py        # CMS sync
-├── tests/                 # Test files
+├── tests/                 # Python test suite
+├── docs/                  # Design and implementation references
+├── .env.example           # Canonical environment template
 └── blog/                  # Next.js frontend
 ```
 
