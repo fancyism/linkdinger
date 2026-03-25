@@ -27,7 +27,8 @@
     "rehype-stringify": "^10.0.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
-    "remark-rehype": "^11.1.2"
+    "remark-rehype": "^11.1.2",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
