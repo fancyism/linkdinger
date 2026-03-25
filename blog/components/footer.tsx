@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   Github,
@@ -23,9 +24,27 @@ export default async function Footer() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div>
-              <h3 className="font-display font-bold text-lg mb-3 text-peach">
-                Linkdinger
-              </h3>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative flex-shrink-0">
+                  {/* Ambient glow */}
+                  <div className="absolute -inset-1 bg-gradient-to-br from-peach/30 via-peach-light/20 to-transparent rounded-full blur-md opacity-50" />
+                  {/* Ring border - circular */}
+                  <div className="relative p-[2px] rounded-full bg-gradient-to-br from-peach/50 via-peach-light/30 to-transparent">
+                    <div className="bg-white dark:bg-dark-surface rounded-full p-1">
+                      <Image
+                        src="/logo-lind.png"
+                        alt="Linkdinger"
+                        width={36}
+                        height={36}
+                        className="rounded-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <h3 className="font-display font-bold text-xl text-peach">
+                  Linkdinger
+                </h3>
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                 {t("tagline")}
               </p>

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Menu, X, Search, Github, Sun, Moon } from "lucide-react";
 import { resolveLocaleSwitchTarget } from "@/lib/locale-switch";
@@ -114,15 +115,33 @@ export default function Navbar({
     <nav
       className={`glass sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-glass-border"
+          ? "border-b border-black/10 dark:border-white/10"
           : "border-b border-transparent"
       } ${visible ? "translate-y-0" : "-translate-y-full"}`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-2xl font-display font-bold text-peach group-hover:text-peach-light transition-colors">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative flex-shrink-0">
+              {/* Ambient glow */}
+              <div className="absolute -inset-1 bg-gradient-to-br from-peach/30 via-peach-light/20 to-transparent rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Ring border - circular */}
+              <div className="relative p-[2px] rounded-full bg-gradient-to-br from-peach/50 via-peach-light/30 to-transparent">
+                <div className="bg-white dark:bg-dark-surface rounded-full p-1">
+                  <Image
+                    src="/logo-lind.png"
+                    alt="Linkdinger"
+                    width={40}
+                    height={40}
+                    className="rounded-full transition-all duration-300 group-hover:scale-105"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Brand text */}
+            <span className="text-2xl font-display font-bold text-peach group-hover:text-peach-light transition-colors duration-300">
               Linkdinger
             </span>
           </Link>
