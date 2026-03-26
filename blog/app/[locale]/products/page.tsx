@@ -116,7 +116,7 @@ export default async function ProductsPage({ params }: PageProps) {
                 </p>
                 <a
                   href={product.url}
-                  className="bg-white text-black dark:bg-white/10 dark:text-white dark:hover:bg-peach dark:hover:text-white hover:bg-black hover:text-white px-6 py-4 rounded-xl font-display font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all group/btn"
+                  className="bg-white text-black hover:bg-black hover:text-white dark:bg-white/10 dark:text-white dark:hover:bg-peach dark:hover:text-white px-6 py-4 rounded-xl font-display font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all group/btn"
                 >
                   {product.isFree ? (
                     <>
