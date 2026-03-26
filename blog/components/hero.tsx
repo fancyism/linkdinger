@@ -68,7 +68,7 @@ export default function Hero({
                 {/* Title */}
                 <h1
                   id="hero-title"
-                  className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-black leading-tight lg:leading-[1.1] tracking-tight lg:tracking-tighter text-gray-900 dark:text-white group-hover:text-peach dark:group-hover:text-peach transition-colors duration-300"
+                  className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-black leading-tight lg:leading-[1.1] tracking-tight lg:tracking-tighter text-gray-900 dark:text-white group-hover:text-peach transition-colors duration-300"
                 >
                   {title}
                 </h1>
