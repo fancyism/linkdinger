@@ -46,11 +46,11 @@ export default function Hero({
       aria-labelledby="hero-title"
     >
       <article
-        className="relative overflow-hidden rounded-2xl sm:rounded-3xl glass-card border border-white/10 dark:border-white/20 transition-all duration-500 hover:border-peach/40 dark:hover:border-peach/60 hover:shadow-[0_0_60px_rgba(255,107,53,0.15)] hover:-translate-y-1"
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl glass-card border border-black/10 dark:border-white/20 transition-all duration-500 hover:border-peach/40 dark:hover:border-peach/60 hover:shadow-lg dark:hover:shadow-[0_0_60px_rgba(255,107,53,0.15)] hover:-translate-y-1"
         aria-label={`Featured post: ${title}`}
       >
-        {/* Ambient glow behind card */}
-        <div className="absolute -inset-4 bg-peach/20 dark:bg-peach/10 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none" />
+        {/* Ambient glow behind card - only visible in dark mode */}
+        <div className="hidden dark:block absolute -inset-4 bg-peach/10 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none" />
 
         {coverImage ? (
           <div className="relative flex flex-col md:flex-row min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[480px] xl:min-h-[520px]">
