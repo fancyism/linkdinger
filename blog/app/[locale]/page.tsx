@@ -106,7 +106,7 @@ export default async function HomePage({
 
       {/* Category Cloud */}
       {categories.length > 0 && page === 1 && (
-        <section className="pt-10 px-4 sm:px-6">
+        <section className="pt-10 pb-10 sm:pb-14 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
               <span className="text-sm text-gray-500 whitespace-nowrap font-medium">
