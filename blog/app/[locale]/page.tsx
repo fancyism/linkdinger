@@ -84,6 +84,7 @@ export default async function HomePage({
               readTime={featured.readTime || "5 min"}
               tags={featured.tags}
               coverImage={featured.coverImage}
+              category={featured.category}
               badgeText={`🌟 ${t("latestEntry")}`}
             />
           ) : (

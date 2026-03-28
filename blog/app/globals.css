@@ -581,6 +581,160 @@ body {
     z-index: 0;
 }
 
+/* ──────────────────────────────────────────── */
+/* ── HERO EDITORIAL SECTION ──                */
+/* ──────────────────────────────────────────── */
+
+@keyframes heroFadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroFadeSlideRight {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes heroCategoryReveal {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── GLITCH ART keyframes for accent slab ── */
+@keyframes heroGlitch {
+    0% {
+        transform: scaleY(0) translateX(0);
+        transform-origin: bottom;
+        opacity: 0;
+    }
+    15% {
+        transform: scaleY(0.4) translateX(4px) skewX(-2deg);
+        opacity: 0.7;
+    }
+    20% {
+        transform: scaleY(0.45) translateX(-6px) skewX(3deg);
+        opacity: 0.5;
+    }
+    25% {
+        transform: scaleY(0.5) translateX(3px) skewX(-1deg);
+        opacity: 0.9;
+    }
+    35% {
+        transform: scaleY(0.65) translateX(-2px) skewX(1.5deg);
+        opacity: 0.6;
+    }
+    40% {
+        transform: scaleY(0.7) translateX(5px) skewX(-3deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scaleY(0.8) translateX(-3px) skewX(0deg);
+        opacity: 0.8;
+    }
+    60% {
+        transform: scaleY(0.85) translateX(2px) skewX(1deg);
+        opacity: 1;
+    }
+    70% {
+        transform: scaleY(0.9) translateX(-1px) skewX(-0.5deg);
+        opacity: 0.9;
+    }
+    80% {
+        transform: scaleY(0.95) translateX(1px) skewX(0.5deg);
+        opacity: 1;
+    }
+    90% {
+        transform: scaleY(0.98) translateX(-1px) skewX(0deg);
+        opacity: 0.95;
+    }
+    100% {
+        transform: scaleY(1) translateX(0) skewX(0deg);
+        transform-origin: bottom;
+        opacity: 1;
+    }
+}
+
+@keyframes heroDotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+    50% { box-shadow: 0 0 0 4px currentColor; }
+}
+
+.hero-stagger-1 { animation: heroFadeSlideUp 0.5s ease-out 0.05s both; }
+.hero-stagger-2 { animation: heroFadeSlideUp 0.5s ease-out 0.15s both; }
+.hero-stagger-3 { animation: heroFadeSlideUp 0.5s ease-out 0.25s both; }
+.hero-stagger-4 { animation: heroFadeSlideUp 0.5s ease-out 0.35s both; }
+.hero-stagger-5 { animation: heroFadeSlideUp 0.5s ease-out 0.45s both; }
+.hero-stagger-6 { animation: heroFadeSlideUp 0.5s ease-out 0.55s both; }
+
+.hero-slide-right {
+    animation: heroFadeSlideRight 0.6s ease-out 0.3s both;
+}
+
+.hero-category-reveal {
+    animation: heroCategoryReveal 0.5s ease-out 0.2s both;
+}
+
+/* Vertical category label */
+.hero-category-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+/* Accent slab — base transition for color switching */
+.hero-accent-slab {
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Glitch slab — the art-y entrance animation */
+.hero-glitch-slab {
+    animation: heroGlitch 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+}
+
+/* Color dot switcher */
+.hero-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.hero-color-dot:hover {
+    transform: scale(1.25);
+}
+
+.hero-color-dot.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Hero image hover zoom — works with both img and next/image */
+.hero-image-wrapper img {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.hero-link:hover .hero-image-wrapper img {
+    transform: scale(1.04) !important;
+}
+
+/* Hero title hover accent — BOTH themes (light + dark) */
+.hero-link:hover .hero-title {
+    color: var(--hero-accent, #FF6B35) !important;
+}
+
+/* ── HERO LIGHT THEME OVERRIDES ── */
+.light .hero-color-dot.active {
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.light .hero-accent-slab {
+    opacity: 0.9;
+}
+
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
     width: 8px;
