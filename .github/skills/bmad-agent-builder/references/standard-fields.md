@@ -15,6 +15,7 @@
 The Overview is the first section after the title — it primes the AI for everything that follows.
 
 **3-part formula:**
+
 1. **What** — What this agent does
 2. **How** — How it works (role, approach, modes)
 3. **Why/Outcome** — Value delivered, quality standard
@@ -22,16 +23,19 @@ The Overview is the first section after the title — it primes the AI for every
 **Templates by agent type:**
 
 **Companion agents:**
+
 ```markdown
 This skill provides a {role} who helps users {primary outcome}. Act as {displayName} — {key quality}. With {key features}, {displayName} {primary value proposition}.
 ```
 
 **Workflow agents:**
+
 ```markdown
 This skill helps you {outcome} through {approach}. Act as {role}, guiding users through {key stages/phases}. Your output is {deliverable}.
 ```
 
 **Utility agents:**
+
 ```markdown
 This skill {what it does}. Use when {when to use}. Returns {output format} with {key feature}.
 ```
@@ -51,6 +55,7 @@ This skill {what it does}. Use when {when to use}. Returns {output format} with 
 Always use: `{project-root}/_bmad/_memory/{skillName}-sidecar/`
 
 Examples:
+
 - `{project-root}/_bmad/_memory/journaling-companion-sidecar/index.md`
 - `{project-root}/_bmad/_memory/journaling-companion-sidecar/access-boundaries.md` — **Required**
 - `{project-root}/_bmad/_memory/journaling-companion-sidecar/autonomous-log.md`
@@ -63,6 +68,7 @@ Every agent must have an `access-boundaries.md` file in its sidecar memory:
 **Load on every activation** — Before any file operations.
 
 **Structure:**
+
 ```markdown
 # Access Boundaries for {displayName}
 
@@ -87,6 +93,7 @@ Folders/files the user provides during init (like journal location) get stored i
 3. Use those paths for operations
 
 Example pattern:
+
 ```markdown
 ## Autonomous Mode
 

@@ -85,7 +85,7 @@ export default async function HomePage({
               tags={featured.tags}
               coverImage={featured.coverImage}
               category={featured.category}
-              badgeText={`🌟 ${t("latestEntry")}`}
+              badgeText={`${t("latestEntry")}`}
             />
           ) : (
             <div className="liquid-glass rounded-3xl p-8 sm:p-12 text-center">

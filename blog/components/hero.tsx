@@ -93,7 +93,14 @@ export default function Hero({
         {/* ── Row 1: Badge ── */}
         <div className="hero-stagger-1 mb-8 sm:mb-10 lg:mb-8">
           {badgeText && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-peach/10 dark:bg-white/5 text-peach border border-peach/20 dark:border-white/10 text-[10px] sm:text-xs font-bold tracking-widest uppercase backdrop-blur-sm">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border dark:border-white/10 text-[10px] sm:text-xs font-bold tracking-widest uppercase backdrop-blur-sm"
+              style={{
+                color: accent.hex,
+                backgroundColor: `${accent.hex}15`,
+                borderColor: `${accent.hex}40`,
+              }}
+            >
               <span
                 className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse"
                 style={{ background: accent.hex, boxShadow: `0 0 8px ${accent.hex}` }}
@@ -137,13 +144,9 @@ export default function Hero({
 
             {coverImage && !imgError ? (
               <div className="relative">
-                {/* ── Accent Color Slab — GLITCH ART animation ── */}
                 <div
-                  className="hero-accent-slab hero-glitch-slab absolute -left-4 sm:-left-6 lg:-left-10 top-6 sm:top-8 bottom-0 w-16 sm:w-20 lg:w-24 z-0"
-                  style={{
-                    background: accent.hex,
-                    boxShadow: `4px 4px 0 rgba(0,0,0,0.2)`,
-                  }}
+                  className="hero-accent-slab hero-glitch-slab absolute -left-4 sm:-left-6 lg:-left-10 top-12 lg:top-16 bottom-0 w-16 sm:w-20 lg:w-24 z-0"
+                  style={{ background: accent.hex }}
                 />
 
                 {/* ── Image — Next.js optimized ── */}
