@@ -59,7 +59,7 @@ tags:
 - music-video
 - multi-image
 - rick-and-morty
-coverImage: https://freeimage.host/i/qyPmIwv
+coverImage: https://pub-ae83c12b8f3a4f61aab4e9bf3f4b7443.r2.dev/G7_KZ2fW8AMaxlk.jpg
 locale: en
 publish: true
 autoTranslate: true
