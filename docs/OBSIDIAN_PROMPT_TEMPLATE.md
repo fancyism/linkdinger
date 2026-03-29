@@ -5,6 +5,7 @@ Use this template for prompts you want to publish through the Linkdinger CMS.
 - Put the markdown file in `publish/prompt/` for folder-based publishing.
 - Keep `promptText` in its original language. The CMS preserves it during auto-translation.
 - `difficulty`, `model`, and `demoUrl` are optional, but validated when present.
+- `previewLayout` is optional. Leave it blank for auto layout selection.
 
 ```md
 ---
@@ -37,6 +38,7 @@ canonicalLocale: en
 difficulty: "intermediate"
 model: "Claude 3.7 Sonnet"
 demoUrl: "https://example.com/demo"
+previewLayout: "showcase"
 sref: "--sref 123456789"
 featured: false
 status: "published"
@@ -84,6 +86,7 @@ If you have a GIF, video link, or output screenshots, embed them here in the mar
 - `difficulty` - optional; must be `beginner`, `intermediate`, or `advanced`
 - `model` - optional; non-empty string naming the best-fit AI model
 - `demoUrl` - optional; must be an absolute `http` or `https` URL
+- `previewLayout` - optional; `showcase`, `spotlight`, or `editorial`. If omitted, the gallery infers it automatically.
 - `sref` - optional style-reference string for image-generation prompts
 
 ## Recommended Publishing Workflow

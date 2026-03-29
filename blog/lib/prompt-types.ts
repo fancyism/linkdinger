@@ -1,6 +1,8 @@
 /* ── Shared Types & Constants for Prompt system ── */
 /* This file is safe for both client and server components */
 
+export type PromptPreviewLayout = "showcase" | "spotlight" | "editorial";
+
 export interface Prompt {
   slug: string;
   title: string;
@@ -18,6 +20,7 @@ export interface Prompt {
   difficulty?: string;
   model?: string;
   demoUrl?: string;
+  previewLayout?: PromptPreviewLayout;
   locale: string;
   translationKey?: string;
   publish: boolean;
@@ -25,6 +28,26 @@ export interface Prompt {
 
 export function getLocalizedPromptPath(prompt: Pick<Prompt, "locale" | "slug">): string {
   return `/${prompt.locale || "en"}/prompts/${encodeURIComponent(prompt.slug)}/`;
+}
+
+export function inferPromptPreviewLayout(prompt: Pick<Prompt, "title" | "category" | "tags" | "platform" | "promptText" | "previewLayout">): PromptPreviewLayout {
+  if (prompt.previewLayout) {
+    return prompt.previewLayout;
+  }
+
+  const searchable = [prompt.title, prompt.category, prompt.platform, ...(prompt.tags || []), prompt.promptText]
+    .join(" ")
+    .toLowerCase();
+
+  if (/(dictionary|infographic|chart|schema|template|menu|board|map|reference|catalog|diagram|engine)/.test(searchable)) {
+    return "editorial";
+  }
+
+  if (/(portrait|character|avatar|headshot|mascot|miniature|figurine|doll|single subject|needle-felted|wool)/.test(searchable)) {
+    return "spotlight";
+  }
+
+  return "showcase";
 }
 
 export type PromptPlatform =

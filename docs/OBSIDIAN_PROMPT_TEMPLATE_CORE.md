@@ -35,6 +35,7 @@ canonicalLocale: en
 difficulty: "intermediate"
 model: "Claude 3.7 Sonnet"
 demoUrl: "https://example.com/demo"
+previewLayout: "showcase"
 
 # Optional extras
 sref: ""
@@ -70,3 +71,4 @@ Add screenshots, GIFs, videos, or example outputs here.
 - `excerpt`, `usageTips`, and `coverImage` are now recommended quality fields; missing them will warn but not block publishing.
 - `difficulty` must be `beginner`, `intermediate`, or `advanced`.
 - `demoUrl` must be a full `http` or `https` URL.
+- `previewLayout` can be `showcase`, `spotlight`, or `editorial`. Leave it as-is only when you want to override the automatic layout choice.

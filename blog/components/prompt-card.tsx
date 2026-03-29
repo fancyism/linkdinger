@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Calendar, Sparkles } from "lucide-react";
 import type { Prompt } from "@/lib/prompt-types";
-import { getLocalizedPromptPath, getPlatformColor } from "@/lib/prompt-types";
+import { getLocalizedPromptPath, getPlatformColor, inferPromptPreviewLayout } from "@/lib/prompt-types";
 import PromptShareActions from "@/components/prompt-share-actions";
 
 interface PromptCardProps {
@@ -42,6 +42,7 @@ export default function PromptCard({
 
   const platformColor = getPlatformColor(prompt.platform);
   const promptUrl = getLocalizedPromptPath(prompt);
+  const previewLayout = inferPromptPreviewLayout(prompt);
 
   // Cycle on asymmetric aspects — different rhythm than Home blog
   const aspectPatterns = [
@@ -102,14 +103,49 @@ export default function PromptCard({
 
           {prompt.coverImage ? (
             <>
-              <img
-                src={prompt.coverImage}
-                alt={prompt.title}
-                className="w-full h-full object-cover transition-all duration-700 relative z-10 dark:brightness-90 dark:group-hover:brightness-100 group-hover:scale-105"
-                loading="lazy"
-              />
-              {/* Dark overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10" />
+              {previewLayout === "showcase" && (
+                <>
+                  <img
+                    src={prompt.coverImage}
+                    alt={prompt.title}
+                    className="relative z-10 h-full w-full object-cover transition-all duration-700 group-hover:scale-105 dark:brightness-90 dark:group-hover:brightness-100"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                </>
+              )}
+
+              {previewLayout === "spotlight" && (
+                <>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(154,205,50,0.22),transparent_34%),radial-gradient(circle_at_18%_86%,rgba(255,107,53,0.18),transparent_30%),linear-gradient(135deg,#081007_0%,#0d140d_45%,#131313_100%)]" />
+                  <div className="absolute inset-x-[12%] top-[9%] bottom-[14%] z-10 overflow-hidden rounded-[24px] border border-white/14 bg-white/[0.08] p-2 shadow-[0_20px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                    <div className="h-full w-full overflow-hidden rounded-[18px] bg-white/95">
+                      <img
+                        src={prompt.coverImage}
+                        alt={prompt.title}
+                        className="h-full w-full object-contain transition-all duration-700 group-hover:scale-[1.03]"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {previewLayout === "editorial" && (
+                <>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_22%,rgba(154,205,50,0.20),transparent_34%),radial-gradient(circle_at_16%_82%,rgba(255,107,53,0.14),transparent_30%),linear-gradient(135deg,#0d110b_0%,#121612_45%,#191919_100%)]" />
+                  <div className="absolute inset-x-[6%] top-[10%] bottom-[14%] z-10 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
+                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[16px] bg-[#f6f4ef]">
+                      <img
+                        src={prompt.coverImage}
+                        alt={prompt.title}
+                        className="h-full w-full object-contain p-1 transition-all duration-700 group-hover:scale-[1.02]"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10">

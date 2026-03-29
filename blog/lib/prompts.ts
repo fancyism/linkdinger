@@ -5,7 +5,7 @@ import matter from "gray-matter";
 /* Re-export types & constants from client-safe module */
 export type { Prompt, PromptPlatform } from "./prompt-types";
 export { PLATFORM_COLORS, getPlatformColor, getLocalizedPromptPath } from "./prompt-types";
-import type { Prompt } from "./prompt-types";
+import type { Prompt, PromptPreviewLayout } from "./prompt-types";
 
 /* ── Constants ── */
 const promptsRootDirectory = path.join(process.cwd(), "content/prompts");
@@ -152,6 +152,7 @@ function readPromptFile(filePath: string, localeHint?: string): Prompt | null {
     difficulty: data.difficulty,
     model: data.model,
     demoUrl: data.demoUrl,
+    previewLayout: data.previewLayout as PromptPreviewLayout | undefined,
     locale,
     translationKey: data.translationKey || slug,
     publish: data.publish ?? true,
