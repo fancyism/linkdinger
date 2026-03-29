@@ -32,26 +32,35 @@ export async function generateMetadata({
     return { title: t("notFound") };
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const canonicalPath = getLocalizedPromptPath(prompt);
+  const canonicalUrl = `${siteUrl}${canonicalPath}`;
+  const promptSummary = prompt.excerpt || prompt.content.slice(0, 180);
 
   return {
     title: prompt.title,
-    description: prompt.excerpt,
+    description: promptSummary,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
       title: prompt.title,
-      description: prompt.excerpt,
+      description: promptSummary,
       type: "article",
+      publishedTime: prompt.date,
+      authors: ["Affan"],
+      siteName: "Linkdinger",
+      tags: [prompt.platform, prompt.category, ...prompt.tags].filter(Boolean),
       images: prompt.coverImage ? [{ url: prompt.coverImage }] : [],
-      url: canonicalPath,
+      url: canonicalUrl,
+      locale: locale === "th" ? "th_TH" : "en_US",
     },
     twitter: {
       card: prompt.coverImage ? "summary_large_image" : "summary",
       title: prompt.title,
-      description: prompt.excerpt,
+      description: promptSummary,
       images: prompt.coverImage ? [prompt.coverImage] : [],
+      creator: "@linkdinger",
     },
   };
 }

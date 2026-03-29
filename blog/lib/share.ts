@@ -28,7 +28,15 @@ export function toAbsoluteShareUrl(
 }
 
 export function getShareText(title: string, excerpt?: string): string {
-  return excerpt ? `${title}\n\n${excerpt}` : title;
+  if (!excerpt) return title;
+
+  const normalizedExcerpt = excerpt.trim().replace(/\s+/g, " ");
+  const truncatedExcerpt =
+    normalizedExcerpt.length > 180
+      ? `${normalizedExcerpt.slice(0, 177).trimEnd()}...`
+      : normalizedExcerpt;
+
+  return `${title}\n\n${truncatedExcerpt}`;
 }
 
 export function buildShareLinks({
@@ -48,9 +56,9 @@ export function buildShareLinks({
   return {
     fullUrl,
     shareText,
-    tweetUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`,
+    tweetUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(fullUrl)}`,
     linkedinUrl: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`,
-    facebookUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`,
+    facebookUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}&quote=${encodeURIComponent(shareText)}`,
     lineUrl: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(shareText)}`,
   };
 }
