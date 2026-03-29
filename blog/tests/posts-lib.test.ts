@@ -365,6 +365,16 @@ More text
       "Duplicate headings should have unique IDs",
     );
   });
+
+  test("strips inline markdown formatting from headings", () => {
+    const headings = extractHeadings(
+      '## **Problem:** The Confusion Called "Context Collapse"\n### **Solution:** Become the Context Engineer\n## [Linked Heading](#demo) with `code`',
+    );
+
+    assert.equal(headings[0].text, 'Problem: The Confusion Called "Context Collapse"');
+    assert.equal(headings[1].text, "Solution: Become the Context Engineer");
+    assert.equal(headings[2].text, "Linked Heading with code");
+  });
 });
 
 // —— localized routes ————————————————————————————————————————————————————————————————

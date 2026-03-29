@@ -3,7 +3,7 @@
 import { useDeferredValue, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import PostCard from "@/components/post-card";
 import BrutalTag from "@/components/ui/brutal-tag";
@@ -129,12 +129,13 @@ export default function BlogClient({ posts, categories }: BlogClientProps) {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0 mt-4 md:mt-0">
           <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="bg-transparent border border-black/10 dark:border-white/10 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-peach w-full sm:w-48 transition-all"
+              className="w-full rounded-full border border-black/10 bg-transparent py-1.5 pl-11 pr-9 text-sm transition-all focus:border-peach focus:outline-none dark:border-white/10 sm:w-48"
             />
             {searchQuery && (
               <button

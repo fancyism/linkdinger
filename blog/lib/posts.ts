@@ -37,6 +37,18 @@ export interface TocItem {
   level: number;
 }
 
+function stripMarkdownInlineFormatting(text: string): string {
+  return text
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")
+    .replace(/(\*|_)(.*?)\1/g, "$2")
+    .replace(/~~(.*?)~~/g, "$1")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
 export function isMarkdownPostFile(filename: string): boolean {
   return !filename.startsWith(".") && /\.md$/i.test(filename);
 }
@@ -332,7 +344,7 @@ export function extractHeadings(content: string): TocItem[] {
   const slugger = new GithubSlugger();
 
   while ((match = headingRegex.exec(content)) !== null) {
-    const text = match[2].trim();
+    const text = stripMarkdownInlineFormatting(match[2].trim());
     const id = slugger.slug(text);
 
     headings.push({

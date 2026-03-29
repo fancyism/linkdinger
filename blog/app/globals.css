@@ -392,6 +392,19 @@ body {
     }
 }
 
+@layer utilities {
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+}
+
 /* ──────────────────────────────────────────── */
 /* ── PROSE (Article Content) ──               */
 /* ──────────────────────────────────────────── */
@@ -435,11 +448,13 @@ body {
     font-size: 1.625rem;
     padding-bottom: 0.5em;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    scroll-margin-top: 6.5rem;
 }
 
 .prose h3 {
     font-size: 1.25rem;
     margin-top: 2em;
+    scroll-margin-top: 6.75rem;
 }
 
 .prose h4 {
@@ -447,6 +462,7 @@ body {
     margin-top: 1.75em;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    scroll-margin-top: 7rem;
 }
 
 .light .prose h2 {

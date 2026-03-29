@@ -36,6 +36,8 @@ export async function generateMetadata({
   const canonicalPath = getLocalizedPromptPath(prompt);
   const canonicalUrl = `${siteUrl}${canonicalPath}`;
   const promptSummary = prompt.excerpt || prompt.content.slice(0, 180);
+  const socialImageUrl = `${canonicalUrl}opengraph-image`;
+  const twitterImageUrl = `${canonicalUrl}twitter-image`;
 
   return {
     title: prompt.title,
@@ -51,15 +53,15 @@ export async function generateMetadata({
       authors: ["Affan"],
       siteName: "Linkdinger",
       tags: [prompt.platform, prompt.category, ...prompt.tags].filter(Boolean),
-      images: prompt.coverImage ? [{ url: prompt.coverImage }] : [],
+      images: [{ url: socialImageUrl, width: 1200, height: 630, alt: prompt.title }],
       url: canonicalUrl,
       locale: locale === "th" ? "th_TH" : "en_US",
     },
     twitter: {
-      card: prompt.coverImage ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: prompt.title,
       description: promptSummary,
-      images: prompt.coverImage ? [prompt.coverImage] : [],
+      images: [twitterImageUrl],
       creator: "@linkdinger",
     },
   };

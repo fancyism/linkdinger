@@ -134,7 +134,7 @@ export default function PromptModal({ prompt, onClose }: PromptModalProps) {
             role="dialog"
             aria-modal="true"
             aria-label={prompt.title}
-            className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-modal rounded-2xl"
+            className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide glass-modal rounded-2xl"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
