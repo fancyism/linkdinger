@@ -118,7 +118,8 @@ export default function PromptCard({
       }}
       aria-label={`Open prompt ${prompt.title}`}
     >
-      <article className="h-full flex flex-col">
+      <article className="flex h-full flex-col pt-6">
+        <div className="mb-5 h-px w-full bg-black/10 transition-colors duration-500 group-hover:bg-black/30 dark:bg-white/10 dark:group-hover:bg-white/30" />
         {/* Cover Image */}
         <div
           className={`${aspectClass} relative w-full overflow-hidden rounded-xl bg-black/10 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] group-focus-within:ring-2 group-focus-within:ring-peach/35 dark:bg-black/50 dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)]`}
@@ -248,7 +249,7 @@ export default function PromptCard({
         </div>
 
         {/* Text content below image */}
-          <div className="flex flex-1 flex-col pt-4">
+          <div className="mt-6 flex flex-1 flex-col pt-2">
             {/* Date + category */}
           <div className="mb-2 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-display uppercase tracking-widest text-slate-500 dark:text-gray-400">
@@ -270,22 +271,23 @@ export default function PromptCard({
             {prompt.promptText.slice(0, 120)}...
           </p>
 
-          {/* Tags */}
           {prompt.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-auto">
-              {prompt.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[0.6rem] font-display text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400"
-                >
-                  #{tag}
-                </span>
-              ))}
-              {prompt.tags.length > 3 && (
-                <span className="px-2 py-0.5 text-[0.6rem] font-display text-slate-500 dark:text-gray-500">
-                  +{prompt.tags.length - 3}
-                </span>
-              )}
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-1.5">
+                {prompt.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[0.6rem] font-display text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {prompt.tags.length > 3 && (
+                  <span className="px-2 py-0.5 text-[0.6rem] font-display text-slate-500 dark:text-gray-500">
+                    +{prompt.tags.length - 3}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>

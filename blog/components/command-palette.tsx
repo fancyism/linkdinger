@@ -39,7 +39,7 @@ export function CommandPalette({
           label={t("label")}
           className="w-full"
           overlayClassName="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md"
-          contentClassName="fixed inset-0 z-[101] flex w-full items-center justify-center px-4 py-6 sm:px-6 sm:py-10"
+          contentClassName="pointer-events-none fixed inset-0 z-[101] flex w-full items-center justify-center px-4 py-6 sm:px-6 sm:py-10"
         >
           <Dialog.Title className="sr-only">{t("label")}</Dialog.Title>
 
@@ -49,7 +49,7 @@ export function CommandPalette({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative z-10 mx-auto w-full max-w-[600px]"
+            className="pointer-events-auto relative z-10 mx-auto w-full max-w-[600px]"
           >
             {/* The Actual Command Palette using Liquid Glass Aesthetic */}
             <div className="overflow-hidden rounded-2xl glass-modal ring-1 ring-white/10 dark:ring-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:bg-slate-900/40 bg-white/40 backdrop-blur-2xl">
