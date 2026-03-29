@@ -118,8 +118,8 @@ export default function PromptCard({
       }}
       aria-label={`Open prompt ${prompt.title}`}
     >
-      <article className="flex h-full flex-col pt-6">
-        <div className="mb-5 h-px w-full bg-black/10 transition-colors duration-500 group-hover:bg-black/30 dark:bg-white/10 dark:group-hover:bg-white/30" />
+      <article className="flex h-full flex-col">
+        <div className="mb-4 h-px w-full bg-black/10 transition-colors duration-500 group-hover:bg-black/30 dark:bg-white/10 dark:group-hover:bg-white/30" />
         {/* Cover Image */}
         <div
           className={`${aspectClass} relative w-full overflow-hidden rounded-xl bg-black/10 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] group-focus-within:ring-2 group-focus-within:ring-peach/35 dark:bg-black/50 dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)]`}
