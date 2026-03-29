@@ -27,15 +27,18 @@ publish:
   method: "both"
   folder: "publish"
   flag: "publish"
+  content_subdir: "content"
+  prompt_subdir: "prompt"
 
 blog:
   content_dir: "blog/content/posts"
+  prompts_dir: "blog/content/prompts"
 
 translation:
   enabled: true
-  provider: "gemini"
-  model: "gemini-2.5-flash"
-  api_key_env: "GEMINI_API_KEY"
+  provider: "zai"
+  model: "glm-5"
+  api_key_env: "ZAI_API_KEY"
   api_base_url: ""
   frontmatter_flag: "autoTranslate"
   require_review: true

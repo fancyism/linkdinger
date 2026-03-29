@@ -14,6 +14,7 @@ from content_sync import (  # pyre-ignore[21]
     _build_source_identifier,
     _build_synced_frontmatter,
     _build_translation_request,
+    _collect_prompt_quality_warnings,
     _collect_markdown_files,
     _collect_publish_files,
     _create_translator,
@@ -48,21 +49,33 @@ def temp_env():
     base = tempfile.mkdtemp()
     vault = os.path.join(base, "vault")
     publish = os.path.join(vault, "publish")
+    publish_content = os.path.join(publish, "content")
+    publish_prompt = os.path.join(publish, "prompt")
     notes = os.path.join(vault, "notes")
     assets = os.path.join(vault, "_assets")
     blog_content = os.path.join(base, "blog", "content", "posts")
+    blog_prompts = os.path.join(base, "blog", "content", "prompts")
 
     os.makedirs(publish)
+    os.makedirs(publish_content)
+    os.makedirs(publish_prompt)
     os.makedirs(notes)
     os.makedirs(assets)
     os.makedirs(blog_content)
+    os.makedirs(blog_prompts)
 
     # Write config
     config_path = os.path.join(base, "config.yaml")
     config_data = {
         "vault": {"path": vault, "assets_dir": "_assets"},
-        "publish": {"method": "both", "folder": "publish", "flag": "publish"},
-        "blog": {"content_dir": blog_content},
+        "publish": {
+            "method": "both",
+            "folder": "publish",
+            "flag": "publish",
+            "content_subdir": "content",
+            "prompt_subdir": "prompt",
+        },
+        "blog": {"content_dir": blog_content, "prompts_dir": blog_prompts},
         "translation": {
             "enabled": True,
             "provider": "zai",
@@ -83,9 +96,12 @@ def temp_env():
         "base": base,
         "vault": vault,
         "publish": publish,
+        "publish_content": publish_content,
+        "publish_prompt": publish_prompt,
         "notes": notes,
         "assets": assets,
         "blog_content": blog_content,
+        "blog_prompts": blog_prompts,
         "config_path": config_path,
     }
 
@@ -234,6 +250,29 @@ class TestTranslationHelpers:
         assert request.tags == ["AI", "ML"]
         assert request.faq is None
         assert request.how_to is None
+
+    def test_build_translation_request_keeps_prompt_fields(self):
+        request = _build_translation_request(
+            {
+                "title": "Prompt",
+                "platform": "Claude",
+                "category": "Coding",
+                "promptText": "Write a CLI helper",
+                "usageTips": "Keep placeholders intact",
+                "sref": "--sref 123",
+                "tags": ["prompting"],
+            },
+            "Prompt notes",
+            source_locale="en",
+            target_locale="th",
+            content_kind="prompt",
+        )
+
+        assert request.content_type == "prompt"
+        assert request.platform == "Claude"
+        assert request.prompt_text == "Write a CLI helper"
+        assert request.usage_tips == "Keep placeholders intact"
+        assert request.sref == "--sref 123"
 
     def test_create_translator_validates_provider(self, config):
         config.translation_provider = "unsupported"
@@ -602,6 +641,65 @@ class TestSyncFile:
         assert not os.path.exists(os.path.join(temp_env["blog_content"], "th", "multi-target.md"))
         assert os.path.exists(os.path.join(temp_env["blog_content"], "ja", "multi-target.md"))
 
+    def test_sync_auto_translates_prompt_entry(self, temp_env, config):
+        class FakeTranslator:
+            def __init__(self, api_key, model, **kwargs):
+                self.api_key = api_key
+                self.model = model
+
+            def translate_markdown(self, request):
+                assert request.content_type == "prompt"
+                assert request.prompt_text == "Write a CLI helper"
+                return type(
+                    "TranslatedPrompt",
+                    (),
+                    {
+                        "title": "พรอมต์แปลแล้ว",
+                        "excerpt": "สรุปพรอมต์",
+                        "body": "โน้ตภาษาไทย",
+                        "category": "Coding",
+                        "tags": ["AI", "Prompt"],
+                        "platform": "Claude",
+                        "prompt_text": "ช่วยเขียน CLI helper",
+                        "usage_tips": "คง placeholder เดิมไว้",
+                        "sref": None,
+                        "faq": None,
+                        "how_to": None,
+                    },
+                )()
+
+        src = os.path.join(temp_env["publish_prompt"], "cli-helper.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: CLI Helper\n"
+                "date: 2026-03-02\n"
+                "locale: en\n"
+                "platform: Claude\n"
+                "category: Coding\n"
+                "promptText: Write a CLI helper\n"
+                "usageTips: Keep placeholders intact\n"
+                "autoTranslate: true\n"
+                "---\n\n"
+                "Prompt notes"
+            )
+
+        with patch.dict(os.environ, {"ZAI_API_KEY": "test-key"}, clear=False):
+            with patch("content_sync.OpenAITranslator", FakeTranslator):
+                result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        translated_dest = os.path.join(temp_env["blog_prompts"], "th", "cli-helper.md")
+        assert os.path.exists(translated_dest)
+        with open(translated_dest, encoding="utf-8") as f:
+            translated_content = f.read()
+
+        translated_frontmatter = _parse_frontmatter(translated_content)
+        assert translated_frontmatter["locale"] == "th"
+        assert translated_frontmatter["promptText"] == "Write a CLI helper"
+        assert translated_frontmatter["usageTips"] == "คง placeholder เดิมไว้"
+        assert translated_frontmatter["machineTranslated"] is True
+
 
 class TestRemoveSynced:
     def test_remove_existing(self, temp_env, config):
@@ -755,6 +853,49 @@ class TestSyncAll:
         assert result is not None
         assert result.endswith(os.path.join("th", "thai-post.md"))
         assert os.path.exists(os.path.join(temp_env["blog_content"], "th", "thai-post.md"))
+
+    def test_sync_routes_prompt_folder_to_prompt_collection(self, temp_env, config):
+        src = os.path.join(temp_env["publish_prompt"], "image-prompt.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Image Prompt\n"
+                "date: 2026-03-02\n"
+                "platform: Midjourney\n"
+                "category: Visual\n"
+                "promptText: imagine a surreal sunset\n"
+                "locale: en\n"
+                "---\n\n"
+                "Prompt body"
+            )
+
+        result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        assert os.path.exists(os.path.join(temp_env["blog_prompts"], "en", "image-prompt.md"))
+        assert not os.path.exists(os.path.join(temp_env["blog_content"], "en", "image-prompt.md"))
+
+    def test_sync_routes_flagged_prompt_by_content_type(self, temp_env, config):
+        src = os.path.join(temp_env["notes"], "flagged-prompt.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Flagged Prompt\n"
+                "date: 2026-03-02\n"
+                "publish: true\n"
+                "contentType: prompt\n"
+                "platform: Claude\n"
+                "category: Coding\n"
+                "promptText: generate a CLI helper\n"
+                "locale: en\n"
+                "---\n\n"
+                "Prompt body"
+            )
+
+        result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        assert os.path.exists(os.path.join(temp_env["blog_prompts"], "en", "flagged-prompt.md"))
 
 
 class TestBackfillTranslations:
@@ -964,6 +1105,23 @@ class TestCollectPublishFiles:
         assert "folder-post.md" in basenames
         assert "flagged-post.md" in basenames
 
+    def test_folder_mode_collects_nested_prompt_files(self, temp_env, config):
+        prompt_file = os.path.join(temp_env["publish_prompt"], "nested-prompt.md")
+        with open(prompt_file, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Nested Prompt\n"
+                "date: 2026-03-02\n"
+                "platform: Gemini\n"
+                "category: Research\n"
+                "promptText: analyze this brief\n"
+                "---\n"
+            )
+
+        files = _collect_publish_files(config)
+
+        assert prompt_file in files
+
 
 # ── Part B: Image Link Rewriting ───────────────────
 
@@ -1104,3 +1262,83 @@ class TestValidation:
         count = sync_all(config)
         assert count == 0
         assert not os.path.exists(os.path.join(temp_env["blog_content"], "en", "dup.md"))
+
+    def test_validate_prompt_optional_schema_fields(self, temp_env, config):
+        src = os.path.join(temp_env["publish_prompt"], "schema-ok.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Schema OK\n"
+                "date: 2026-03-02\n"
+                "platform: Claude\n"
+                "category: Coding\n"
+                "promptText: Build a CLI helper\n"
+                "difficulty: intermediate\n"
+                "model: Claude 3.7 Sonnet\n"
+                "demoUrl: https://example.com/demo\n"
+                "---\n\n"
+                "Body"
+            )
+
+        issues = validate_file_for_publish(src, config)
+
+        assert issues == []
+
+    def test_validate_prompt_optional_schema_rejects_invalid_values(self, temp_env, config):
+        src = os.path.join(temp_env["publish_prompt"], "schema-bad.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Schema Bad\n"
+                "date: 2026-03-02\n"
+                "platform: Claude\n"
+                "category: Coding\n"
+                "promptText: Build a CLI helper\n"
+                "difficulty: expert\n"
+                "model: ''\n"
+                "demoUrl: not-a-url\n"
+                "---\n\n"
+                "Body"
+            )
+
+        issues = validate_file_for_publish(src, config)
+
+        assert any("invalid frontmatter difficulty" in issue for issue in issues)
+        assert "invalid frontmatter model (expected non-empty string)" in issues
+        assert "invalid frontmatter demoUrl (expected absolute http/https URL)" in issues
+
+    def test_collect_prompt_quality_warnings(self):
+        warnings = _collect_prompt_quality_warnings(
+            {
+                "title": "Prompt",
+                "promptText": "Build a CLI helper",
+            }
+        )
+
+        assert "recommended frontmatter missing: excerpt" in warnings
+        assert "recommended frontmatter missing: usageTips" in warnings
+        assert "recommended frontmatter missing: coverImage" in warnings
+
+    def test_sync_prompt_allows_recommended_fields_to_be_missing(self, temp_env, config, caplog):
+        src = os.path.join(temp_env["publish_prompt"], "warning-only.md")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(
+                "---\n"
+                "title: Warning Only\n"
+                "date: 2026-03-02\n"
+                "platform: Claude\n"
+                "category: Coding\n"
+                "promptText: Build a CLI helper\n"
+                "locale: en\n"
+                "---\n\n"
+                "Body"
+            )
+
+        result = sync_file(src, config, rewrite_links=False)
+
+        assert result is not None
+        assert os.path.exists(os.path.join(temp_env["blog_prompts"], "en", "warning-only.md"))
+        assert any(
+            "recommended frontmatter missing: excerpt" in message
+            for message in caplog.messages
+        )

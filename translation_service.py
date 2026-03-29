@@ -43,7 +43,7 @@ PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
 
 @dataclass
 class TranslationRequest:
-    """Structured translation input for a markdown post."""
+    """Structured translation input for markdown content collections."""
 
     source_locale: str
     target_locale: str
@@ -52,6 +52,11 @@ class TranslationRequest:
     category: str | None
     tags: list[str]
     body: str
+    content_type: str = "post"
+    platform: str | None = None
+    prompt_text: str | None = None
+    usage_tips: str | None = None
+    sref: str | None = None
     faq: list[dict[str, str]] | None = None
     how_to: list[dict[str, str]] | None = None
 
@@ -65,6 +70,10 @@ class TranslationResult:
     body: str
     category: str | None = None
     tags: list[str] | None = None
+    platform: str | None = None
+    prompt_text: str | None = None
+    usage_tips: str | None = None
+    sref: str | None = None
     faq: list[dict[str, str]] | None = None
     how_to: list[dict[str, str]] | None = None
 
@@ -130,16 +139,43 @@ class OpenAITranslator:
 
     def translate_markdown(self, request: TranslationRequest) -> TranslationResult:
         payload = {
+            "content_type": request.content_type,
             "source_locale": request.source_locale,
             "target_locale": request.target_locale,
             "title": request.title,
             "excerpt": request.excerpt,
+            "platform": request.platform,
             "category": request.category,
             "tags": request.tags,
+            "prompt_text": request.prompt_text,
+            "usage_tips": request.usage_tips,
+            "sref": request.sref,
             "faq": request.faq,
             "how_to": request.how_to,
             "body": request.body,
         }
+
+        if request.content_type == "prompt":
+            system_prompt = (
+                "You are a professional bilingual prompt editor. Translate prompt library entries "
+                "while preserving markdown structure, frontmatter semantics, lists, code fences, "
+                "and special tokens like URLs, variables, placeholders, CLI flags, and style reference "
+                "codes. Keep platform names accurate. Preserve prompt intent and formatting. Do not translate "
+                "the prompt_text field; return it unchanged from the source so users can keep the original AI "
+                "instruction wording. Return valid JSON only with keys: title, excerpt, platform, category, tags, prompt_text, usage_tips, "
+                "sref, body."
+            )
+            user_prompt = "Translate this prompt entry payload and return JSON only.\n\n"
+        else:
+            system_prompt = (
+                "You are a professional bilingual technical editor. "
+                "Translate markdown blog posts while preserving markdown structure, "
+                "headings, lists, tables, code blocks, inline code, URLs, image URLs, "
+                "and frontmatter semantics. Preserve technical terminology when needed. "
+                "Return valid JSON only with keys: title, excerpt, category, tags, faq, "
+                "how_to, body."
+            )
+            user_prompt = "Translate this blog post payload and return JSON only.\n\n"
 
         last_error: Exception | None = None
         for attempt in range(self._max_retries):
@@ -151,21 +187,11 @@ class OpenAITranslator:
                     messages=[
                         {
                             "role": "system",
-                            "content": (
-                                "You are a professional bilingual technical editor. "
-                                "Translate markdown blog posts while preserving markdown structure, "
-                                "headings, lists, tables, code blocks, inline code, URLs, image URLs, "
-                                "and frontmatter semantics. Preserve technical terminology when needed. "
-                                "Return valid JSON only with keys: title, excerpt, category, tags, faq, "
-                                "how_to, body."
-                            ),
+                            "content": system_prompt,
                         },
                         {
                             "role": "user",
-                            "content": (
-                                "Translate this blog post payload and return JSON only.\n\n"
-                                + json.dumps(payload, ensure_ascii=False)
-                            ),
+                            "content": user_prompt + json.dumps(payload, ensure_ascii=False),
                         },
                     ],
                 )
@@ -281,6 +307,14 @@ def _parse_translation_result(raw_output: str) -> TranslationResult:
 
     category_value = payload.get("category")
     category = str(category_value).strip() if category_value else None
+    platform_value = payload.get("platform")
+    platform = str(platform_value).strip() if platform_value else None
+    prompt_text_value = payload.get("prompt_text")
+    prompt_text = str(prompt_text_value).strip() if prompt_text_value else None
+    usage_tips_value = payload.get("usage_tips")
+    usage_tips = str(usage_tips_value).strip() if usage_tips_value else None
+    sref_value = payload.get("sref")
+    sref = str(sref_value).strip() if sref_value else None
 
     return TranslationResult(
         title=title,
@@ -288,6 +322,10 @@ def _parse_translation_result(raw_output: str) -> TranslationResult:
         body=body,
         category=category,
         tags=_normalize_string_list(payload.get("tags")),
+        platform=platform,
+        prompt_text=prompt_text,
+        usage_tips=usage_tips,
+        sref=sref,
         faq=_normalize_qa_list(payload.get("faq"), "faq"),
         how_to=_normalize_qa_list(payload.get("how_to"), "how_to"),
     )

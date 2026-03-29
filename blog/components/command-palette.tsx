@@ -39,7 +39,7 @@ export function CommandPalette({
           label={t("label")}
           className="w-full"
           overlayClassName="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md"
-          contentClassName="fixed inset-0 z-[101] flex items-start justify-center px-4 pt-[15vh] sm:pt-[20vh]"
+          contentClassName="fixed inset-0 z-[101] flex items-center justify-center px-4 py-6 sm:py-10"
         >
           <Dialog.Title className="sr-only">{t("label")}</Dialog.Title>
 

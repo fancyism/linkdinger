@@ -19,6 +19,7 @@ import sys
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from typing import Any, Optional, cast
+from urllib.parse import urlparse
 
 import yaml  # type: ignore[import-untyped]
 from dotenv import load_dotenv  # type: ignore[import-untyped]
@@ -51,10 +52,20 @@ LOADED_DOTENV_PATHS = _load_project_dotenvs()
 
 logger = logging.getLogger(__name__)
 REQUIRED_FRONTMATTER_FIELDS = ("title", "date")
+PROMPT_REQUIRED_FRONTMATTER_FIELDS = (
+    "title",
+    "date",
+    "platform",
+    "category",
+    "promptText",
+)
 PUBLISH_AT_FIELD = "publishAt"
 DEFAULT_CONTENT_LOCALE = "en"
 INTERNAL_SYNC_SOURCE_ID_FIELD = "_syncSourceId"
 TRANSLATION_FLAG_DEFAULT = "autoTranslate"
+DEFAULT_CONTENT_KIND = "post"
+PROMPT_CONTENT_KIND = "prompt"
+PROMPT_DIFFICULTY_LEVELS = {"beginner", "intermediate", "advanced"}
 
 
 class SyncConfig:
@@ -69,6 +80,8 @@ class SyncConfig:
         self.publish_method = publish_cfg.get("method", "both")
         self.publish_folder = publish_cfg.get("folder", "publish")
         self.publish_flag = publish_cfg.get("flag", "publish")
+        self.publish_content_subdir = publish_cfg.get("content_subdir", "content")
+        self.publish_prompt_subdir = publish_cfg.get("prompt_subdir", "prompt")
         try:
             schedule_sec = int(publish_cfg.get("schedule_check_sec", 60))
         except (TypeError, ValueError):
@@ -78,9 +91,12 @@ class SyncConfig:
         # Blog output â€” resolve relative to project root
         blog_cfg = cfg.get("blog", {})
         self.content_dir = blog_cfg.get("content_dir", "blog/content/posts")
+        self.prompts_dir = blog_cfg.get("prompts_dir", "blog/content/prompts")
 
         # Resolve absolute paths
         self.publish_path = os.path.join(self.vault_path, self.publish_folder)
+        self.publish_content_path = os.path.join(self.publish_path, self.publish_content_subdir)
+        self.publish_prompt_path = os.path.join(self.publish_path, self.publish_prompt_subdir)
 
         # Upload log for image link rewriting (Part B)
         assets_dir = cfg.get("vault", {}).get("assets_dir", "_assets")
@@ -119,6 +135,128 @@ class SyncConfig:
             return self.content_dir
         # Assume project root is one level above config.yaml's dir
         return os.path.join(os.getcwd(), self.content_dir)
+
+    @property
+    def abs_prompts_dir(self) -> str:
+        """Resolve prompts_dir to absolute path relative to project root."""
+        if os.path.isabs(self.prompts_dir):
+            return self.prompts_dir
+        return os.path.join(os.getcwd(), self.prompts_dir)
+
+
+def _normalize_content_kind(value: object) -> str:
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {PROMPT_CONTENT_KIND, "prompts"}:
+            return PROMPT_CONTENT_KIND
+    return DEFAULT_CONTENT_KIND
+
+
+def _safe_common_path(path_a: str, path_b: str) -> str | None:
+    try:
+        return os.path.commonpath([os.path.normpath(path_a), os.path.normpath(path_b)])
+    except ValueError:
+        return None
+
+
+def _is_relative_to(path: str, parent: str) -> bool:
+    common = _safe_common_path(path, parent)
+    return common == os.path.normpath(parent)
+
+
+def _detect_content_kind(
+    source_path: str,
+    config: SyncConfig,
+    frontmatter: dict[str, Any] | None = None,
+) -> str:
+    if frontmatter:
+        for key in ("contentType", "contentKind", "collection", "cmsType"):
+            normalized = _normalize_content_kind(frontmatter.get(key))
+            if normalized != DEFAULT_CONTENT_KIND:
+                return normalized
+
+    if _is_relative_to(source_path, config.publish_prompt_path):
+        return PROMPT_CONTENT_KIND
+
+    return DEFAULT_CONTENT_KIND
+
+
+def _get_output_dir_for_kind(content_kind: str, config: SyncConfig) -> str:
+    if content_kind == PROMPT_CONTENT_KIND:
+        return config.abs_prompts_dir
+    return config.abs_content_dir
+
+
+def _iter_managed_output_dirs(config: SyncConfig) -> list[str]:
+    directories = [config.abs_content_dir, config.abs_prompts_dir]
+    results: list[str] = []
+    seen: set[str] = set()
+
+    for directory in directories:
+        normalized = os.path.normpath(directory)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        results.append(directory)
+
+    return results
+
+
+def _required_frontmatter_fields_for_kind(content_kind: str) -> tuple[str, ...]:
+    if content_kind == PROMPT_CONTENT_KIND:
+        return PROMPT_REQUIRED_FRONTMATTER_FIELDS
+    return REQUIRED_FRONTMATTER_FIELDS
+
+
+def _is_valid_absolute_url(value: object) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+
+    parsed = urlparse(value.strip())
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _validate_prompt_frontmatter(frontmatter: dict[str, Any]) -> list[str]:
+    issues: list[str] = []
+
+    difficulty = frontmatter.get("difficulty")
+    if difficulty is not None:
+        normalized = str(difficulty).strip().lower()
+        if normalized not in PROMPT_DIFFICULTY_LEVELS:
+            allowed = ", ".join(sorted(PROMPT_DIFFICULTY_LEVELS))
+            issues.append(f"invalid frontmatter difficulty (expected one of: {allowed})")
+
+    model = frontmatter.get("model")
+    if model is not None and not str(model).strip():
+        issues.append("invalid frontmatter model (expected non-empty string)")
+
+    demo_url = frontmatter.get("demoUrl")
+    if demo_url is not None and not _is_valid_absolute_url(demo_url):
+        issues.append("invalid frontmatter demoUrl (expected absolute http/https URL)")
+
+    return issues
+
+
+def _collect_prompt_quality_warnings(frontmatter: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+
+    if not str(frontmatter.get("excerpt") or "").strip():
+        warnings.append("recommended frontmatter missing: excerpt")
+
+    if not str(frontmatter.get("usageTips") or "").strip():
+        warnings.append("recommended frontmatter missing: usageTips")
+
+    if not str(frontmatter.get("coverImage") or "").strip():
+        warnings.append("recommended frontmatter missing: coverImage")
+
+    return warnings
+
+
+def _safe_relpath(path: str) -> str:
+    try:
+        return os.path.relpath(path, os.getcwd())
+    except ValueError:
+        return path
 
 
 def _parse_frontmatter(content: str) -> dict[str, Any]:
@@ -355,12 +493,13 @@ def _extract_obsidian_image_basenames(content: str) -> list[str]:
     return basenames
 
 
-def _slug_key_from_path(filepath: str) -> str:
+def _slug_key_from_path(filepath: str, config: SyncConfig) -> str:
     """Normalize post slug key from markdown filename."""
     basename = os.path.basename(filepath)
     frontmatter = _read_frontmatter_from_file(filepath)
     locale = str(frontmatter.get("locale") or DEFAULT_CONTENT_LOCALE).lower()
-    return f"{locale}:{os.path.splitext(basename)[0].lower()}"
+    content_kind = _detect_content_kind(filepath, config, frontmatter)
+    return f"{content_kind}:{locale}:{os.path.splitext(basename)[0].lower()}"
 
 
 def _normalize_locale_value(value: object) -> str:
@@ -378,7 +517,7 @@ def _maybe_normalize_locale_value(value: object) -> str | None:
     return None
 
 
-def _resolve_output_relative_path(source_path: str) -> str:
+def _resolve_output_relative_path(source_path: str, config: SyncConfig) -> str:
     """Resolve the locale-aware relative output path for a markdown file."""
     frontmatter = _read_frontmatter_from_file(source_path)
     locale = _normalize_locale_value(frontmatter.get("locale"))
@@ -387,9 +526,11 @@ def _resolve_output_relative_path(source_path: str) -> str:
 
 def _resolve_output_path(source_path: str, config: SyncConfig) -> str:
     """Resolve the absolute locale-aware output path for a markdown file."""
+    frontmatter = _read_frontmatter_from_file(source_path)
+    content_kind = _detect_content_kind(source_path, config, frontmatter)
     return os.path.join(
-        config.abs_content_dir,
-        _resolve_output_relative_path(source_path),
+        _get_output_dir_for_kind(content_kind, config),
+        _resolve_output_relative_path(source_path, config),
     )
 
 
@@ -397,9 +538,10 @@ def _resolve_output_path_for_locale(
     filename: str,
     locale: str,
     config: SyncConfig,
+    content_kind: str = DEFAULT_CONTENT_KIND,
 ) -> str:
     """Resolve a locale-aware output path using an explicit filename + locale."""
-    return os.path.join(config.abs_content_dir, locale, filename)
+    return os.path.join(_get_output_dir_for_kind(content_kind, config), locale, filename)
 
 
 def _build_generated_filename(
@@ -424,22 +566,23 @@ def _get_managed_output_paths(
     source_id = _build_source_identifier(source_path, config)
     managed_paths: list[str] = []
 
-    if not os.path.isdir(config.abs_content_dir):
-        return managed_paths
+    for output_dir in _iter_managed_output_dirs(config):
+        if not os.path.isdir(output_dir):
+            continue
 
-    for root, _, filenames in os.walk(config.abs_content_dir):
-        for filename in filenames:
-            if not filename.endswith(".md"):
-                continue
-            candidate_path = os.path.join(root, filename)
-            try:
-                with open(candidate_path, "r", encoding="utf-8") as handle:
-                    candidate_frontmatter = _parse_frontmatter(handle.read(2048))
-            except (OSError, UnicodeDecodeError):
-                continue
+        for root, _, filenames in os.walk(output_dir):
+            for filename in filenames:
+                if not filename.endswith(".md"):
+                    continue
+                candidate_path = os.path.join(root, filename)
+                try:
+                    with open(candidate_path, "r", encoding="utf-8") as handle:
+                        candidate_frontmatter = _parse_frontmatter(handle.read(2048))
+                except (OSError, UnicodeDecodeError):
+                    continue
 
-            if candidate_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD) == source_id:
-                managed_paths.append(candidate_path)
+                if candidate_frontmatter.get(INTERNAL_SYNC_SOURCE_ID_FIELD) == source_id:
+                    managed_paths.append(candidate_path)
 
     return managed_paths
 
@@ -501,6 +644,7 @@ def _build_translation_request(
     body: str,
     source_locale: str,
     target_locale: str,
+    content_kind: str = DEFAULT_CONTENT_KIND,
 ) -> TranslationRequest:
     """Prepare the structured translation payload from normalized markdown."""
     return TranslationRequest(
@@ -511,6 +655,11 @@ def _build_translation_request(
         category=str(frontmatter.get("category")).strip() if frontmatter.get("category") else None,
         tags=[str(tag).strip() for tag in frontmatter.get("tags", []) if str(tag).strip()],
         body=body,
+        content_type=content_kind,
+        platform=str(frontmatter.get("platform") or "").strip() or None,
+        prompt_text=str(frontmatter.get("promptText") or "").strip() or None,
+        usage_tips=str(frontmatter.get("usageTips") or "").strip() or None,
+        sref=str(frontmatter.get("sref") or "").strip() or None,
         faq=frontmatter.get("faq") if isinstance(frontmatter.get("faq"), list) else None,
         how_to=frontmatter.get("howTo") if isinstance(frontmatter.get("howTo"), list) else None,
     )
@@ -552,13 +701,15 @@ def _write_translated_post(
     target_filename: str | None = None,
     source_id: str | None = None,
 ) -> str | None:
-    """Translate a post and write the generated locale sibling to disk."""
+    """Translate a managed content item and write the generated locale sibling to disk."""
     translator = _create_translator(config)
+    content_kind = _detect_content_kind(source_path, config, source_frontmatter)
     translation_request = _build_translation_request(
         frontmatter=source_frontmatter,
         body=source_body,
         source_locale=_normalize_locale_value(source_frontmatter.get("locale")),
         target_locale=target_locale,
+        content_kind=content_kind,
     )
     translated = translator.translate_markdown(translation_request)
 
@@ -581,6 +732,25 @@ def _write_translated_post(
         source_frontmatter.get("locale")
     )
     translated_frontmatter[config.translation_frontmatter_flag] = False
+
+    if content_kind == PROMPT_CONTENT_KIND:
+        if translated.platform:
+            translated_frontmatter["platform"] = translated.platform
+        translated_frontmatter["promptText"] = str(
+            source_frontmatter.get("promptText") or ""
+        ).strip()
+        if translated.usage_tips:
+            translated_frontmatter["usageTips"] = translated.usage_tips
+        elif "usageTips" in translated_frontmatter:
+            translated_frontmatter.pop("usageTips", None)
+
+        if source_frontmatter.get("sref"):
+            translated_frontmatter["sref"] = str(source_frontmatter.get("sref")).strip()
+        elif translated.sref:
+            translated_frontmatter["sref"] = translated.sref
+        elif "sref" in translated_frontmatter:
+            translated_frontmatter.pop("sref", None)
+
     if source_id is None:
         translated_frontmatter.pop(INTERNAL_SYNC_SOURCE_ID_FIELD, None)
     else:
@@ -607,6 +777,7 @@ def _write_translated_post(
         filename=target_filename or os.path.basename(source_path),
         locale=target_locale,
         config=config,
+        content_kind=content_kind,
     )
     if not _should_write_translation(dest_path, source_id, config):
         logger.warning(
@@ -645,10 +816,14 @@ def validate_file_for_publish(
         return [f"cannot read source file: {e}"]
 
     frontmatter = _parse_frontmatter(content)
-    for key in REQUIRED_FRONTMATTER_FIELDS:
+    content_kind = _detect_content_kind(source_path, config, frontmatter)
+    for key in _required_frontmatter_fields_for_kind(content_kind):
         value = frontmatter.get(key)
         if value is None or (isinstance(value, str) and not value.strip()):
             issues.append(f"missing required frontmatter: {key}")
+
+    if content_kind == PROMPT_CONTENT_KIND:
+        issues.extend(_validate_prompt_frontmatter(frontmatter))
 
     if "date" in frontmatter and not _is_valid_frontmatter_date(frontmatter["date"]):
         issues.append("invalid frontmatter date (expected ISO-8601)")
@@ -683,7 +858,7 @@ def validate_publish_files(
 
     slug_to_paths: dict[str, list[str]] = defaultdict(list)
     for source_path in files:
-        slug_to_paths[_slug_key_from_path(source_path)].append(source_path)
+        slug_to_paths[_slug_key_from_path(source_path, config)].append(source_path)
         issues = validate_file_for_publish(
             source_path=source_path,
             config=config,
@@ -842,6 +1017,11 @@ def sync_file(
             _log_validation_errors({source_path: issues})
             return None
 
+        frontmatter = _read_frontmatter_from_file(source_path)
+        if _detect_content_kind(source_path, config, frontmatter) == PROMPT_CONTENT_KIND:
+            for warning in _collect_prompt_quality_warnings(frontmatter):
+                logger.warning("%s (%s)", warning, os.path.basename(source_path))
+
     is_due, publish_at = _is_source_due_for_publish(source_path, now=now)
     if not is_due:
         logger.info(
@@ -884,7 +1064,7 @@ def sync_file(
         log_activity(
             "cms",
             f"Synced {filename}",
-            f"-> blog/content/posts/{_resolve_output_relative_path(source_path)}",
+            f"-> {_safe_relpath(dest_path)}",
         )
     except ImportError:
         pass
@@ -921,7 +1101,7 @@ def sync_file(
                 log_activity(
                     "cms",
                     f"Translated {filename}",
-                    f"-> blog/content/posts/{target_locale}/{filename}",
+                    f"-> {_safe_relpath(translated_path)}",
                 )
             except ImportError:
                 pass
@@ -960,12 +1140,18 @@ def _collect_publish_files(config: SyncConfig) -> list[str]:
     """
     files = set()
 
-    # Folder mode: all .md in publish/ folder
+    # Folder mode: all .md in publish/ tree
     if config.publish_method in ("folder", "both"):
         if os.path.isdir(config.publish_path):
-            for entry in os.scandir(config.publish_path):
-                if entry.is_file() and entry.name.endswith(".md"):
-                    files.add(entry.path)
+            for root, dirnames, filenames in os.walk(config.publish_path):
+                dirnames[:] = [
+                    dirname
+                    for dirname in dirnames
+                    if not dirname.startswith(".") and dirname != "_assets"
+                ]
+                for filename in filenames:
+                    if filename.endswith(".md") and not filename.startswith("."):
+                        files.add(os.path.join(root, filename))
 
     # Flag mode: scan vault for publish: true frontmatter
     if config.publish_method in ("flag", "both"):
@@ -991,6 +1177,7 @@ def _get_expected_output_paths_for_source(
     expected_paths = {os.path.normpath(_resolve_output_path(source_path, config))}
     frontmatter = _read_frontmatter_from_file(source_path)
     normalized_frontmatter = _build_synced_frontmatter(frontmatter, source_path, config)
+    content_kind = _detect_content_kind(source_path, config, normalized_frontmatter)
     source_locale = _normalize_locale_value(normalized_frontmatter.get("locale"))
 
     for target_locale in _resolve_target_locales(
@@ -1004,6 +1191,7 @@ def _get_expected_output_paths_for_source(
                     filename=os.path.basename(source_path),
                     locale=target_locale,
                     config=config,
+                    content_kind=content_kind,
                 )
             )
         )
@@ -1144,12 +1332,15 @@ def sync_all(config: SyncConfig, now: datetime | None = None) -> int:
             count += 1  # type: ignore[operator]
 
     # Clean up orphaned files in blog that are no longer in vault
-    if os.path.isdir(config.abs_content_dir):
-        expected_paths: set[str] = set()
-        for source_path in due_files:
-            expected_paths.update(_get_expected_output_paths_for_source(source_path, config))
+    expected_paths: set[str] = set()
+    for source_path in due_files:
+        expected_paths.update(_get_expected_output_paths_for_source(source_path, config))
 
-        for root, _, filenames in os.walk(config.abs_content_dir):
+    for output_dir in _iter_managed_output_dirs(config):
+        if not os.path.isdir(output_dir):
+            continue
+
+        for root, _, filenames in os.walk(output_dir):
             for filename in filenames:
                 if not filename.endswith(".md"):
                     continue

@@ -87,6 +87,28 @@ class TestResponseParsing:
         assert result.faq == [{"question": "Q1", "answer": "A1"}]
         assert result.how_to == [{"name": "Step 1", "text": "Do it"}]
 
+    def test_parse_translation_result_keeps_prompt_fields(self):
+        result = _parse_translation_result(
+            """
+            {
+              "title": "Translated Prompt",
+              "excerpt": "Prompt summary",
+              "platform": "Claude",
+              "category": "Coding",
+              "tags": ["prompting"],
+              "prompt_text": "Write a CLI helper",
+              "usage_tips": "Keep placeholders intact",
+              "sref": "--sref 123",
+              "body": "Prompt notes"
+            }
+            """
+        )
+
+        assert result.platform == "Claude"
+        assert result.prompt_text == "Write a CLI helper"
+        assert result.usage_tips == "Keep placeholders intact"
+        assert result.sref == "--sref 123"
+
     def test_parse_translation_result_requires_title_and_body(self):
         with pytest.raises(TranslationError, match="missing required fields"):
             _parse_translation_result('{"title":"","excerpt":"x","body":""}')
@@ -165,6 +187,57 @@ class TestOpenAITranslator:
                     body="# เนื้อหา",
                 )
             )
+
+    def test_translate_markdown_uses_prompt_translation_instructions(self):
+        captured: dict[str, object] = {}
+
+        class FakeCompletions:
+            def create(self, **kwargs):
+                captured.update(kwargs)
+                return SimpleNamespace(
+                    choices=[
+                        SimpleNamespace(
+                            message=SimpleNamespace(
+                                content=(
+                                    '{"title":"Prompt TH","excerpt":"sum","platform":"Claude",'
+                                    '"category":"Coding","tags":["AI"],"prompt_text":"ช่วยเขียน CLI",'
+                                    '"usage_tips":"รักษา placeholder","sref":null,"body":"โน้ตไทย"}'
+                                )
+                            )
+                        )
+                    ]
+                )
+
+        fake_client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+        translator = OpenAITranslator(
+            api_key="test-key",
+            model="glm-5",
+            provider_name="zai",
+            client=fake_client,
+        )
+
+        result = translator.translate_markdown(
+            TranslationRequest(
+                source_locale="en",
+                target_locale="th",
+                title="Prompt",
+                excerpt="Summary",
+                category="Coding",
+                tags=["AI"],
+                body="Prompt notes",
+                content_type="prompt",
+                platform="Claude",
+                prompt_text="Write a CLI helper",
+                usage_tips="Keep placeholders intact",
+            )
+        )
+
+        assert result.prompt_text == "ช่วยเขียน CLI"
+        messages = captured["messages"]
+        assert isinstance(messages, list)
+        assert "prompt library entries" in messages[0]["content"]
+        assert "Do not translate the prompt_text field" in messages[0]["content"]
+        assert "prompt_text" in messages[1]["content"]
 
     def test_translate_markdown_wraps_provider_errors(self):
         class FakeCompletions:

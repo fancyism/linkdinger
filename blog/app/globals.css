@@ -1186,6 +1186,42 @@ body {
 }
 
 /* ──────────────────────────────────────────── */
+/* ── PROMPT GALLERY SYSTEM ──                 */
+/* ──────────────────────────────────────────── */
+
+/* ── Terminal Code Block ── */
+.prompt-code-block {
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+}
+
+.light .prompt-code-block {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* ── Prompt Badge (Neubrutalism ID pill) ── */
+.prompt-badge {
+    transition: all 0.1s ease;
+}
+
+.prompt-badge:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 1px #fff;
+}
+
+.light .prompt-badge {
+    border-color: #1a1a2e !important;
+    box-shadow: 2px 2px 0 0 #1a1a2e !important;
+}
+
+.light .prompt-badge:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 #1a1a2e !important;
+}
+
+/* ──────────────────────────────────────────── */
 /* ── LIGHT THEME TEXT OVERRIDES ──            */
 /* ──────────────────────────────────────────── */
 

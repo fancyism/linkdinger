@@ -77,6 +77,7 @@ def print_status(config: Config, auto_git: AutoGit | None = None, sync_config: S
         print(f"  📝 CMS mode:     {sync_config.publish_method}")
         print(f"  📁 Publish:      {sync_config.publish_path}")
         print(f"  📄 Blog dir:     {sync_config.abs_content_dir}")
+        print(f"  ✨ Prompt dir:   {sync_config.abs_prompts_dir}")
     print()
 
 
@@ -92,6 +93,7 @@ def run_cms_only():
     print(f"  📂 Vault:     {sync_config.vault_path}")
     print(f"  📁 Publish:   {sync_config.publish_path}")
     print(f"  📄 Blog dir:  {sync_config.abs_content_dir}")
+    print(f"  ✨ Prompt dir:{sync_config.abs_prompts_dir}")
     print(f"  🔧 Method:    {sync_config.publish_method}")
     print()
 

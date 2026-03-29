@@ -4,19 +4,11 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Menu, X, Search, Github, Sun, Moon } from "lucide-react";
 import { resolveLocaleSwitchTarget } from "@/lib/locale-switch";
-
-const CommandPalette = dynamic(
-  () => import("./command-palette").then((module) => module.CommandPalette),
-  {
-    ssr: false,
-    loading: () => null,
-  },
-);
+import { CommandPalette } from "./command-palette";
 
 interface NavbarPost {
   slug: string;
@@ -94,6 +86,7 @@ export default function Navbar({
   const navLinks = [
     { href: "/", label: t("home") },
     { href: "/blog", label: t("blog") },
+    { href: "/prompts", label: t("prompts") },
     { href: "/products", label: t("products") },
     { href: "/consultation", label: t("consultation") },
     { href: "/about", label: t("about") },
