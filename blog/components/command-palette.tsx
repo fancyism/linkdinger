@@ -6,18 +6,20 @@ import { Command } from "cmdk";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Home, FileText, Sparkles } from "lucide-react";
+import { Search, Home, FileText, Sparkles, Shield } from "lucide-react";
 
 interface CommandPaletteProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  posts?: any[];
+  posts?: Array<{ slug: string; title: string }>;
+  prompts?: Array<{ slug: string; title: string; platform?: string; category?: string }>;
 }
 
 export function CommandPalette({
   open,
   setOpen,
   posts = [],
+  prompts = [],
 }: CommandPaletteProps) {
   const t = useTranslations("CommandPalette");
   const router = useRouter();
@@ -92,6 +94,13 @@ export function CommandPalette({
                     <Sparkles className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
                     {t("goPrompts")}
                   </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => router.push("/security"))}
+                    className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
+                  >
+                    <Shield className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
+                    {t("goSecurity")}
+                  </Command.Item>
                 </Command.Group>
 
                 {posts.length > 0 && (
@@ -109,6 +118,33 @@ export function CommandPalette({
                       >
                         <FileText className="w-4 h-4 mr-3 text-gray-400 group-aria-selected:text-peach" />
                         <span className="truncate">{post.title}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                )}
+
+                {prompts.length > 0 && (
+                  <Command.Group
+                    heading={t("prompts")}
+                    className="px-2 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                  >
+                    {prompts.map((prompt) => (
+                      <Command.Item
+                        key={prompt.slug}
+                        onSelect={() =>
+                          runCommand(() => router.push(`/prompts/${prompt.slug}`))
+                        }
+                        className="flex items-center px-3 py-3 mt-1 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors aria-selected:bg-black/5 dark:aria-selected:bg-white/10 aria-selected:text-gray-900 dark:aria-selected:text-white group"
+                      >
+                        <Sparkles className="w-4 h-4 mr-3 shrink-0 text-gray-400 group-aria-selected:text-peach" />
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate">{prompt.title}</span>
+                          {(prompt.platform || prompt.category) && (
+                            <span className="mt-0.5 block truncate text-[0.68rem] uppercase tracking-[0.14em] text-gray-400 group-aria-selected:text-peach/80 dark:text-gray-500 dark:group-aria-selected:text-peach/80">
+                              {[prompt.platform, prompt.category].filter(Boolean).join(" · ")}
+                            </span>
+                          )}
+                        </div>
                       </Command.Item>
                     ))}
                   </Command.Group>

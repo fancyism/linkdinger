@@ -15,13 +15,22 @@ interface NavbarPost {
   title: string;
 }
 
+interface NavbarPrompt {
+  slug: string;
+  title: string;
+  platform?: string;
+  category?: string;
+}
+
 interface NavbarProps {
   posts?: NavbarPost[];
+  prompts?: NavbarPrompt[];
   postLocaleAlternates?: Record<string, string>;
 }
 
 export default function Navbar({
   posts = [],
+  prompts = [],
   postLocaleAlternates = {},
 }: NavbarProps) {
   const t = useTranslations("Navbar");
@@ -221,11 +230,18 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile: Theme Toggle + Language + Hamburger */}
-          <div className="md:hidden flex items-center gap-2">
-            {mounted && (
-              <button
-                onClick={() =>
+             {/* Mobile: Search + Theme Toggle + Language + Hamburger */}
+           <div className="md:hidden flex items-center gap-2">
+             <button
+               onClick={() => setIsCommandOpen(true)}
+               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-black/[0.04] text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition-all hover:border-peach/30 hover:bg-peach/[0.08] hover:text-peach focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 dark:shadow-none dark:hover:border-peach/30 dark:hover:bg-peach/[0.10] dark:hover:text-peach"
+               aria-label={t("search")}
+             >
+               <Search size={18} />
+             </button>
+             {mounted && (
+               <button
+                 onClick={() =>
                   setTheme(resolvedTheme === "dark" ? "light" : "dark")
                 }
                 className="p-2 rounded-lg text-gray-600 dark:text-gray-400"
@@ -305,21 +321,6 @@ export default function Navbar({
                 {t("language")}: {localeLabel}
               </Link>
             )}
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                setIsCommandOpen(true);
-              }}
-              className="mt-2 flex w-full items-center gap-3 rounded-xl border border-black/10 bg-black/[0.04] px-3 py-3 text-left text-sm font-medium text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-0.5 hover:border-peach/30 hover:bg-peach/[0.08] hover:text-peach focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 dark:shadow-none dark:hover:border-peach/30 dark:hover:bg-peach/[0.10] dark:hover:text-peach"
-            >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-peach/20 bg-peach/[0.08] text-peach dark:border-peach/25 dark:bg-peach/[0.12]">
-                <Search size={17} />
-              </span>
-              <span className="flex flex-col">
-                <span className="font-display font-semibold tracking-wide">{t("search")}</span>
-                <span className="text-xs text-slate-500 dark:text-gray-400">Find posts, prompts, and pages</span>
-              </span>
-            </button>
           </div>
         </div>
       </div>
@@ -329,6 +330,7 @@ export default function Navbar({
           open={isCommandOpen}
           setOpen={setIsCommandOpen}
           posts={posts}
+          prompts={prompts}
         />
       ) : null}
     </nav>

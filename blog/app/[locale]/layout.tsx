@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { routing } from "@/i18n/routing";
 import { getAllPosts, getPostLocaleSwitchMap } from "@/lib/posts";
+import { getAllPrompts } from "@/lib/prompts";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -30,6 +31,12 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   const posts = getAllPosts(locale).map(({ slug, title }) => ({ slug, title }));
+  const prompts = getAllPrompts(locale).map(({ slug, title, platform, category }) => ({
+    slug,
+    title,
+    platform,
+    category,
+  }));
   const postLocaleAlternates = getPostLocaleSwitchMap();
 
   return (
@@ -70,7 +77,7 @@ export default async function LocaleLayout({
         }}
       />
       <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar posts={posts} postLocaleAlternates={postLocaleAlternates} />
+        <Navbar posts={posts} prompts={prompts} postLocaleAlternates={postLocaleAlternates} />
         <main className="flex-1">{children}</main>
         <Footer />
       </div>
