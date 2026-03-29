@@ -118,8 +118,8 @@ export default function PromptCard({
               {previewLayout === "spotlight" && (
                 <>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(154,205,50,0.22),transparent_34%),radial-gradient(circle_at_18%_86%,rgba(255,107,53,0.18),transparent_30%),linear-gradient(135deg,#081007_0%,#0d140d_45%,#131313_100%)]" />
-                  <div className="absolute inset-x-[12%] top-[9%] bottom-[14%] z-10 overflow-hidden rounded-[24px] border border-white/14 bg-white/[0.08] p-2 shadow-[0_20px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
-                    <div className="h-full w-full overflow-hidden rounded-[18px] bg-white/95">
+                  <div className="absolute inset-x-[12%] top-[9%] bottom-[14%] z-10 overflow-hidden rounded-[30px] border border-white/14 bg-white/[0.08] p-2 shadow-[0_20px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                    <div className="h-full w-full overflow-hidden rounded-[24px] bg-white/95">
                       <img
                         src={prompt.coverImage}
                         alt={prompt.title}
@@ -134,8 +134,14 @@ export default function PromptCard({
               {previewLayout === "editorial" && (
                 <>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_22%,rgba(154,205,50,0.20),transparent_34%),radial-gradient(circle_at_16%_82%,rgba(255,107,53,0.14),transparent_30%),linear-gradient(135deg,#0d110b_0%,#121612_45%,#191919_100%)]" />
-                  <div className="absolute inset-x-[6%] top-[10%] bottom-[14%] z-10 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
-                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[16px] bg-[#f6f4ef]">
+                  <div className="absolute inset-x-[6%] top-[10%] bottom-[14%] z-10 overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.06] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
+                    <div
+                      className="flex h-full w-full items-center justify-center overflow-hidden rounded-[22px] bg-[#10140f] bg-cover bg-center bg-no-repeat"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(rgba(16,20,15,0.18), rgba(16,20,15,0.18)), url('/preview_gradient.gif')",
+                      }}
+                    >
                       <img
                         src={prompt.coverImage}
                         alt={prompt.title}
