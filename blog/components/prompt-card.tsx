@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Calendar, Sparkles } from "lucide-react";
@@ -58,6 +59,33 @@ export default function PromptCard({
   // Format date
   const [, month, day] = (prompt.date || "").split("-");
   const formattedDate = month && day ? `${month}.${day}` : prompt.date;
+  const previewShellClass =
+    "bg-[radial-gradient(circle_at_78%_24%,rgba(255,140,90,0.18),transparent_28%),radial-gradient(circle_at_18%_82%,rgba(255,107,53,0.18),transparent_30%),linear-gradient(135deg,#120d0b_0%,#171110_42%,#1a1a1a_100%)]";
+  const brandHeader = (
+    <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center justify-start">
+      <Image
+        src="/images/about/logo-lind.png"
+        alt="Linkdinger"
+        width={124}
+        height={32}
+        className="h-6 w-auto object-contain opacity-95 drop-shadow-[0_4px_14px_rgba(0,0,0,0.28)] dark:drop-shadow-[0_4px_14px_rgba(0,0,0,0.42)]"
+        priority={false}
+      />
+    </div>
+  );
+  const watermark = (
+    <div className="pointer-events-none absolute bottom-[18%] right-[8%] z-10 opacity-[0.12] mix-blend-screen">
+      <Image
+        src="/images/about/logo-lind.png"
+        alt=""
+        width={126}
+        height={30}
+        className="h-7 w-auto object-contain"
+        aria-hidden="true"
+        priority={false}
+      />
+    </div>
+  );
 
   return (
     <motion.div
@@ -95,31 +123,38 @@ export default function PromptCard({
         <div
           className={`${aspectClass} relative w-full overflow-hidden rounded-xl bg-black/10 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)] group-focus-within:ring-2 group-focus-within:ring-peach/35 dark:bg-black/50 dark:group-hover:shadow-[0_20px_40px_rgba(255,255,255,0.08)]`}
         >
+          <div className={`absolute inset-0 ${previewShellClass}`} />
           {/* Platform accent bar */}
           <div
             className="absolute top-0 left-0 w-1 h-full z-20 rounded-l-xl"
             style={{ background: platformColor }}
           />
 
+          {brandHeader}
+          {watermark}
+
           {prompt.coverImage ? (
             <>
               {previewLayout === "showcase" && (
                 <>
-                  <img
-                    src={prompt.coverImage}
-                    alt={prompt.title}
-                    className="relative z-10 h-full w-full object-cover transition-all duration-700 group-hover:scale-105 dark:brightness-90 dark:group-hover:brightness-100"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-x-[5%] top-[11%] bottom-[14%] z-10 overflow-hidden rounded-[28px] border border-black/8 bg-white/36 p-2 shadow-[0_18px_44px_rgba(15,23,42,0.12)] backdrop-blur-md dark:border-white/12 dark:bg-white/[0.05] dark:shadow-[0_22px_56px_rgba(0,0,0,0.34)]">
+                    <div className="h-full w-full overflow-hidden rounded-[22px] bg-[#f3eee7] dark:bg-[#111611]">
+                      <img
+                        src={prompt.coverImage}
+                        alt={prompt.title}
+                        className="relative z-10 h-full w-full object-cover transition-all duration-700 group-hover:scale-105 dark:brightness-90 dark:group-hover:brightness-100"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/64 via-transparent to-transparent" />
                 </>
               )}
 
               {previewLayout === "spotlight" && (
                 <>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(154,205,50,0.22),transparent_34%),radial-gradient(circle_at_18%_86%,rgba(255,107,53,0.18),transparent_30%),linear-gradient(135deg,#081007_0%,#0d140d_45%,#131313_100%)]" />
-                  <div className="absolute inset-x-[12%] top-[9%] bottom-[14%] z-10 overflow-hidden rounded-[30px] border border-white/14 bg-white/[0.08] p-2 shadow-[0_20px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
-                    <div className="h-full w-full overflow-hidden rounded-[24px] bg-white/95">
+                  <div className="absolute inset-x-[12%] top-[11%] bottom-[14%] z-10 overflow-hidden rounded-[30px] border border-black/8 bg-white/42 p-2 shadow-[0_18px_44px_rgba(15,23,42,0.12)] backdrop-blur-md dark:border-white/14 dark:bg-white/[0.08] dark:shadow-[0_20px_55px_rgba(0,0,0,0.35)]">
+                    <div className="h-full w-full overflow-hidden rounded-[24px] bg-white/96 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
                       <img
                         src={prompt.coverImage}
                         alt={prompt.title}
@@ -133,19 +168,19 @@ export default function PromptCard({
 
               {previewLayout === "editorial" && (
                 <>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_22%,rgba(154,205,50,0.20),transparent_34%),radial-gradient(circle_at_16%_82%,rgba(255,107,53,0.14),transparent_30%),linear-gradient(135deg,#0d110b_0%,#121612_45%,#191919_100%)]" />
-                  <div className="absolute inset-x-[6%] top-[10%] bottom-[14%] z-10 overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.06] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-md">
-                    <div
-                      className="flex h-full w-full items-center justify-center overflow-hidden rounded-[22px] bg-[#10140f] bg-cover bg-center bg-no-repeat"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(rgba(16,20,15,0.18), rgba(16,20,15,0.18)), url('/preview_gradient.gif')",
-                      }}
-                    >
+                  <div className="absolute inset-x-[6%] top-[12%] bottom-[14%] z-10 overflow-hidden rounded-[28px] border border-black/8 bg-white/34 p-2 shadow-[0_18px_44px_rgba(15,23,42,0.12)] backdrop-blur-md dark:border-white/12 dark:bg-white/[0.06] dark:shadow-[0_18px_44px_rgba(0,0,0,0.32)]">
+                    <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[22px] bg-[#f0ebe2] dark:bg-[#10140f]">
+                      <img
+                        src="/preview_gradient.gif"
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full object-cover opacity-35 dark:opacity-55"
+                      />
+                      <div className="absolute inset-0 bg-white/34 dark:bg-black/18" />
                       <img
                         src={prompt.coverImage}
                         alt={prompt.title}
-                        className="h-full w-full object-contain p-1 transition-all duration-700 group-hover:scale-[1.02]"
+                        className="relative z-10 h-full w-full object-contain p-1 transition-all duration-700 group-hover:scale-[1.02]"
                         loading="lazy"
                       />
                     </div>
@@ -154,7 +189,7 @@ export default function PromptCard({
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10">
               <Sparkles
                 size={48}
                 className="opacity-20"
@@ -164,7 +199,7 @@ export default function PromptCard({
           )}
 
           {/* Prompt ID Badge — brutal neubrutalism */}
-          <div className="absolute top-3 right-3 z-20">
+          <div className="absolute right-3 top-[3.1rem] z-20">
             <span
               className="prompt-badge text-[0.65rem] font-display font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
               style={{
