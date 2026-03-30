@@ -12,6 +12,7 @@ import { markdownToHtml } from "@/lib/markdown";
 import { getTranslations } from "next-intl/server";
 import PostDetail from "./post-detail";
 import type { Metadata } from "next";
+import { SITE_AUTHOR } from "@/lib/site-author";
 
 export function generateStaticParams({
   params,
@@ -48,7 +49,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.date,
       modifiedTime: post.dateModified || post.date,
-      authors: ["Affan"],
+      authors: [SITE_AUTHOR.fullName],
       tags: post.tags,
       images: post.coverImage ? [{ url: post.coverImage }] : [],
     },
@@ -71,6 +72,8 @@ export default async function PostPage({
   const headings = extractHeadings(post.content);
   const html = await markdownToHtml(post.content);
   const canonicalPostUrl = `${siteUrl}/${locale}/blog/${encodeURIComponent(post.slug)}/`;
+  const authorAboutUrl = `${siteUrl}/${locale}/about/`;
+  const authorImageUrl = `${siteUrl}${SITE_AUTHOR.imagePath}`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -81,8 +84,10 @@ export default async function PostPage({
     dateModified: post.dateModified || post.date,
     author: {
       "@type": "Person",
-      name: "Affan",
-      url: `${siteUrl}/${locale}/about/`,
+      name: SITE_AUTHOR.fullName,
+      url: authorAboutUrl,
+      image: authorImageUrl,
+      sameAs: SITE_AUTHOR.sameAs,
     },
     publisher: {
       "@type": "Organization",

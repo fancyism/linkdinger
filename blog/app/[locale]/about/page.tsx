@@ -13,6 +13,7 @@ import {
 import { GitHubCalendar } from "react-github-calendar";
 import Image from "next/image";
 import NewsletterForm from "@/components/newsletter-form";
+import { SITE_AUTHOR } from "@/lib/site-author";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -49,9 +50,9 @@ export default async function AboutPage({
     url: `${siteUrl}/${locale}/about/`,
     mainEntity: {
       "@type": "Person",
-      name: "Affan",
+      name: SITE_AUTHOR.fullName,
       url: `${siteUrl}/${locale}/about/`,
-      image: `${siteUrl}/images/about/profile-photo.png`,
+      image: `${siteUrl}${SITE_AUTHOR.imagePath}`,
       description: t("personDescription"),
       jobTitle: t("jobTitle"),
       knowsAbout: [
@@ -61,11 +62,7 @@ export default async function AboutPage({
         "Prompt Engineering",
         "Glassmorphism",
       ],
-      sameAs: [
-        "https://github.com/fancyism",
-        "https://www.linkedin.com/in/fan-affan",
-        "https://fan-portfolio-zeta.vercel.app/",
-      ],
+      sameAs: SITE_AUTHOR.sameAs,
     },
   };
 
@@ -83,13 +80,16 @@ export default async function AboutPage({
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row gap-6 items-start mb-8">
               <Image
-                src="/images/about/profile-photo.png"
-                alt="Affan"
+                src={SITE_AUTHOR.imagePath}
+                alt={SITE_AUTHOR.fullName}
                 width={100}
                 height={100}
                 className="rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10 shrink-0 aspect-square"
               />
               <div className="pt-2">
+                <p className="mb-2 text-[0.68rem] font-display font-bold uppercase tracking-[0.26em] text-peach">
+                  {SITE_AUTHOR.fullName}
+                </p>
                 <h1 className="text-3xl sm:text-4xl font-display font-bold mb-3 text-gray-900 dark:text-white">
                   {t("introTitle")}
                 </h1>
@@ -101,9 +101,7 @@ export default async function AboutPage({
             </div>
 
             <div className="prose dark:prose-invert prose-lg text-gray-600 dark:text-gray-300 font-light leading-relaxed">
-              <p className="mb-4">
-                {t("introLead")}
-              </p>
+              <p className="mb-4">{t("introLead")}</p>
               <p>{t("introBody")}</p>
             </div>
           </div>

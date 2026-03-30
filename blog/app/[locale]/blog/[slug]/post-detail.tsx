@@ -14,6 +14,7 @@ import ViewCounter from "@/components/view-counter";
 import GiscusComments from "@/components/giscus-comments";
 import SeriesNav from "@/components/series-nav";
 import ArticleAttribution from "@/components/article-attribution";
+import PostAuthorCard from "@/components/post-author-card";
 
 interface PostDetailProps {
   post: Post;
@@ -148,6 +149,8 @@ export default function PostDetail({
               </>
             )}
           </div>
+
+          <PostAuthorCard />
         </div>
       </section>
 

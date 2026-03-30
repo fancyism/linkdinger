@@ -74,7 +74,8 @@ const messages = {
     eyebrow: "Security",
     headline: "เทเลเมทรีของระบบป้องกัน crawler",
     body: "หน้านี้แสดงจำนวน AI crawler ที่ถูกบล็อก และจำนวนทราฟฟิกอัตโนมัติที่ถูกจำกัดความเร็ว โดยไม่ทำให้ประสบการณ์ของผู้ใช้จริงเปลี่ยนไป",
-    unconfigured: "ยังไม่ได้ตั้งค่า Upstash จึงยังไม่มีตัวนับแบบถาวร แต่ระบบป้องกันยังทำงานด้วย memory fallback อยู่",
+    unconfigured:
+      "ยังไม่ได้ตั้งค่า Upstash จึงยังไม่มีตัวนับแบบถาวร แต่ระบบป้องกันยังทำงานด้วย memory fallback อยู่",
     blockedAiBots: "AI bots ที่ถูกบล็อก",
     throttledTraffic: "ทราฟฟิกน่าสงสัยที่ถูกจำกัด",
     byClassification: "แยกตามประเภท",
@@ -82,8 +83,10 @@ const messages = {
     byStorage: "แยกตามระบบจัดเก็บ",
     notesTitle: "หมายเหตุ",
     notesLine1: "AI crawler ที่รู้จักจะถูกบล็อกทันทีที่ proxy layer",
-    notesLine2: "automation ที่ไม่รู้จักหรือน่าสงสัยจะถูกจำกัดแบบนุ่มนวลเฉพาะบนเส้นทางที่ป้องกันไว้ เช่น blog, prompts และ API",
-    notesLine3: "หากตั้งค่า Upstash แล้ว หน้านี้จะแสดงตัวนับจาก Redis; ถ้ายังไม่ตั้งค่าจะใช้ memory fallback แทน",
+    notesLine2:
+      "automation ที่ไม่รู้จักหรือน่าสงสัยจะถูกจำกัดแบบนุ่มนวลเฉพาะบนเส้นทางที่ป้องกันไว้ เช่น blog, prompts และ API",
+    notesLine3:
+      "หากตั้งค่า Upstash แล้ว หน้านี้จะแสดงตัวนับจาก Redis; ถ้ายังไม่ตั้งค่าจะใช้ memory fallback แทน",
   },
   SearchClient: {
     placeholder: "ค้นหาโพสต์จากชื่อ เนื้อหา หรือแท็ก...",
@@ -201,6 +204,9 @@ const messages = {
     readTime: "{minutes} นาทีอ่าน",
     readSuffix: "อ่าน",
     less: "ย่อ",
+    writtenBy: "เขียนโดย",
+    viewAuthorPage: "หน้าคนเขียน",
+    viewAuthorPageAria: "ดูโปรไฟล์ผู้เขียนของ {name}",
     shareLabel: "แชร์โพสต์นี้",
     relatedPosts: "โพสต์ที่เกี่ยวข้อง",
     moreTags: "+{count}",

@@ -74,7 +74,8 @@ const messages = {
     eyebrow: "Security",
     headline: "Protection telemetry for crawler defense",
     body: "This internal-facing view shows how many known AI crawlers were blocked and how much suspicious automation was throttled without changing the human browsing experience.",
-    unconfigured: "Upstash is not configured yet, so security counters are unavailable. Bot protection still works with the in-memory fallback.",
+    unconfigured:
+      "Upstash is not configured yet, so security counters are unavailable. Bot protection still works with the in-memory fallback.",
     blockedAiBots: "Blocked AI bots",
     throttledTraffic: "Throttled suspicious traffic",
     byClassification: "By Classification",
@@ -82,8 +83,10 @@ const messages = {
     byStorage: "By Storage",
     notesTitle: "Notes",
     notesLine1: "Known AI crawlers are blocked immediately at the proxy layer.",
-    notesLine2: "Unknown or suspicious automation is softly throttled only on protected routes like blog, prompts, and API paths.",
-    notesLine3: "Redis-backed counts are shown when Upstash is configured; otherwise the site falls back to in-memory protection.",
+    notesLine2:
+      "Unknown or suspicious automation is softly throttled only on protected routes like blog, prompts, and API paths.",
+    notesLine3:
+      "Redis-backed counts are shown when Upstash is configured; otherwise the site falls back to in-memory protection.",
   },
   SearchClient: {
     placeholder: "Search posts by title, content, or tag...",
@@ -202,6 +205,9 @@ const messages = {
     readTime: "{minutes} min read",
     readSuffix: "read",
     less: "less",
+    writtenBy: "Written by",
+    viewAuthorPage: "About the author",
+    viewAuthorPageAria: "View {name}'s author profile",
     shareLabel: "Share this post",
     relatedPosts: "Related posts",
     moreTags: "+{count}",
