@@ -122,9 +122,12 @@ export default function Navbar({
       } ${visible ? "translate-y-0" : "-translate-y-full"}`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-16 items-center justify-between gap-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link
+            href="/"
+            className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:flex-none"
+          >
             <div className="relative flex-shrink-0">
               {/* Ambient glow */}
               <div className="absolute -inset-1 bg-gradient-to-br from-peach/30 via-peach-light/20 to-transparent rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
@@ -143,7 +146,7 @@ export default function Navbar({
               </div>
             </div>
             {/* Brand text */}
-            <span className="text-2xl font-display font-bold text-peach group-hover:text-peach-light transition-colors duration-300">
+            <span className="min-w-0 truncate text-lg font-display font-bold leading-none text-peach transition-colors duration-300 group-hover:text-peach-light sm:text-2xl">
               Linkdinger
             </span>
           </Link>
@@ -230,18 +233,18 @@ export default function Navbar({
             )}
           </div>
 
-             {/* Mobile: Search + Theme Toggle + Language + Hamburger */}
-           <div className="md:hidden flex items-center gap-2">
-             <button
-               onClick={() => setIsCommandOpen(true)}
-               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-black/[0.04] text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition-all hover:border-peach/30 hover:bg-peach/[0.08] hover:text-peach focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 dark:shadow-none dark:hover:border-peach/30 dark:hover:bg-peach/[0.10] dark:hover:text-peach"
-               aria-label={t("search")}
-             >
-               <Search size={18} />
-             </button>
-             {mounted && (
-               <button
-                 onClick={() =>
+          {/* Mobile: Search + Theme Toggle + Language + Hamburger */}
+          <div className="md:hidden shrink-0 flex items-center gap-1.5">
+            <button
+              onClick={() => setIsCommandOpen(true)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-black/[0.04] text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition-all hover:border-peach/30 hover:bg-peach/[0.08] hover:text-peach focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 dark:shadow-none dark:hover:border-peach/30 dark:hover:bg-peach/[0.10] dark:hover:text-peach"
+              aria-label={t("search")}
+            >
+              <Search size={18} />
+            </button>
+            {mounted && (
+              <button
+                onClick={() =>
                   setTheme(resolvedTheme === "dark" ? "light" : "dark")
                 }
                 className="p-2 rounded-lg text-gray-600 dark:text-gray-400"
