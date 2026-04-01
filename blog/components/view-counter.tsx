@@ -32,8 +32,13 @@ export default function ViewCounter({
             try {
                 let currentViews = 0
 
+                // Use origin-absolute URL so next-intl locale middleware
+                // does not rewrite /api/views/* under the /en/ prefix.
+                const apiBase = typeof window !== 'undefined'
+                    ? window.location.origin
+                    : ''
                 if (trackView) {
-                    const res = await fetch(`/api/views/${slug}`, {
+                    const res = await fetch(`${apiBase}/api/views/${slug}`, {
                         method: 'POST',
                     })
                     if (res.ok) {
@@ -41,7 +46,7 @@ export default function ViewCounter({
                         currentViews = data.views ?? 0
                     }
                 } else {
-                    const res = await fetch(`/api/views/${slug}`, {
+                    const res = await fetch(`${apiBase}/api/views/${slug}`, {
                         method: 'GET',
                     })
                     if (res.ok) {

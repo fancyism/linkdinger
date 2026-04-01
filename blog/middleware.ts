@@ -36,6 +36,13 @@ function buildBlockedResponse(message: string, status: number) {
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // API routes must never receive locale prefixes from next-intl.
+  // trailingSlash in next.config.js would otherwise cause a redirect
+  // chain: /api/views/slug → /api/views/slug/ → /en/api/views/slug/ → 404.
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   if (shouldSkipBotProtection(pathname)) {
     return handleI18nRouting(request);
   }
@@ -92,5 +99,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    // Skip _next internals, static files, and all /api/* routes.
+    // API routes must be served without locale prefixes.
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\..*).*)',
+  ],
 };

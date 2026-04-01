@@ -469,22 +469,85 @@ body {
     border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
+/* ── Prose Hyperlinks — premium animated underline ── */
 .prose a {
     color: #ff6b35;
     text-decoration: none;
-    transition: color 0.2s;
+    position: relative;
+    font-weight: 500;
+    /* Animated underline via background-clip */
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 107, 53, 0.6),
+        rgba(255, 140, 90, 0.6)
+    );
+    background-size: 0% 1.5px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    transition:
+        color 0.2s ease,
+        background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        text-shadow 0.2s ease;
+    padding-bottom: 1px;
 }
 
 .prose a:hover {
     color: #ff8c5a;
+    background-size: 100% 1.5px;
+    text-shadow: 0 0 16px rgba(255, 107, 53, 0.35);
+}
+
+.prose a:focus-visible {
+    outline: none;
+    border-radius: 2px;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.4);
+}
+
+/* External link subtle indicator */
+.prose a[target="_blank"]::after {
+    content: "↗";
+    font-size: 0.6em;
+    vertical-align: super;
+    opacity: 0.6;
+    margin-left: 2px;
+    line-height: 0;
+    transition: opacity 0.2s;
+}
+
+.prose a[target="_blank"]:hover::after {
+    opacity: 1;
+}
+
+/* Heading anchor links (from rehype-autolink-headings) - keep discrete */
+.prose h1 a,
+.prose h2 a,
+.prose h3 a,
+.prose h4 a {
+    color: inherit;
+    background-image: none;
+    font-weight: inherit;
+}
+
+.prose h1 a:hover,
+.prose h2 a:hover,
+.prose h3 a:hover,
+.prose h4 a:hover {
+    color: #ff6b35;
+    text-shadow: none;
 }
 
 .light .prose a {
     color: #e55a2b;
+    background-image: linear-gradient(
+        90deg,
+        rgba(229, 90, 43, 0.5),
+        rgba(255, 107, 53, 0.5)
+    );
 }
 
 .light .prose a:hover {
     color: #ff6b35;
+    text-shadow: 0 0 12px rgba(255, 107, 53, 0.2);
 }
 
 .prose code {
@@ -507,12 +570,167 @@ body {
     padding: 20px;
     overflow-x: auto;
     margin: 1.5em 0;
+    /* Remove top radius — header sits above */
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
 }
 
 .light .prose pre {
     background: #1e293b;
     border-color: #334155;
     color: #e2e8f0;
+}
+
+/* ──────────────────────────────────────────── */
+/* ── CODE BLOCK ENHANCEMENT SYSTEM ──         */
+/* (injected by ProseEnhancer client component)*/
+/* ──────────────────────────────────────────── */
+
+/* Outer wrapper — provides positioning context */
+.code-block-wrapper {
+    position: relative;
+    margin: 1.5em 0;
+    border-radius: 12px;
+    /* Glass border around the whole block */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden; /* clip header + pre to border-radius */
+}
+
+/* Remove margin from the native pre since wrapper handles it */
+.code-block-wrapper > pre {
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* ── Header bar (glass) ── */
+.code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    user-select: none;
+}
+
+/* ── Language pill (neubrutalism accent) ── */
+.code-lang-pill {
+    font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.25);
+    border-radius: 6px;
+    padding: 2px 8px;
+    line-height: 1.6;
+    white-space: nowrap;
+    /* Neubrutalism subtle offset shadow */
+    box-shadow: 1px 1px 0 rgba(255, 107, 53, 0.2);
+}
+
+/* ── Button group ── */
+.code-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* ── Action buttons (wrap + copy) ── */
+.code-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease,
+        box-shadow 0.15s ease;
+    padding: 0;
+    line-height: 0;
+}
+
+.code-action-btn:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.code-action-btn:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: none;
+}
+
+.code-action-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.5);
+    border-color: rgba(255, 107, 53, 0.4);
+}
+
+/* Active state — wrap is ON */
+.code-action-btn--active {
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.12);
+    border-color: rgba(255, 107, 53, 0.3);
+}
+
+.code-action-btn--active:hover {
+    color: #ff8c5a;
+    background: rgba(255, 107, 53, 0.2);
+    border-color: rgba(255, 107, 53, 0.45);
+}
+
+/* Copied state (momentary green flash) */
+.code-action-btn--copied {
+    color: #4ade80 !important;
+    border-color: rgba(74, 222, 128, 0.35) !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+}
+
+/* ── Light theme overrides ── */
+.light .code-block-wrapper {
+    border-color: #334155;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.light .code-block-header {
+    background: rgba(30, 41, 59, 0.95);
+    border-bottom-color: #334155;
+}
+
+.light .code-action-btn {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.light .code-action-btn:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .prose pre code {

@@ -12,6 +12,7 @@ import BrutalTag from "@/components/ui/brutal-tag";
 import type { Post, TocItem } from "@/lib/posts";
 import ViewCounter from "@/components/view-counter";
 import GiscusComments from "@/components/giscus-comments";
+import ProseEnhancer from "@/components/prose-enhancer";
 import SeriesNav from "@/components/series-nav";
 import ArticleAttribution from "@/components/article-attribution";
 import PostAuthorCard from "@/components/post-author-card";
@@ -160,6 +161,7 @@ export default function PostDetail({
             className="prose min-w-0 w-full"
             dangerouslySetInnerHTML={{ __html: html }}
           />
+          <ProseEnhancer />
 
           {headings.length > 0 && (
             <aside className="hidden w-52 shrink-0 self-start xl:block">
