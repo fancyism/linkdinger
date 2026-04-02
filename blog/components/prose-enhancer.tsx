@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
 
 /**
  * ProseEnhancer — zero hardcoded params.
@@ -17,6 +19,7 @@ import { useEffect, useRef } from 'react'
  */
 export default function ProseEnhancer() {
     const containerRef = useRef<HTMLDivElement>(null)
+    const [zoomedImage, setZoomedImage] = useState<{src: string, alt: string} | null>(null)
 
     useEffect(() => {
         // Walk up to the nearest article element from our sentinel div.
@@ -24,6 +27,23 @@ export default function ProseEnhancer() {
         if (!sentinel) return
         const article = sentinel.closest('article') ?? sentinel.parentElement
         if (!article) return
+
+        // ── IMAGE ENHANCEMENT (Lightbox Modal) ──
+        const imgNodes: HTMLImageElement[] = Array.from(
+            article.querySelectorAll('img'),
+        )
+
+        imgNodes.forEach((img) => {
+            if (img.dataset.enhanced === '1') return
+            img.dataset.enhanced = '1'
+
+            img.addEventListener('click', () => {
+                setZoomedImage({
+                    src: img.src,
+                    alt: img.alt || 'Zoomed image',
+                })
+            })
+        })
 
         // Linked-list traversal: collect every <pre> in the article.
         const preNodes: HTMLPreElement[] = Array.from(
@@ -130,8 +150,64 @@ export default function ProseEnhancer() {
         })
     }, [])
 
+    // ── MODAL A11Y & BODY SCROLL LOCK ──
+    useEffect(() => {
+        if (!zoomedImage) return
+
+        const originalOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setZoomedImage(null)
+        }
+        window.addEventListener('keydown', handleEscape)
+
+        return () => {
+            document.body.style.overflow = originalOverflow
+            window.removeEventListener('keydown', handleEscape)
+        }
+    }, [zoomedImage])
+
     // Sentinel div — invisible, just anchors the ref so we can find article.
-    return <div ref={containerRef} aria-hidden style={{ display: 'none' }} />
+    return (
+        <>
+            <div ref={containerRef} aria-hidden style={{ display: 'none' }} />
+            
+            {/* Modal Portal */}
+            {zoomedImage && typeof document !== 'undefined' && createPortal(
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/70 backdrop-blur-[20px] transition-all"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setZoomedImage(null)}
+                    style={{ animation: 'modalFadeIn 0.3s ease-out forwards' }}
+                >
+                    <button
+                        type="button"
+                        onClick={() => setZoomedImage(null)}
+                        className="fixed right-6 top-6 z-50 p-2 text-white/70 bg-white/10 hover:bg-white/20 hover:text-white border border-white/20 hover:border-white/40 rounded-full transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]/50 active:scale-95 shadow-xl"
+                        aria-label="Close modal"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                    
+                    <div 
+                        className="relative flex flex-col items-center justify-center"
+                        style={{ animation: 'modalZoomIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards' }}
+                        onClick={(e) => e.stopPropagation()} /* Prevent closing when clicking the image itself */
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                            src={zoomedImage.src} 
+                            alt={zoomedImage.alt}
+                            className="max-w-[95vw] max-h-[85vh] sm:max-w-[90vw] sm:max-h-[90vh] w-auto h-auto object-contain rounded-lg border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                        />
+                    </div>
+                </div>,
+                document.body
+            )}
+        </>
+    )
 }
 
 // ── SVG icons (inline, no extra dependencies) ──
